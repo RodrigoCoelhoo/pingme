@@ -6,9 +6,8 @@ import {
 	Navigate,
 } from 'react-router-dom'
 import Landing from '../pages/Landing.tsx';
-import Signin from '../pages/SignIn.tsx';
+import Signin from '../pages/Signin.tsx';
 import Signup from '../pages/Signup.tsx';
-
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
