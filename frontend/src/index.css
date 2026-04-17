@@ -42,6 +42,7 @@
   --grad-start: var(--green-500);
   --grad-end: var(--green-300);
   --gradient: linear-gradient(135deg, var(--grad-start), var(--grad-end));
+  --gradient-dark: linear-gradient(135deg, var(--green-800), var(--green-500));
   --gradient-90: linear-gradient(90deg, var(--grad-start), var(--grad-end));
 }
 

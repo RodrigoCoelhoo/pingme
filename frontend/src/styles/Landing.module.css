@@ -1,0 +1,360 @@
+.landing {
+	min-height: 100vh;
+	background: var(--bg);
+}
+
+/* ── HEADER ── */
+.header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: var(--z-sticky);
+	background: var(--bg);
+	border-bottom: 1px solid var(--border);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	/* Remove max-height and let padding/content define height */
+	height: 72px;
+}
+
+.headerContent {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 0 var(--space-6);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 100%;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	height: 48px;
+}
+
+.logo img {
+	height: 100%;
+	width: auto;
+	display: block;
+	object-fit: contain;
+}
+
+.nav {
+	display: flex;
+	align-items: center;
+	gap: var(--space-6);
+}
+
+/* ── HERO ── */
+.hero {
+	padding-bottom: var(--space-20);
+	background: var(--bg-dark);
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.heroContent {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 var(--space-6);
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--space-16);
+	align-items: center;
+}
+
+.heroText {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-6);
+}
+
+.heroTitle {
+	font-size: 3.5rem;
+	font-weight: var(--font-extrabold);
+	line-height: 1.1;
+	letter-spacing: -0.03em;
+	color: var(--text);
+}
+
+.highlight {
+	background: var(--gradient);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	position: relative;
+}
+
+.highlight::after {
+	content: '';
+	position: absolute;
+	bottom: 4px;
+	left: 0;
+	right: 0;
+	height: 12px;
+	background: var(--green-500);
+	opacity: 0.15;
+	border-radius: 4px;
+	z-index: -1;
+}
+
+.heroSubtitle {
+	font-size: var(--text-lg);
+	line-height: 1.6;
+	color: var(--muted);
+	max-width: 540px;
+}
+
+.heroCta {
+	display: flex;
+	gap: var(--space-3);
+	margin-top: var(--space-2);
+}
+
+.heroNote {
+	font-size: var(--text-sm);
+	color: var(--muted);
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-4);
+}
+
+.heroNote span {
+	color: var(--green-700);
+}
+
+/* ── HERO VISUAL ── */
+.heroVisual {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.mockChat {
+	width: 100%;
+	max-width: 500px;
+	background: var(--surface);
+	border-radius: 24px;
+	overflow: hidden;
+	box-shadow: var(--shadow-xl);
+	border: 1px solid var(--border);
+	animation: floatIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes floatIn {
+	from {
+		opacity: 0;
+		transform: translateY(30px) scale(0.95);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.mockHeader {
+	padding: var(--space-4);
+	background: var(--bg-light);
+	border-bottom: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+}
+
+.mockAvatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: var(--gradient);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: var(--font-bold);
+	color: white;
+	font-size: var(--text-md);
+}
+
+.mockInfo {
+	flex: 1;
+}
+
+.mockName {
+	font-weight: var(--font-semibold);
+	font-size: var(--text-base);
+	color: var(--text);
+}
+
+.mockStatus {
+	font-size: var(--text-xs);
+	color: var(--green-400);
+	font-weight: var(--font-medium);
+}
+
+.mockMessages {
+	padding: var(--space-5);
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	min-height: 280px;
+	background: var(--bg-dark);
+}
+
+.msgReceived,
+.msgSent {
+	display: flex;
+	animation: messagePop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+
+.msgReceived {
+	justify-content: flex-start;
+}
+
+.msgSent {
+	justify-content: flex-end;
+}
+
+.msgReceived:nth-child(1) {
+	animation-delay: 0.2s;
+}
+
+.msgReceived:nth-child(3) {
+	animation-delay: 0.6s;
+}
+
+.msgSent:nth-child(2) {
+	animation-delay: 0.4s;
+}
+
+.msgSent:nth-child(4) {
+	animation-delay: 0.8s;
+}
+
+@keyframes messagePop {
+	from {
+		opacity: 0;
+		transform: scale(0.85);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.msgReceived .bubble {
+	background: var(--surface);
+	color: var(--text);
+	border: 1px solid var(--border);
+	box-shadow: var(--shadow-s);
+}
+
+.msgSent .bubble {
+	background: var(--green-500);
+	color: white;
+}
+
+.bubble {
+	padding: 10px 14px;
+	border-radius: 18px;
+	font-size: var(--text-base);
+	line-height: 1.45;
+	max-width: 75%;
+}
+
+.mockInput {
+	padding: var(--space-3);
+	background: var(--bg-light);
+	border-top: 1px solid var(--border);
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.mockEmoji {
+	background: var(--bg);
+	border-radius: 999px;
+	padding: 8px 8px;
+}
+
+.mockEmoji:hover {
+	background: var(--bg-dark);
+	cursor: pointer;
+}
+
+.mockInputField {
+	flex: 1;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	padding: 10px 16px;
+	font-size: var(--text-sm);
+	color: var(--muted);
+}
+
+.mockSendBtn {
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: var(--gradient);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	color: white;
+	font-size: 10px;
+	box-shadow: var(--shadow-primary);
+}
+
+.mockSendBtn:hover {
+	background: var(--gradient-dark);
+	cursor: pointer;
+}
+
+.mockSendBtnIcon {
+	width: 20px;
+	height: 20px;
+
+}
+
+/* ── FOOTER ── */
+.footer {
+	background: var(--bg);
+	border-top: 1px solid var(--border);
+	padding: var(--space-4) 0 var(--space-8);
+}
+
+.footerBottom {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: var(--space-4) var(--space-4) 0;
+	text-align: center;
+}
+
+.footerBottom p {
+	font-size: var(--text-sm);
+	color: var(--muted);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1200px) {
+	.heroContent {
+		padding-top: 120px;
+		grid-template-columns: 1fr;
+		gap: var(--space-12);
+	}
+
+	.heroText {
+		display: flex;
+		align-items: center;
+		text-align: center;
+	}
+
+	.heroTitle {
+		font-size: 2.5rem;
+	}
+}
