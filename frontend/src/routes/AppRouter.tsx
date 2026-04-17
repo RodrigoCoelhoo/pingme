@@ -6,8 +6,8 @@ import {
 	Navigate,
 } from 'react-router-dom'
 import Landing from '../pages/Landing.tsx';
-import SignIn from '../pages/SignIn.tsx';
-import SignUp from '../pages/Signup.tsx';
+import Signin from '../pages/SignIn.tsx';
+import Signup from '../pages/Signup.tsx';
 
 
 const router = createBrowserRouter(
@@ -16,8 +16,8 @@ const router = createBrowserRouter(
 			<Route>
 				<Route path="/" element={<Navigate to="/home" replace />} />
 				<Route path="/home" element={<Landing />} />
-				<Route path="/signin" element={<SignIn />} />
-				<Route path="/signup" element={<SignUp />} />
+				<Route path="/signin" element={<Signin />} />
+				<Route path="/signup" element={<Signup />} />
 			</Route>
 		</>
 	)

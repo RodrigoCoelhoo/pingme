@@ -3,7 +3,7 @@ import styles from '../styles/Auth.module.css'
 import Button from '../components/Button'
 import Input from '../components/Input'
 
-export default function SignIn() {
+export default function Signin() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 
