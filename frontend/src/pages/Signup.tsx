@@ -1,4 +1,4 @@
-import { useState, type SetStateAction } from 'react'
+import { type FormEvent, useState } from 'react'
 import styles from '../styles/Auth.module.css'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -9,7 +9,7 @@ export default function SignUp() {
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
 
-	const handleSubmit = (e: any) => {
+	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault()
 
 		if (password !== confirmPassword) {
@@ -80,7 +80,7 @@ export default function SignUp() {
 								label="Nome completo"
 								placeholder="João Silva"
 								value={name}
-								onChange={(e: { target: { value: SetStateAction<string> } }) => setName(e.target.value)}
+								onChange={(e) => setName(e.target.value)}
 								required
 							/>
 
@@ -89,7 +89,7 @@ export default function SignUp() {
 								label="Email"
 								placeholder="nome@exemplo.com"
 								value={email}
-								onChange={(e: { target: { value: SetStateAction<string> } }) => setEmail(e.target.value)}
+								onChange={(e) => setEmail(e.target.value)}
 								required
 							/>
 
@@ -98,7 +98,7 @@ export default function SignUp() {
 								label="Password"
 								placeholder="••••••••"
 								value={password}
-								onChange={(e: { target: { value: SetStateAction<string> } }) => setPassword(e.target.value)}
+								onChange={(e) => setPassword(e.target.value)}
 								required
 								helperText="Mínimo 8 caracteres"
 							/>
@@ -108,7 +108,7 @@ export default function SignUp() {
 								label="Confirmar password"
 								placeholder="••••••••"
 								value={confirmPassword}
-								onChange={(e: { target: { value: SetStateAction<string> } }) => setConfirmPassword(e.target.value)}
+								onChange={(e) => setConfirmPassword(e.target.value)}
 								required
 							/>
 

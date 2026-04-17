@@ -1,4 +1,4 @@
-import { useState, type SetStateAction } from 'react'
+import { useState, type FormEvent } from 'react'
 import styles from '../styles/Auth.module.css'
 import Button from '../components/Button'
 import Input from '../components/Input'
@@ -7,7 +7,7 @@ export default function SignIn() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 
-	const handleSubmit = (e: any) => {
+	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 		// TODO: Add authentication logic
 		console.log('Sign in:', { email, password })
@@ -72,7 +72,7 @@ export default function SignIn() {
 								label="Email"
 								placeholder="nome@exemplo.com"
 								value={email}
-								onChange={(e: { target: { value: SetStateAction<string> } }) => setEmail(e.target.value)}
+								onChange={(e) => setEmail(e.target.value)}
 								required
 							/>
 
@@ -81,7 +81,7 @@ export default function SignIn() {
 								label="Password"
 								placeholder="••••••••"
 								value={password}
-								onChange={(e: { target: { value: SetStateAction<string> } }) => setPassword(e.target.value)}
+								onChange={(e) => setPassword(e.target.value)}
 								required
 							/>
 
