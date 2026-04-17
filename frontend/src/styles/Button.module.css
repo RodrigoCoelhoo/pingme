@@ -1,0 +1,132 @@
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+	font-family: var(--font-base);
+	font-weight: var(--font-semibold);
+	border: none;
+	border-radius: 999px;
+	cursor: pointer;
+	transition: all var(--transition-normal);
+	text-decoration: none;
+	white-space: nowrap;
+	position: relative;
+	overflow: hidden;
+}
+
+.btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
+}
+
+.btn:active:not(:disabled) {
+	transform: scale(0.98);
+}
+
+/* ── SIZES ── */
+.small {
+	font-size: var(--text-sm);
+	padding: 8px 18px;
+	min-height: 36px;
+}
+
+.medium {
+	font-size: var(--text-base);
+	padding: 10px 24px;
+	min-height: 44px;
+}
+
+.large {
+	font-size: var(--text-md);
+	padding: 14px 32px;
+	min-height: 52px;
+}
+
+/* ── VARIANTS ── */
+.primary {
+	background: var(--gradient);
+	color: white;
+	box-shadow: var(--shadow-primary);
+}
+
+.primary:hover:not(:disabled) {
+	transform: translateY(-2px);
+	box-shadow:
+		0 4px 16px rgba(26, 181, 94, 0.5),
+		0 8px 24px rgba(26, 181, 94, 0.25);
+}
+
+.primary:active:not(:disabled) {
+	transform: translateY(0);
+}
+
+.secondary {
+	background: var(--bg-light);
+	color: var(--text);
+	box-shadow: var(--shadow-s);
+	border: 1px solid var(--border);
+}
+
+.secondary:hover:not(:disabled) {
+	background: var(--surface);
+	border-color: var(--muted2);
+	box-shadow: var(--shadow-m);
+}
+
+.ghost {
+	background: transparent;
+	color: var(--green-500);
+	border: 1.5px solid var(--green-500);
+}
+
+.ghost:hover:not(:disabled) {
+	background: var(--green-50);
+	border-color: var(--green-600);
+	color: var(--green-600);
+}
+
+[data-theme="dark"] .ghost:hover:not(:disabled) {
+	background: rgba(26, 181, 94, 0.1);
+}
+
+.outline {
+	background: var(--surface);
+	color: var(--text);
+	border: 1.5px solid var(--border);
+	box-shadow: var(--shadow-s);
+}
+
+.outline:hover:not(:disabled) {
+	border-color: var(--muted2);
+	box-shadow: var(--shadow-m);
+}
+
+/* ── MODIFIERS ── */
+.fullWidth {
+	width: 100%;
+}
+
+.icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ── RIPPLE EFFECT ── */
+.btn::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+	opacity: 0;
+	transform: scale(0);
+	transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.btn:active:not(:disabled)::after {
+	transform: scale(2);
+	opacity: 1;
+	transition: transform 0s, opacity 0s;
+}
