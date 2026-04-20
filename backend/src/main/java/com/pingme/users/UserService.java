@@ -15,7 +15,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserResponse register(CreateUserRequest request) {
+    public UserResponse createUser(CreateUserRequest request) {
 
         String email = request.email().toLowerCase();
 
@@ -38,22 +38,17 @@ public class UserService {
                 .build();
 
         userRepository.save(user);
-
         return mapToResponse(user);
     }
 
-    public UserResponse getById(String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return mapToResponse(user);
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User with Email: '" + email + "' not found"));
     }
 
-    public UserResponse getByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        return mapToResponse(user);
+    public User getUserById(String id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User with ID: '" + id + "' not found"));
     }
 
     private UserResponse mapToResponse(User user) {
