@@ -57,4 +57,16 @@ public class AuthenticationService {
 
         return new AuthResponse(newAccessToken);
     }
+
+    public void logout(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        response.addHeader("Set-Cookie", cookie.toString());
+    }
 }

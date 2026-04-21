@@ -3,12 +3,9 @@ package com.pingme.security;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -45,8 +42,8 @@ public class SecurityConfiguration {
                         })
                 )
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/api/auth/signin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/signup").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/signin-local").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/auth/refresh").permitAll()
                         //.requestMatchers(HttpMethod.POST, "/api/...").hasRole("ADMIN")
 
@@ -57,7 +54,7 @@ public class SecurityConfiguration {
                                 "/webjars/**"
                         ).permitAll()
 
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 );
 
         httpSecurity.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
@@ -74,7 +71,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

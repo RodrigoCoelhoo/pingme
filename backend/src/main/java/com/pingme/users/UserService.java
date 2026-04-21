@@ -1,7 +1,7 @@
 package com.pingme.users;
 
 import com.pingme.users.dto.CreateUserRequest;
-import com.pingme.users.dto.UserResponse;
+import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,7 +15,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserResponse createUser(CreateUserRequest request) {
+    public UserProfile createUser(CreateUserRequest request) {
 
         String email = request.email().toLowerCase();
 
@@ -51,8 +51,8 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User with ID: '" + id + "' not found"));
     }
 
-    private UserResponse mapToResponse(User user) {
-        return new UserResponse(
+    private UserProfile mapToResponse(User user) {
+        return new UserProfile(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),

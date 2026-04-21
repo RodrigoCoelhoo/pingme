@@ -1,7 +1,9 @@
 package com.pingme.users;
 
-import com.pingme.users.dto.UserResponse;
+import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -12,7 +14,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/me")
-    public UserResponse me() {
-        return null;
+    public ResponseEntity<UserProfile> me(@AuthenticationPrincipal UserProfile user) {
+        return ResponseEntity.ok(user);
     }
 }

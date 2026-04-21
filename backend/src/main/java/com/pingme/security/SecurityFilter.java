@@ -2,6 +2,7 @@ package com.pingme.security;
 
 import com.pingme.users.User;
 import com.pingme.users.UserRepository;
+import com.pingme.users.dto.UserProfile;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -35,8 +35,7 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-resources")
-                || path.startsWith("/webjars")
-                || path.startsWith("/api/auth")) {
+                || path.startsWith("/webjars")) {
 
             filterChain.doFilter(request, response);
             return;
@@ -49,16 +48,29 @@ public class SecurityFilter extends OncePerRequestFilter {
 
             if (subject != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                User user = userRepository.findById(subject)
-                        .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                var userOptional = userRepository.findById(subject);
 
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        user,
-                        null,
-                        null
-                );
+                if (userOptional.isPresent()) {
+                    User user = userOptional.get();
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    UserProfile profile = new UserProfile(
+                            user.getId(),
+                            user.getEmail(),
+                            user.getUsername(),
+                            user.getDisplayName(),
+                            user.getAvatarUrl()
+                    );
+
+                    var authentication = new UsernamePasswordAuthenticationToken(
+                            profile,
+                            null,
+                            null
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } else {
+                    SecurityContextHolder.clearContext();
+                }
             }
         }
 
