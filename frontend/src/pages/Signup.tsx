@@ -2,14 +2,20 @@ import { type FormEvent, useState } from 'react'
 import styles from '../styles/Auth.module.css'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function SignUp() {
-	const [name, setName] = useState('')
+	const [displayName, setDisplayName] = useState('')
+	const [username, setUsername] = useState('')
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-	const handleSubmit = (e: FormEvent) => {
+	const { signUp } = useAuth();
+
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		if (password !== confirmPassword) {
@@ -17,12 +23,19 @@ export default function SignUp() {
 			return
 		}
 
-		// TODO: Add authentication logic
-		console.log('Sign up:', { name, email, password })
+		setLoading(true);
+		setError(null);
+
+		try {
+			await signUp(email, username, password, displayName);
+		} catch (err: any) {
+			setError(err?.message || 'Erro ao criar conta');
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	const handleGoogleSignUp = () => {
-		// TODO: Add Google OAuth logic
 		console.log('Sign up with Google')
 	}
 
@@ -74,13 +87,28 @@ export default function SignUp() {
 							</p>
 						</div>
 
+						{error && (
+							<div style={{ color: 'red', marginBottom: '10px' }}>
+								{error}
+							</div>
+						)}
+
 						<form onSubmit={handleSubmit} className={styles.form}>
 							<Input
 								type="text"
 								label="Nome completo"
-								placeholder="João Silva"
-								value={name}
-								onChange={(e) => setName(e.target.value)}
+								placeholder="Rodrigo Coelho"
+								value={displayName}
+								onChange={(e) => setDisplayName(e.target.value)}
+								required
+							/>
+
+							<Input
+								type="text"
+								label="Nome de utilizador"
+								placeholder="rodrigo_coelho"
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
 								required
 							/>
 
@@ -128,8 +156,13 @@ export default function SignUp() {
 								</label>
 							</div>
 
-							<Button type="submit" variant="primary" fullWidth>
-								Criar conta
+							<Button
+								type="submit"
+								variant="primary"
+								fullWidth
+								disabled={loading}
+							>
+								{loading ? 'A criar conta...' : 'Criar conta'}
 							</Button>
 						</form>
 
