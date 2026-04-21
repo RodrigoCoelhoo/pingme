@@ -3,27 +3,33 @@ import {
 	createBrowserRouter,
 	createRoutesFromElements,
 	RouterProvider,
-	Navigate,
-} from 'react-router-dom'
+} from 'react-router-dom';
+
 import Landing from '../pages/Landing.tsx';
 import Signin from '../pages/Signin.tsx';
 import Signup from '../pages/Signup.tsx';
+import ProtectedRoute from './ProtectedRoute.tsx';
+import Logout from '../pages/Logout.tsx';
+import Chats from '../pages/Chats.tsx';
+import PublicRoute from './PublicRoute.tsx';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
 		<>
-			<Route>
-				<Route path="/" element={<Navigate to="/home" replace />} />
-				<Route path="/home" element={<Landing />} />
+			<Route element={<PublicRoute />}>
+				<Route path="/" element={<Landing />} />
 				<Route path="/signin" element={<Signin />} />
 				<Route path="/signup" element={<Signup />} />
+			</Route>
+
+			<Route element={<ProtectedRoute />}>
+				<Route path="/chats" element={<Chats />} />
+				<Route path="/logout" element={<Logout />} />
 			</Route>
 		</>
 	)
 );
 
 export default function App() {
-	return (
-		<RouterProvider router={router} />
-	);
-};
+	return <RouterProvider router={router} />;
+}

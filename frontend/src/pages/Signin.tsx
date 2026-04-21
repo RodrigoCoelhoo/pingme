@@ -2,16 +2,32 @@ import { useState, type FormEvent } from 'react'
 import styles from '../styles/Auth.module.css'
 import Button from '../components/Button'
 import Input from '../components/Input'
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Signin() {
-	const [email, setEmail] = useState('')
-	const [password, setPassword] = useState('')
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-		e.preventDefault()
-		// TODO: Add authentication logic
-		console.log('Sign in:', { email, password })
-	}
+	const { signIn } = useAuth();
+	const navigate = useNavigate();
+
+	const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		setLoading(true);
+		setError(null);
+
+		try {
+			await signIn(email, password);
+			navigate('/', { replace: true });
+		} catch (err: any) {
+			setError(err?.message || 'Erro ao iniciar sessão');
+		} finally {
+			setLoading(false);
+		}
+	};
 
 	const handleGoogleSignIn = () => {
 		// TODO: Add Google OAuth logic
@@ -66,6 +82,12 @@ export default function Signin() {
 							</p>
 						</div>
 
+						{error && (
+							<div style={{ color: 'red', marginBottom: '10px' }}>
+								{error}
+							</div>
+						)}
+
 						<form onSubmit={handleSubmit} className={styles.form}>
 							<Input
 								type="email"
@@ -86,17 +108,18 @@ export default function Signin() {
 							/>
 
 							<div className={styles.formOptions}>
-								<label className={styles.checkbox}>
-									<input type="checkbox" />
-									<span>Lembrar-me</span>
-								</label>
 								<a href="/forgot-password" className={styles.forgotLink}>
 									Esqueceste a password?
 								</a>
 							</div>
 
-							<Button type="submit" variant="primary" fullWidth>
-								Entrar
+							<Button
+								type="submit"
+								variant="primary"
+								fullWidth
+								disabled={loading}
+							>
+								{loading ? 'A iniciar sessão...' : 'Iniciar sessão'}
 							</Button>
 						</form>
 
