@@ -1,5 +1,7 @@
 package com.pingme.users;
 
+import com.pingme.exceptions.ResourceAlreadyExistsException;
+import com.pingme.exceptions.ResourceNotFound;
 import com.pingme.users.dto.CreateUserRequest;
 import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +22,13 @@ public class UserService {
         String email = request.email().toLowerCase();
 
         if (userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already in use");
+            throw new ResourceAlreadyExistsException("Email already in use");
         }
 
-        if (userRepository.existsByUsername(request.username())) {
-            throw new RuntimeException("Username already taken");
+        String username = request.username().toLowerCase();
+
+        if (userRepository.existsByUsername(username)) {
+            throw new ResourceAlreadyExistsException("Username already taken");
         }
 
         String encryptedPassword = passwordEncoder.encode(request.password());
@@ -37,18 +41,18 @@ public class UserService {
                 .lastSeenAt(LocalDateTime.now())
                 .build();
 
-        userRepository.save(user);
-        return mapToResponse(user);
+        User savedUser = userRepository.save(user);
+        return mapToResponse(savedUser);
     }
 
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User with Email: '" + email + "' not found"));
+                .orElseThrow(() -> new ResourceNotFound("User with Email: '" + email + "' not found"));
     }
 
     public User getUserById(String id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User with ID: '" + id + "' not found"));
+                .orElseThrow(() -> new ResourceNotFound("User with ID: '" + id + "' not found"));
     }
 
     private UserProfile mapToResponse(User user) {
