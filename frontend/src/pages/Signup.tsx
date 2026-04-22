@@ -3,6 +3,7 @@ import styles from '../styles/Auth.module.css'
 import Button from '../components/Button'
 import Input from '../components/Input'
 import { useAuth } from '../contexts/AuthContext'
+import { displayNameRules, emailRules, passwordRules, usernameRules } from '../rules/rules'
 
 export default function SignUp() {
 	const [displayName, setDisplayName] = useState('')
@@ -10,16 +11,28 @@ export default function SignUp() {
 	const [email, setEmail] = useState('')
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
+	const [acceptedTerms, setAcceptedTerms] = useState(false)
+
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	const [validity, setValidity] = useState({
+		displayName: false,
+		username: false,
+		email: false,
+		password: false,
+		confirmPassword: false
+	})
+
+	const isFormValid = Object.values(validity).every(Boolean) && acceptedTerms
 
 	const { signUp } = useAuth();
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
-		if (password !== confirmPassword) {
-			alert('As passwords não coincidem!')
+		if (!isFormValid) {
+			setError('Preenche corretamente todos os campos')
 			return
 		}
 
@@ -96,53 +109,77 @@ export default function SignUp() {
 						<form onSubmit={handleSubmit} className={styles.form}>
 							<Input
 								type="text"
-								label="Nome completo"
+								label="Nome de exibição"
 								placeholder="Rodrigo Coelho"
 								value={displayName}
 								onChange={(e) => setDisplayName(e.target.value)}
+								rules={displayNameRules()}
 								required
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, displayName: isValid }))
+								}
 							/>
 
 							<Input
-								type="text"
 								label="Nome de utilizador"
+								type="text"
 								placeholder="rodrigo_coelho"
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
+								rules={usernameRules()}
 								required
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, username: isValid }))
+								}
 							/>
 
 							<Input
-								type="email"
 								label="Email"
-								placeholder="nome@exemplo.com"
+								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
+								rules={emailRules()}
 								required
+								placeholder="name@example.com"
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, email: isValid }))
+								}
 							/>
 
 							<Input
-								type="password"
 								label="Password"
+								type="password"
 								placeholder="••••••••"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
+								rules={passwordRules()}
 								required
-								helperText="Mínimo 8 caracteres"
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, password: isValid }))
+								}
 							/>
 
 							<Input
-								type="password"
 								label="Confirmar password"
+								type="password"
 								placeholder="••••••••"
 								value={confirmPassword}
 								onChange={(e) => setConfirmPassword(e.target.value)}
+								matchValue={password}
 								required
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, confirmPassword: isValid }))
+								}
 							/>
 
 							<div className={styles.terms}>
 								<label className={styles.checkbox}>
-									<input type="checkbox" required />
+									<input
+										type="checkbox"
+										checked={acceptedTerms}
+										onChange={(e) => setAcceptedTerms(e.target.checked)}
+										required
+									/>
 									<span>
 										Aceito os{' '}
 										<a href="/terms" className={styles.termsLink}>
@@ -160,7 +197,7 @@ export default function SignUp() {
 								type="submit"
 								variant="primary"
 								fullWidth
-								disabled={loading}
+								disabled={loading || !isFormValid}
 							>
 								{loading ? 'A criar conta...' : 'Criar conta'}
 							</Button>

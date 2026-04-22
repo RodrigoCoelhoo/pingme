@@ -16,6 +16,11 @@
 	margin-left: 2px;
 }
 
+.inputWrapper {
+	position: relative;
+	width: 100%;
+}
+
 .input {
 	width: 100%;
 	padding: 12px 16px;
@@ -29,6 +34,11 @@
 	transition: all var(--transition-fast);
 	-webkit-appearance: none;
 	appearance: none;
+}
+
+.passwordInput {
+	padding-right: 48px;
+	/* Make room for toggle button */
 }
 
 .input::placeholder {
@@ -50,6 +60,35 @@
 	opacity: 0.5;
 	cursor: not-allowed;
 	background: var(--bg-light);
+}
+
+/* ── PASSWORD TOGGLE BUTTON ── */
+.togglePassword {
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	background: none;
+	border: none;
+	padding: 4px;
+	cursor: pointer;
+	color: var(--muted);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6px;
+	transition: all var(--transition-fast);
+	outline: none;
+}
+
+.togglePassword:hover {
+	color: var(--text);
+	background: var(--bg-light);
+}
+
+.togglePassword:focus-visible {
+	outline: 2px solid var(--green-500);
+	outline-offset: 2px;
 }
 
 /* ── ERROR STATE ── */
