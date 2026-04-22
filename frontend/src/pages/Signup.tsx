@@ -42,7 +42,12 @@ export default function SignUp() {
 		try {
 			await signUp(email, username, password, displayName);
 		} catch (err: any) {
-			setError(err?.message || 'Erro ao criar conta');
+			const message =
+				err?.response?.data?.message ||
+				err?.message ||
+				'Erro ao criar conta'
+
+			setError(message)
 		} finally {
 			setLoading(false);
 		}

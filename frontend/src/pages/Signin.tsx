@@ -31,7 +31,12 @@ export default function Signin() {
 			await signIn(email, password);
 			navigate('/', { replace: true });
 		} catch (err: any) {
-			setError(err?.message || 'Erro ao iniciar sessão');
+			const message =
+				err?.response?.data?.message ||
+				err?.message ||
+				'Erro ao criar conta'
+
+			setError(message)
 		} finally {
 			setLoading(false);
 		}
