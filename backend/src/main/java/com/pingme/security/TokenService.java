@@ -4,6 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.pingme.exceptions.InvalidTokenException;
+import com.pingme.exceptions.TokenGenerationException;
 import com.pingme.users.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,7 +34,7 @@ public class TokenService {
                     .withExpiresAt(Instant.now().plus(15, ChronoUnit.MINUTES))
                     .sign(getAlgorithm());
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error while generating access token", exception);
+            throw new TokenGenerationException("Failed to generate access token", exception);
         }
     }
 
@@ -45,7 +47,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            return null;
+            throw new InvalidTokenException("Invalid or expired access token");
         }
     }
 
@@ -60,7 +62,7 @@ public class TokenService {
                     .withExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
                     .sign(getAlgorithm());
         } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error while generating refresh token", exception);
+            throw new TokenGenerationException("Failed to generate refresh token", exception);
         }
     }
 
@@ -73,7 +75,7 @@ public class TokenService {
                     .verify(token)
                     .getSubject();
         } catch (JWTVerificationException exception) {
-            return null;
+            throw new InvalidTokenException("Invalid or expired refresh token");
         }
     }
 }

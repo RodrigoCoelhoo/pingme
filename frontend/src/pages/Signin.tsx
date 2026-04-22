@@ -4,12 +4,20 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { emailRules } from '../rules/rules';
 
 export default function Signin() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	const [validity, setValidity] = useState({
+		email: false,
+		password: false,
+	})
+
+	const isFormValid = Object.values(validity).every(Boolean)
 
 	const { signIn } = useAuth();
 	const navigate = useNavigate();
@@ -90,21 +98,28 @@ export default function Signin() {
 
 						<form onSubmit={handleSubmit} className={styles.form}>
 							<Input
-								type="email"
 								label="Email"
-								placeholder="nome@exemplo.com"
+								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
+								rules={emailRules()}
 								required
+								placeholder="name@example.com"
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, email: isValid }))
+								}
 							/>
 
 							<Input
-								type="password"
 								label="Password"
+								type="password"
 								placeholder="••••••••"
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								required
+								onValidationChange={(isValid) =>
+									setValidity(v => ({ ...v, password: isValid }))
+								}
 							/>
 
 							<div className={styles.formOptions}>
@@ -117,7 +132,7 @@ export default function Signin() {
 								type="submit"
 								variant="primary"
 								fullWidth
-								disabled={loading}
+								disabled={loading || !isFormValid}
 							>
 								{loading ? 'A iniciar sessão...' : 'Iniciar sessão'}
 							</Button>

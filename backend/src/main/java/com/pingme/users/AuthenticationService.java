@@ -1,10 +1,12 @@
 package com.pingme.users;
 
+import com.pingme.exceptions.InvalidTokenException;
 import com.pingme.security.TokenService;
 import com.pingme.security.dto.AuthResponse;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +20,7 @@ public class AuthenticationService {
 
     public void checkPassword(String password, String userPassword) {
         if(!passwordEncoder.matches(password, userPassword)) {
-            throw new RuntimeException("Invalid Credentials");
+            throw new BadCredentialsException("Invalid Credentials");
         }
     }
 
@@ -42,17 +44,11 @@ public class AuthenticationService {
     public AuthResponse refresh(String refreshToken) {
 
         if (refreshToken == null || refreshToken.isBlank()) {
-            throw new RuntimeException("Refresh token missing");
+            throw new InvalidTokenException("Refresh token missing");
         }
 
         String userId = tokenService.validateRefreshToken(refreshToken);
-
-        if (userId == null || userId.isEmpty()) {
-            throw new RuntimeException("Invalid refresh token");
-        }
-
         User user = userService.getUserById(userId);
-
         String newAccessToken = tokenService.generateAccessToken(user);
 
         return new AuthResponse(newAccessToken);
