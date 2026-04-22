@@ -12,7 +12,7 @@ public record CreateUserRequest(
     String username,
 
     @NotBlank(message = "Display name cannot be blank")
-    @Size(min = 2, max = 50)
+    @Size(min = 1, max = 50)
     String displayName,
 
     @NotBlank(message = "Email cannot be blank")
@@ -20,6 +20,10 @@ public record CreateUserRequest(
     String email,
 
     @NotBlank(message = "Password cannot be blank")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 8, max = 100, message = "Password must have between 8 and 100 characters.")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&\\-_])[A-Za-z\\d@$!%*?&\\-_]+$",
+            message = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&-_)"
+    )
     String password
 ) {}

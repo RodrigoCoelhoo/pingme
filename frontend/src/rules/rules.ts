@@ -29,5 +29,5 @@ export const urlRules = (): Rule[] => [
 ]
 
 export const displayNameRules = (): Rule[] => [
-	(v) => (v.length <= 50) || "Name cannot exceed 50 characters",
+	(v) => (v.length >= 1 && v.length <= 100) || "Display name must be between 1 and 100 characters",
 ];
