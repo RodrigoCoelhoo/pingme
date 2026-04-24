@@ -1,0 +1,18 @@
+{
+    "header": "Mais perto, em cada <strong>mensagem</strong>.",
+    "p": {
+        "0": "Mensagens instantâneas e seguras.",
+        "1": "Mantém-te próximo das pessoas que importam."
+    },
+    "messages": {
+        "0": "Olá! Tudo bem? 👋",
+        "1": "Tudo ótimo! E contigo? 😊",
+        "2": "Vamos almoçar amanhã?",
+        "3": "Combinado! 🎉",
+        "4": "Escreva uma messagem..."
+    },
+    "checks": {
+        "0": "Sem anûncios",
+        "1": "Encriptação end-to-end"
+    }
+}

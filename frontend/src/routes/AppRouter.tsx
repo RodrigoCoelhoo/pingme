@@ -12,19 +12,24 @@ import ProtectedRoute from './ProtectedRoute.tsx';
 import Logout from '../pages/Logout.tsx';
 import Chats from '../pages/Chats.tsx';
 import PublicRoute from './PublicRoute.tsx';
+import Layout from '../layouts/Layout.tsx';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
 		<>
 			<Route element={<PublicRoute />}>
-				<Route path="/" element={<Landing />} />
+				<Route element={<Layout />}>
+					<Route path="/" element={<Landing />} />
+				</Route>
 				<Route path="/signin" element={<Signin />} />
 				<Route path="/signup" element={<Signup />} />
 			</Route>
 
-			<Route element={<ProtectedRoute />}>
-				<Route path="/chats" element={<Chats />} />
-				<Route path="/logout" element={<Logout />} />
+			<Route element={<Layout />}>
+				<Route element={<ProtectedRoute />}>
+					<Route path="/chats" element={<Chats />} />
+					<Route path="/logout" element={<Logout />} />
+				</Route>
 			</Route>
 		</>
 	)
