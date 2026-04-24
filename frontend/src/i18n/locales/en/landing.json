@@ -1,0 +1,18 @@
+{
+    "header": "Closer, in every <strong>message</strong>.",
+    "p": {
+        "0": "Secure instant messaging.",
+        "1": " Stay close to the people who matter."
+    },
+    "messages": {
+        "0": "Hello! How are you? 👋",
+        "1": "I'm fine, what about you? 😊",
+        "2": "Do you want to hangout tomorrow?",
+        "3": "Sure! 🎉",
+        "4": "Write a message..."
+    },
+    "checks": {
+        "0": "No ads",
+        "1": "End-to-end encryption"
+    }
+}
