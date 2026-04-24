@@ -5,6 +5,8 @@ import Input from '../components/Input'
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { emailRules } from '../rules/rules';
+import Logo from '../assets/favicon-192.png'
+import { useTranslation } from 'react-i18next';
 
 export default function Signin() {
 	const [email, setEmail] = useState('');
@@ -16,6 +18,8 @@ export default function Signin() {
 		email: false,
 		password: false,
 	})
+
+	const { t } = useTranslation("auth");
 
 	const isFormValid = Object.values(validity).every(Boolean)
 
@@ -54,29 +58,33 @@ export default function Signin() {
 				<div className={styles.authBrand}>
 					<div className={styles.brandContent}>
 						<div className={styles.logo}>
-							<div className={styles.logoIcon}>P</div>
+							<img src={Logo} alt="PingMe Logo" className={styles.logoIcon} />
 							<span className={styles.logoText}>
 								Ping<span className={styles.logoAccent}>Me</span>
 							</span>
 						</div>
-						<h1 className={styles.brandTitle}>
-							Bem-vindo de volta! 👋
-						</h1>
-						<p className={styles.brandSubtitle}>
-							Entra na tua conta para continuares as tuas conversas.
-						</p>
-						<div className={styles.brandFeatures}>
-							<div className={styles.brandFeature}>
-								<span className={styles.featureIcon}>✓</span>
-								<span>Mensagens encriptadas</span>
+						<div className={styles.brandDescription}>
+							<div>
+								<h1 className={styles.brandTitle}>
+									{t('signin.brand.title')}
+								</h1>
+								<p className={styles.brandSubtitle}>
+									{t('signin.brand.subtitle')}
+								</p>
 							</div>
-							<div className={styles.brandFeature}>
-								<span className={styles.featureIcon}>✓</span>
-								<span>Sincronização instantânea</span>
-							</div>
-							<div className={styles.brandFeature}>
-								<span className={styles.featureIcon}>✓</span>
-								<span>Totalmente gratuito</span>
+							<div className={styles.brandFeatures}>
+								<div className={styles.brandFeature}>
+									<span className={styles.featureIcon}>✓</span>
+									<span>{t('signin.brand.features.0')}</span>
+								</div>
+								<div className={styles.brandFeature}>
+									<span className={styles.featureIcon}>✓</span>
+									<span>{t('signin.brand.features.1')}</span>
+								</div>
+								<div className={styles.brandFeature}>
+									<span className={styles.featureIcon}>✓</span>
+									<span>{t('signin.brand.features.2')}</span>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -86,11 +94,11 @@ export default function Signin() {
 				<div className={styles.authForm}>
 					<div className={styles.formWrapper}>
 						<div className={styles.formHeader}>
-							<h2 className={styles.formTitle}>Iniciar sessão</h2>
+							<h2 className={styles.formTitle}>{t('signin.title')}</h2>
 							<p className={styles.formSubtitle}>
-								Ainda não tens conta?{' '}
+								{t('signin.subtitle')}{' '}
 								<a href="/signup" className={styles.formLink}>
-									Criar conta
+									{t('signin.createAccount')}
 								</a>
 							</p>
 						</div>
@@ -103,22 +111,22 @@ export default function Signin() {
 
 						<form onSubmit={handleSubmit} className={styles.form}>
 							<Input
-								label="Email"
+								label={t('signin.email')}
 								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
-								rules={emailRules()}
+								rules={emailRules(t)}
 								required
-								placeholder="name@example.com"
+								placeholder={t('signin.emailPlaceholder')}
 								onValidationChange={(isValid) =>
 									setValidity(v => ({ ...v, email: isValid }))
 								}
 							/>
 
 							<Input
-								label="Password"
+								label={t('signin.password')}
 								type="password"
-								placeholder="••••••••"
+								placeholder={t('signin.passwordPlaceholder')}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
 								required
@@ -129,7 +137,7 @@ export default function Signin() {
 
 							<div className={styles.formOptions}>
 								<a href="/forgot-password" className={styles.forgotLink}>
-									Esqueceste a password?
+									{t('signin.forgotPassword')}
 								</a>
 							</div>
 
@@ -139,12 +147,12 @@ export default function Signin() {
 								fullWidth
 								disabled={loading || !isFormValid}
 							>
-								{loading ? 'A iniciar sessão...' : 'Iniciar sessão'}
+								{loading ? t('signin.submitting') : t('signin.submit')}
 							</Button>
 						</form>
 
 						<div className={styles.divider}>
-							<span>ou</span>
+							<span>{t('signin.divider')}</span>
 						</div>
 
 						<Button
@@ -161,7 +169,7 @@ export default function Signin() {
 								</svg>
 							}
 						>
-							Continuar com Google
+							{t('signin.google')}
 						</Button>
 					</div>
 				</div>

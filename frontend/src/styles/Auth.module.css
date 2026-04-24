@@ -3,7 +3,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	background: var(--bg);
+	background: var(--bg-dark);
 	padding: var(--space-6);
 }
 
@@ -21,24 +21,41 @@
 
 /* ── LEFT SIDE: BRANDING ── */
 .authBrand {
-	background: var(--gradient);
+	background: var(--bg);
+	/* was: var(--gradient) */
 	padding: var(--space-16) var(--space-12);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	position: relative;
 	overflow: hidden;
+	box-shadow: var(--shadow-l);
+}
+
+/* Replace the ::after blob with two subtle green glows */
+.authBrand::before {
+	content: '';
+	position: absolute;
+	top: -80px;
+	right: -80px;
+	width: 260px;
+	height: 260px;
+	border-radius: 50%;
+	background: rgba(26, 181, 94, 0.12);
+	filter: blur(60px);
+	pointer-events: none;
 }
 
 .authBrand::after {
 	content: '';
 	position: absolute;
-	bottom: -20%;
-	right: -20%;
-	width: 400px;
-	height: 400px;
-	background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
-	filter: blur(40px);
+	bottom: -60px;
+	left: -40px;
+	width: 200px;
+	height: 200px;
+	border-radius: 50%;
+	background: rgba(26, 181, 94, 0.07);
+	filter: blur(50px);
 }
 
 @keyframes rotate {
@@ -68,34 +85,40 @@
 .logoIcon {
 	width: 48px;
 	height: 48px;
-	border-radius: 12px;
-	background: rgba(255, 255, 255, 0.2);
-	backdrop-filter: blur(10px);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-weight: var(--font-extrabold);
-	font-size: var(--text-xl);
-	color: white;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .logoText {
 	font-size: var(--text-xl);
 	font-weight: var(--font-extrabold);
-	color: white;
+	color: var(--text);
 	letter-spacing: -0.02em;
 }
 
 .logoAccent {
 	opacity: 0.9;
+	color: var(--green-400);
+}
+
+.brand {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.brandDescription {
+	display: flex;
+	flex-direction: column;
+	gap: 0.2rem;
 }
 
 .brandTitle {
-	font-size: 2.5rem;
+	font-size: 2.4rem;
 	font-weight: var(--font-extrabold);
 	line-height: 1.2;
-	color: white;
+	color: var(--text);
 	letter-spacing: -0.03em;
 	max-width: 400px;
 }
@@ -103,7 +126,7 @@
 .brandSubtitle {
 	font-size: var(--text-lg);
 	line-height: 1.6;
-	color: rgba(255, 255, 255, 0.9);
+	color: var(--muted);
 	max-width: 380px;
 }
 
@@ -118,7 +141,7 @@
 	display: flex;
 	align-items: center;
 	gap: var(--space-3);
-	color: white;
+	color: var(--text);
 	font-size: var(--text-base);
 }
 
@@ -126,13 +149,14 @@
 	width: 24px;
 	height: 24px;
 	border-radius: 6px;
-	background: rgba(255, 255, 255, 0.2);
+	background: var(--green-400);
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-size: var(--text-sm);
 	font-weight: var(--font-bold);
 	flex-shrink: 0;
+	color: white;
 }
 
 /* ── RIGHT SIDE: FORM ── */
@@ -231,14 +255,14 @@
 	line-height: 1.5;
 }
 
-.termsLink {
+.terms a {
 	color: var(--green-500);
 	text-decoration: none;
 	font-weight: var(--font-medium);
 	transition: color var(--transition-fast);
 }
 
-.termsLink:hover {
+.terms a:hover {
 	color: var(--green-400);
 	text-decoration: underline;
 }

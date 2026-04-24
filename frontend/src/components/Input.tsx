@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type InputHTMLAttributes } from 'react'
 import styles from '../styles/Input.module.css'
+import { useTranslation } from 'react-i18next';
 
 export type Rule = (value: string) => true | string;
 
@@ -32,18 +33,20 @@ export default function Input({
 	const [internalError, setInternalError] = useState<string>('')
 	const [touched, setTouched] = useState(false)
 
+	const { t } = useTranslation("auth");
+
 	const error = externalError || (touched ? internalError : '')
 
 	const validateValue = useCallback((val: string) => {
 		
 		if (props.required && !val.trim()) {
-			setInternalError('Campo obrigatório')
+			setInternalError(t('input.required'))
 			onValidationChange?.(false)
 			return
 		}
 
 		if (matchValue !== undefined && val !== matchValue) {
-			setInternalError('As passwords não coincidem')
+			setInternalError(t('input.passwordsDontMatch'))
 			onValidationChange?.(false)
 			return
 		}
@@ -57,7 +60,7 @@ export default function Input({
 		for (const rule of rules) {
 			const result = rule(val)
 			if (result !== true) {
-				setInternalError(result)
+				setInternalError(t(result))
 				onValidationChange?.(false)
 				return
 			}
