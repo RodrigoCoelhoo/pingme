@@ -1,0 +1,44 @@
+/* Update these specific lines in ThemeToggle.module.css */
+.toggleContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center the icon perfectly */
+    padding: 6px; /* Equal padding for a circular look */
+    width: 38px;  /* Fixed size ensures Sun and Moon sit in the same spot */
+    height: 38px;
+    border-radius: 50%; /* Perfect circle */
+    
+    /* Keep your existing styles */
+    border: 0px solid var(--bg-light);
+    background: var(--bg);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+
+	box-shadow: var(--shadow-s);
+}
+
+.toggleContainer:hover {
+	background: var(--bg-light);
+	border-color: rgba(255, 255, 255, 0.2);
+	transform: translateY(-1px);
+}
+
+.toggleContainer:focus-visible {
+	box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sunIcon {
+	color: #ffb700;
+}
+
+.moonIcon {
+	color: #a5b4fc;
+}

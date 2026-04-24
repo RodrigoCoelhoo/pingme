@@ -1,0 +1,71 @@
+.switch {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	gap: 0;
+	padding: 3px;
+	background: var(--bg-dark);
+	border: 1px solid var(--border);
+	border-radius: 5%;
+	cursor: pointer;
+	height: 34px;
+	box-shadow: var(--shadow-s);
+}
+
+/* Sliding highlight pill */
+.pill {
+	position: absolute;
+	top: 3px;
+	bottom: 3px;
+	width: calc(50% - 3px);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	transition: transform 0.22s ease;
+	pointer-events: none;
+	z-index: 0;
+	border-radius: 5%;
+}
+
+.pill[data-pos='left'] {
+	transform: translateX(0);
+}
+
+.pill[data-pos='right'] {
+	transform: translateX(calc(100% + 0px));
+}
+
+/* Each EN / PT option */
+.option {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0 0.65rem;
+	height: 100%;
+	transition: opacity 0.2s ease;
+}
+
+.option:not(.active) {
+	opacity: 0.4;
+}
+
+.option.active {
+	opacity: 1;
+}
+
+.flag {
+	width: 16px;
+	height: 11px;
+	display: block;
+	flex-shrink: 0;
+	border-radius: 1px;
+}
+
+.label {
+	font-family: 'DM Mono', monospace;
+	font-size: 0.68rem;
+	letter-spacing: 0.1em;
+	color: var(--text);
+	line-height: 1;
+}

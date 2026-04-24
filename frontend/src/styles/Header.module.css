@@ -1,0 +1,61 @@
+.header {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: var(--z-sticky);
+	background: var(--bg);
+	border-bottom: 1px solid var(--border);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	/* Remove max-height and let padding/content define height */
+	height: 72px;
+}
+
+.headerContent {
+	max-width: 1600px;
+	margin: 0 auto;
+	padding: 0 var(--space-6);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 100%;
+}
+
+.brand {
+	font-family: 'DM Mono', monospace;
+	font-size: 0.9rem;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.controls {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+.btn {
+	padding: 0.5rem 1.25rem;
+	font-family: 'DM Mono', monospace;
+	font-size: 0.8rem;
+	letter-spacing: 0.1em;
+	cursor: pointer;
+	border: 0px;
+	background: transparent;
+	color: var(--text);
+	transition: all 0.2s;
+}
+
+.logo {
+	display: flex;
+	align-items: center;
+	height: 48px;
+}
+
+.logo img {
+	height: 100%;
+	width: auto;
+	display: block;
+	object-fit: contain;
+}

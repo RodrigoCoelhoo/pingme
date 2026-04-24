@@ -1,22 +1,9 @@
 import styles from '../styles/Landing.module.css'
 import Button from '../components/Button'
-import Logo from '../assets/logo-small.png'
 
 export default function Landing() {
 	return (
 		<div className={styles.landing}>
-			{/* Header */}
-			<header className={styles.header}>
-				<div className={styles.headerContent}>
-					<div className={styles.logo}>
-						<img src={Logo} alt="" />
-					</div>
-					<div>
-						<p>Theme</p>
-					</div>
-				</div>
-			</header>
-
 			{/* Hero Section */}
 			<section className={styles.hero}>
 				<div className={styles.heroContent}>
@@ -87,13 +74,6 @@ export default function Landing() {
 					</div>
 				</div>
 			</section>
-
-			{/* Footer */}
-			<footer className={styles.footer}>
-				<div className={styles.footerBottom}>
-					<p>© 2026 Rodrigo Coelho</p>
-				</div>
-			</footer>
 		</div>
 	)
 }
