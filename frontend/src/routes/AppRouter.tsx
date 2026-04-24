@@ -16,18 +16,22 @@ import Layout from '../layouts/Layout.tsx';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
-		<Route element={<Layout />}>
+		<>
 			<Route element={<PublicRoute />}>
-				<Route path="/" element={<Landing />} />
+				<Route element={<Layout />}>
+					<Route path="/" element={<Landing />} />
+				</Route>
 				<Route path="/signin" element={<Signin />} />
 				<Route path="/signup" element={<Signup />} />
 			</Route>
 
-			<Route element={<ProtectedRoute />}>
-				<Route path="/chats" element={<Chats />} />
-				<Route path="/logout" element={<Logout />} />
+			<Route element={<Layout />}>
+				<Route element={<ProtectedRoute />}>
+					<Route path="/chats" element={<Chats />} />
+					<Route path="/logout" element={<Logout />} />
+				</Route>
 			</Route>
-		</Route>
+		</>
 	)
 );
 

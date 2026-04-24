@@ -5,7 +5,7 @@ import { Trans, useTranslation } from 'react-i18next'
 export default function Landing() {
 	const { t } = useTranslation("landing")
 	const { t: common } = useTranslation('common')
-	
+
 	return (
 		<div className={styles.landing}>
 			{/* Hero Section */}
@@ -20,10 +20,11 @@ export default function Landing() {
 							{t('p.1')}
 						</p>
 						<div className={styles.heroCta}>
-							<Button variant="primary" size="large" href="/signup">
+							<Button variant="primary" size="large" to="/signup">
 								{common('start')}
 							</Button>
-							<Button variant="ghost" size="large" href="/signin">
+
+							<Button variant="ghost" size="large" to="/signin">
 								{common('login')}
 							</Button>
 						</div>
