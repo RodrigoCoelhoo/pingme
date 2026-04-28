@@ -92,4 +92,18 @@ public class GlobalExceptionsHandler {
         body.put("message", "Error generating authentication token");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
+    @ExceptionHandler(ContactConflictException.class)
+    public ResponseEntity<Object> handleContactConflict(ContactConflictException ex) {
+        Map<String, Object> body = globalExceptionHeader(HttpStatus.CONFLICT, "Conflict");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Object> handleForbiddenException(ForbiddenException ex) {
+        Map<String, Object> body = globalExceptionHeader(HttpStatus.FORBIDDEN, "Forbidden");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
 }
