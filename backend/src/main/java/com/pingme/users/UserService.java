@@ -50,6 +50,11 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFound("User with Email: '" + email + "' not found"));
     }
 
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFound("User with Username: '" + username + "' not found"));
+    }
+
     public User getUserById(String id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFound("User with ID: '" + id + "' not found"));
