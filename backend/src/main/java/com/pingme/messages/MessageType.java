@@ -1,4 +1,4 @@
-package com.pingme.chats;
+package com.pingme.messages;
 
 public enum MessageType {
     TEXT,

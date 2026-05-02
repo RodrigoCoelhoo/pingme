@@ -64,8 +64,6 @@ public class ContactService {
 
 
         String userId = user.id();
-        System.out.println(userId);
-        System.out.println(contact.getReceiverId());
 
         boolean isReceiver = userId.equals(contact.getReceiverId());
 
@@ -89,5 +87,21 @@ public class ContactService {
 
     public List<ContactResponse> getContacts(UserProfile user, ContactStatus status, int page, int limit) {
         return contactRepository.findContactsWithUserInfo(user.id(), status, page*limit, limit);
+    }
+
+    public boolean existsAcceptedContactBetween(String user1, String user2) {
+        Optional<Contact> contact = contactRepository.findContactBetween(user1, user2);
+        return contact.filter(value -> value.getStatus() == ContactStatus.ACCEPTED).isPresent();
+    }
+
+    public List<String> getAcceptedContactIds(String userId) {
+        return contactRepository.findAcceptedContacts(userId)
+                .stream()
+                .map(contact ->
+                        contact.getSenderId().equals(userId)
+                                ? contact.getReceiverId()
+                                : contact.getSenderId()
+                )
+                .toList();
     }
 }

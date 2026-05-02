@@ -24,6 +24,17 @@ public interface ContactRepository extends MongoRepository<Contact, String> {
     @Query("{ '_id': ?0, '$or': [ { 'senderId': ?1 }, { 'receiverId': ?1 } ] }")
     Optional<Contact> findByIdAndUser(String id, String userId);
 
+    @Query("""
+        {
+          "$or": [
+            { "senderId": ?0 },
+            { "receiverId": ?0 }
+          ],
+          "status": "ACCEPTED"
+        }
+    """)
+    List<Contact> findAcceptedContacts(String userId);
+
     @Aggregation(pipeline = {
             "{ $match: { $or: [ { senderId: ?0 }, { receiverId: ?0 } ], status: ?1 } }",
 
@@ -46,7 +57,7 @@ public interface ContactRepository extends MongoRepository<Contact, String> {
 
             "{ $unwind: '$otherUser' }",
 
-            "{ $sort: { 'otherUser.username': -1 } }",
+            "{ $sort: { 'otherUser.username': 1 } }",
             "{ $skip: ?2 }",
             "{ $limit: ?3 }",
 

@@ -24,7 +24,7 @@ public class ContactController {
     @GetMapping
     public ResponseEntity<PageResponseDTO<ContactResponse>> getContacts(
             @AuthenticationPrincipal UserProfile user,
-            @RequestParam(required = false) ContactStatus status,
+            @RequestParam(required = true) ContactStatus status,
 
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit

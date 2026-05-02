@@ -1,7 +1,5 @@
 package com.pingme.contacts.dto;
 
-import com.pingme.contacts.ContactStatus;
-
 import java.time.Instant;
 
 public record ContactResponse(
