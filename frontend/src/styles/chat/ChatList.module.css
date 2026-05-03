@@ -1,0 +1,28 @@
+.chatList {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.chatListEmpty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	padding: var(--space-8);
+	text-align: center;
+}
+
+.chatListEmpty p {
+	font-size: var(--text-lg);
+	font-weight: var(--font-semibold);
+	color: var(--text);
+	margin-bottom: var(--space-2);
+}
+
+.chatListEmpty span {
+	font-size: var(--text-sm);
+	color: var(--muted);
+}

@@ -24,7 +24,7 @@ public class ContactService {
                 .orElseThrow(() -> new ResourceNotFound("Contact with ID: '" + contactId + "' doesn't belong to the current user"));
     }
 
-    public Contact createContactRequest(UserProfile user, ContactDTO data) {
+    public ContactResponse createContactRequest(UserProfile user, ContactDTO data) {
         User target = userService.getUserByUsername(data.username());
 
         if (user.id().equals(target.getId())) {
@@ -48,7 +48,16 @@ public class ContactService {
                 .status(ContactStatus.PENDING)
                 .build();
 
-        return contactRepository.save(contact);
+        Contact result = contactRepository.save(contact);
+        return new ContactResponse(
+                result.getId(),
+                target.getId(),
+                target.getDisplayName(),
+                target.getUsername(),
+                target.getAvatarUrl(),
+                result.getStatus(),
+                result.getCreatedAt()
+        );
     }
 
     public void updateContactRequest(UserProfile user, String contactId, ContactStatus status) {

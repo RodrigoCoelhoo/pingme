@@ -1,0 +1,213 @@
+.modalOverlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(4px);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: var(--z-modal);
+	animation: fadeIn var(--transition-fast);
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+.modalContent {
+	background: var(--surface);
+	border-radius: 16px;
+	width: 90%;
+	max-width: 500px;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: var(--shadow-xl);
+	animation: slideUp var(--transition-normal) var(--ease-spring);
+	border: 1px solid var(--border);
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px) scale(0.95);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.modalHeader {
+	display: flex;
+	justify-content: space-between;
+	padding: var(--space-6);
+	border-bottom: 1px solid var(--border);
+}
+
+.modalTitle {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	color: var(--green-500);
+}
+
+.modalTitle h2 {
+	font-size: var(--text-xl);
+	font-weight: var(--font-bold);
+	color: var(--text);
+}
+
+.closeBtn {
+	background: none;
+	border: none;
+	color: var(--muted);
+	cursor: pointer;
+	padding: var(--space-2);
+	border-radius: 8px;
+}
+
+.closeBtn:hover {
+	background: var(--bg-light);
+	color: var(--text);
+}
+
+.modalBody {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	padding: var(--space-6);
+	gap: var(--space-4);
+	overflow: hidden;
+}
+
+.searchBox {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	background: var(--bg-light);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+}
+
+.searchBox input {
+	flex: 1;
+	border: none;
+	background: none;
+	outline: none;
+}
+
+.groupNameInput input {
+	width: 100%;
+	padding: var(--space-3);
+	border-radius: 12px;
+	border: 1px solid var(--border);
+	background: var(--bg-light);
+}
+
+.selectedContacts {
+	padding: var(--space-2);
+	background: var(--green-100);
+	border-radius: 8px;
+}
+
+.selectedCount {
+	font-size: var(--text-sm);
+	font-weight: var(--font-semibold);
+	color: var(--green-700);
+}
+
+.contactsList {
+	flex: 1;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.contactItem {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-3);
+	border-radius: 12px;
+	cursor: pointer;
+}
+
+.contactItem:hover {
+	background: var(--bg-light);
+}
+
+.selected {
+	background: var(--bg-light);
+	border: 2px solid var(--green-500);
+}
+
+.contactAvatar {
+	width: var(--avatar-md);
+	height: var(--avatar-md);
+	border-radius: 50%;
+	overflow: hidden;
+	background: var(--gradient);
+}
+
+.contactAvatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.contactAvatarPlaceholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	color: white;
+}
+
+.contactInfo {
+	flex: 1;
+}
+
+.checkbox input {
+	width: 20px;
+	height: 20px;
+}
+
+.loadingState,
+.emptyState {
+	text-align: center;
+	padding: var(--space-6);
+	color: var(--muted);
+}
+
+.modalFooter {
+	display: flex;
+	gap: var(--space-3);
+	padding: var(--space-6);
+	border-top: 1px solid var(--border);
+}
+
+.btnSecondary,
+.btnPrimary {
+	flex: 1;
+	padding: var(--space-3);
+	border-radius: 12px;
+	cursor: pointer;
+}
+
+.btnSecondary {
+	background: var(--bg-light);
+}
+
+.btnPrimary {
+	background: var(--gradient);
+	color: white;
+}

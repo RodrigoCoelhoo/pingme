@@ -29,7 +29,7 @@ public class ChatService {
     private final UserService userService;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
-        Chat chat = chatRepository.findByChatTypeAndMemberIdsContainingAndMemberIdsContaining(
+        Chat chat = chatRepository.findPrivateChat(
                 ChatType.PRIVATE,
                 userId,
                 targetId

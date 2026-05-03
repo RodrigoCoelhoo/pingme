@@ -64,8 +64,10 @@ public interface ContactRepository extends MongoRepository<Contact, String> {
             "{ $project: { " +
                     "contactId: '$_id', " +
                     "userId: '$otherUserId', " +
+                    "displayName: '$otherUser.displayName', " +
                     "username: '$otherUser.username', " +
                     "avatarUrl: '$otherUser.avatarUrl', " +
+                    "status: '$status', " +
                     "createdAt: 1 " +
                 "} " +
             "}"

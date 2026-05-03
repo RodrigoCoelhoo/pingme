@@ -10,7 +10,7 @@ import Signin from '../pages/Signin.tsx';
 import Signup from '../pages/Signup.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
 import Logout from '../pages/Logout.tsx';
-import Chats from '../pages/Chats.tsx';
+import Chat from '../pages/Chat.tsx';
 import PublicRoute from './PublicRoute.tsx';
 import Layout from '../layouts/Layout.tsx';
 
@@ -25,12 +25,10 @@ const router = createBrowserRouter(
 				<Route path="/signup" element={<Signup />} />
 			</Route>
 
-			<Route element={<Layout />}>
 				<Route element={<ProtectedRoute />}>
-					<Route path="/chats" element={<Chats />} />
+					<Route path="/chats" element={<Chat />} />
 					<Route path="/logout" element={<Logout />} />
 				</Route>
-			</Route>
 		</>
 	)
 );

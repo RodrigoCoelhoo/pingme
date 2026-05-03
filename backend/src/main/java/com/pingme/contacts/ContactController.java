@@ -34,12 +34,12 @@ public class ContactController {
     }
 
     @PostMapping
-    public ResponseEntity<ContactRequestResponse> createContactRequest(
+    public ResponseEntity<ContactResponse> createContactRequest(
             @AuthenticationPrincipal UserProfile user,
             @RequestBody @Valid ContactDTO data
     ) {
-        Contact response = contactService.createContactRequest(user, data);
-        return ResponseEntity.ok(ContactRequestResponse.format(response));
+        ContactResponse response = contactService.createContactRequest(user, data);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
