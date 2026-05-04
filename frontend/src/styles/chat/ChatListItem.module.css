@@ -88,13 +88,6 @@
 }
 
 .deleteChatBtn {
-	position: absolute;
-	right: var(--space-4);
-	top: 50%;
-	transform: translateY(-50%);
-	background: var(--surface);
-	border: 1px solid var(--border);
-	border-radius: 50%;
 	width: 28px;
 	height: 28px;
 	display: flex;
@@ -103,14 +96,14 @@
 	cursor: pointer;
 	transition: all var(--transition-fast);
 	color: var(--muted);
-	box-shadow: var(--shadow-s);
+	border: none;
+	background-color: var(--bg-light);
 }
 
 .deleteChatBtn:hover {
-	background: #ef4444;
-	border-color: #dc2626;
-	color: white;
-	transform: translateY(-50%) scale(1.1);
+	color: var(--text);
+	transform: scale(1.1);
+	background-color: var(--bg-light);
 }
 
 @media (max-width: 768px) {

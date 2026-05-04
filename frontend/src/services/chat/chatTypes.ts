@@ -1,14 +1,9 @@
-export interface LastMessageDTO {
-	userDisplayName: string;
-	message: string;
-}
-
 export interface ChatPreview {
 	chatId: string;
 	chatType: ChatType;
 	chatName: string;
 	chatImageUrl: string;
-	lastMessage: LastMessageDTO;
+	lastMessage: string;
 	unreadCount: number;
 }
 

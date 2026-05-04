@@ -10,7 +10,7 @@ public record ChatPreview(
         String chatName,
         String chatImageUrl,
 
-        LastMessageDTO lastMessage,
+        String lastMessage,
 
         int unreadCount
 ) {}

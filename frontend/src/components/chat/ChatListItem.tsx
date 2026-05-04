@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { ChatPreview } from '../../services/chat/chatTypes';
 import { X } from 'lucide-react';
 import styles from '../../styles/chat/ChatListItem.module.css';
+import Avatar from '../Avatar';
 
 interface ChatListItemProps {
 	chat: ChatPreview;
@@ -10,27 +11,24 @@ interface ChatListItemProps {
 	onDelete?: (chatId: string) => void;
 }
 
-const ChatListItem: React.FC<ChatListItemProps> = ({
-	chat,
-	isActive,
-	onClick,
-	onDelete
-}) => {
+export default function ChatListItem({ chat, isActive, onClick, onDelete }: ChatListItemProps) {
 	const [isHovered, setIsHovered] = useState(false);
+	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+	useEffect(() => {
+		const handleResize = () => setIsMobile(window.innerWidth <= 768);
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
 
 	const handleDelete = (e: React.MouseEvent) => {
 		e.stopPropagation();
+		
+		chat.lastMessage = 'Teste'
+
 		if (onDelete) {
 			onDelete(chat.chatId);
 		}
-	};
-
-	const formatLastMessage = () => {
-		if (!chat.lastMessage) return '';
-		const prefix = chat.lastMessage.userDisplayName
-			? `${chat.lastMessage.userDisplayName}: `
-			: '';
-		return `${prefix}${chat.lastMessage.message}`;
 	};
 
 	return (
@@ -40,15 +38,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
 		>
-			<div className={styles.chatAvatar}>
-				{chat.chatImageUrl ? (
-					<img src={chat.chatImageUrl} alt={chat.chatName} />
-				) : (
-					<div className={styles.chatAvatarPlaceholder}>
-						{chat.chatName.charAt(0).toUpperCase()}
-					</div>
-				)}
-			</div>
+			<Avatar name={chat.chatName} src={chat.chatImageUrl} size={isMobile ? 'sm' : 'md'} />
 
 			<div className={styles.chatInfo}>
 				<div className={styles.chatHeader}>
@@ -59,7 +49,7 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
 				</div>
 
 				{chat.lastMessage && (
-					<p className={styles.lastMessage}>{formatLastMessage()}</p>
+					<p className={styles.lastMessage}>{chat.lastMessage}</p>
 				)}
 			</div>
 
@@ -75,5 +65,3 @@ const ChatListItem: React.FC<ChatListItemProps> = ({
 		</div>
 	);
 };
-
-export default ChatListItem;

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ChatPreview } from '../../services/chat/chatTypes';
 import ChatListItem from './ChatListItem';
 import styles from '../../styles/chat/ChatList.module.css';
@@ -10,12 +9,7 @@ interface ChatListProps {
 	onDeleteChat?: (chatId: string) => void;
 }
 
-const ChatList: React.FC<ChatListProps> = ({
-	chats,
-	activeChat,
-	onChatSelect,
-	onDeleteChat
-}) => {
+export default function ChatList({ chats, activeChat, onChatSelect, onDeleteChat }: ChatListProps) {
 	if (chats.length === 0) {
 		return (
 			<div className={styles.chatListEmpty}>
@@ -39,5 +33,3 @@ const ChatList: React.FC<ChatListProps> = ({
 		</div>
 	);
 };
-
-export default ChatList;

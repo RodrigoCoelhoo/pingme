@@ -8,11 +8,7 @@ interface AddContactModalProps {
 	onAddContact: (username: string) => Promise<void>;
 }
 
-const AddContactModal: React.FC<AddContactModalProps> = ({
-	isOpen,
-	onClose,
-	onAddContact
-}) => {
+export default function AddContactModal({ isOpen, onClose, onAddContact }: AddContactModalProps) {
 	const [username, setUsername] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -122,5 +118,3 @@ const AddContactModal: React.FC<AddContactModalProps> = ({
 		</div>
 	);
 };
-
-export default AddContactModal;

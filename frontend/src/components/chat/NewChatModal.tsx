@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Search, Users, User } from 'lucide-react';
 import { ContactStatus, type ContactResponse } from '../../services/contact/contactTypes';
 import contactService from '../../services/contact/contactService';
@@ -11,12 +11,7 @@ interface NewChatModalProps {
 	onCreateGroupChat: (memberIds: string[], groupName?: string) => void;
 }
 
-const NewChatModal: React.FC<NewChatModalProps> = ({
-	isOpen,
-	onClose,
-	onCreatePrivateChat,
-	onCreateGroupChat
-}) => {
+export default function NewChatModal({ isOpen, onClose, onCreatePrivateChat, onCreateGroupChat }: NewChatModalProps) {
 	const [contacts, setContacts] = useState<ContactResponse[]>([]);
 	const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
 	const [searchQuery, setSearchQuery] = useState('');
@@ -181,5 +176,3 @@ const NewChatModal: React.FC<NewChatModalProps> = ({
 		</div>
 	);
 };
-
-export default NewChatModal;

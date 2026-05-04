@@ -1,19 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Menu, X, MessageSquare, Users } from 'lucide-react';
-import { ChatType, type ChatPreview } from '../services/chat/chatTypes';
+import { useState, useEffect } from 'react';
+import { type ChatPreview } from '../services/chat/chatTypes';
 import chatService from '../services/chat/chatService';
 import styles from '../styles/chat/Chat.module.css';
 import { ContactStatus, type ContactResponse } from '../services/contact/contactTypes';
 import contactService from '../services/contact/contactService';
-import ChatList from '../components/chat/ChatList';
 import ChatWindow from '../components/chat/ChatWindow';
 import NewChatModal from '../components/chat/NewChatModal';
 import AddContactModal from '../components/contact/AddContactModal';
-import ContactsList from '../components/contact/ContactList';
+import Sidebar from '../components/Sidebar';
 
 type SidebarTab = 'chats' | 'contacts';
 
-const Chat: React.FC = () => {
+export default function Chat() {
 	const [activeTab, setActiveTab] = useState<SidebarTab>('chats');
 	const [chats, setChats] = useState<ChatPreview[]>([]);
 	const [contacts, setContacts] = useState<ContactResponse[]>([]);
@@ -24,11 +22,28 @@ const Chat: React.FC = () => {
 	const [isLoadingChats, setIsLoadingChats] = useState(false);
 	const [isLoadingContacts, setIsLoadingContacts] = useState(false);
 	const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+	useEffect(() => {
+		const handleResize = () => setIsMobile(window.innerWidth <= 768);
+		window.addEventListener('resize', handleResize);
+		return () => window.removeEventListener('resize', handleResize);
+	}, []);
 
 	useEffect(() => {
 		loadChats();
 		loadContacts();
 	}, []);
+
+	useEffect(() => {
+		setIsSidebarOpen(false);
+	}, [activeChat]);
+
+	useEffect(() => {
+		if (!activeChat && isMobile) {
+			setIsSidebarOpen(true);
+		}
+	}, [activeChat, isMobile]);
 
 	const loadChats = async () => {
 		setIsLoadingChats(true);
@@ -87,104 +102,30 @@ const Chat: React.FC = () => {
 		await loadContacts();
 	};
 
-	const filteredChats = chats.filter(chat =>
-		chat.chatName.toLowerCase().includes(searchQuery.toLowerCase())
-	);
-
-	const filteredContacts = contacts.filter(contact =>
-		contact.username.toLowerCase().includes(searchQuery.toLowerCase())
-	);
-
 	return (
 		<div className={styles.chatPage}>
-			<div className={`${styles.chatSidebar} ${isSidebarOpen ? styles.open : ''}`}>
-				<div className={styles.sidebarHeader}>
-					<div className={styles.sidebarTitle}>
-						<h1>{activeTab === 'chats' ? 'Conversas' : 'Contactos'}</h1>
-						<button
-							className={styles.mobileToggle}
-							onClick={() => setIsSidebarOpen(false)}
-						>
-							<X size={24} />
-						</button>
-					</div>
-
-					<button
-						className={styles.newChatBtn}
-						onClick={() => activeTab === 'chats' ? setIsNewChatModalOpen(true) : setIsAddContactModalOpen(true)}
-						title={activeTab === 'chats' ? 'Nova conversa' : 'Adicionar contacto'}
-					>
-						<Plus size={20} />
-					</button>
-				</div>
-
-				<div className={styles.tabs}>
-					<button
-						className={`${styles.tab} ${activeTab === 'chats' ? styles.active : ''}`}
-						onClick={() => setActiveTab('chats')}
-					>
-						<MessageSquare size={18} />
-						<span>Conversas</span>
-					</button>
-					<button
-						className={`${styles.tab} ${activeTab === 'contacts' ? styles.active : ''}`}
-						onClick={() => setActiveTab('contacts')}
-					>
-						<Users size={18} />
-						<span>Contactos</span>
-					</button>
-				</div>
-
-				<div className={styles.sidebarSearch}>
-					<Search size={18} />
-					<input
-						type="text"
-						placeholder={activeTab === 'chats' ? 'Procurar conversas...' : 'Procurar contactos...'}
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-					/>
-				</div>
-
-				<div className={styles.sidebarContent}>
-					{activeTab === 'chats' ? (
-						isLoadingChats ? (
-							<div className={styles.loadingState}>
-								<div className={styles.loadingSpinner}></div>
-								<p>A carregar conversas...</p>
-							</div>
-						) : (
-							<ChatList
-								chats={filteredChats}
-								activeChat={activeChat}
-								onChatSelect={setActiveChat}
-								onDeleteChat={(chatId) => console.log('Delete chat:', chatId)}
-							/>
-						)
-					) : (
-						isLoadingContacts ? (
-							<div className={styles.loadingState}>
-								<div className={styles.loadingSpinner}></div>
-								<p>A carregar contactos...</p>
-							</div>
-						) : (
-							<ContactsList
-								contacts={filteredContacts}
-								onStartChat={handleCreatePrivateChat}
-							/>
-						)
-					)}
-				</div>
-			</div>
+			<Sidebar
+				activeTab={activeTab}
+				setActiveTab={setActiveTab}
+				chats={chats}
+				contacts={contacts}
+				activeChat={activeChat}
+				setActiveChat={setActiveChat}
+				searchQuery={searchQuery}
+				setSearchQuery={setSearchQuery}
+				isLoadingChats={isLoadingChats}
+				isLoadingContacts={isLoadingContacts}
+				isSidebarOpen={isSidebarOpen}
+				onOpenNewChat={() => setIsNewChatModalOpen(true)}
+				onOpenAddContact={() => setIsAddContactModalOpen(true)}
+				onStartChat={handleCreatePrivateChat}
+			/>
 
 			<div className={styles.chatMain}>
-				<button
-					className={styles.mobileMenuBtn}
-					onClick={() => setIsSidebarOpen(true)}
-				>
-					<Menu size={24} />
-				</button>
-
-				<ChatWindow chatId={activeChat} />
+				<ChatWindow
+					chatId={activeChat}
+					setSidebarOpen={setIsSidebarOpen}
+				/>
 			</div>
 
 			<NewChatModal
@@ -202,5 +143,3 @@ const Chat: React.FC = () => {
 		</div>
 	);
 };
-
-export default Chat;

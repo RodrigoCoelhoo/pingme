@@ -1,4 +1,3 @@
-import React from 'react';
 import ContactListItem from './ContactListItem';
 import styles from '../../styles/contact/ContactList.module.css';
 import type { ContactResponse } from '../../services/contact/contactTypes';
@@ -8,7 +7,7 @@ interface ContactsListProps {
 	onStartChat: (userId: string) => void;
 }
 
-const ContactsList: React.FC<ContactsListProps> = ({ contacts, onStartChat }) => {
+export default function ContactsList({ contacts, onStartChat }: ContactsListProps) {
 	if (contacts.length === 0) {
 		return (
 			<div className={styles.empty}>
@@ -30,5 +29,3 @@ const ContactsList: React.FC<ContactsListProps> = ({ contacts, onStartChat }) =>
 		</div>
 	);
 };
-
-export default ContactsList;

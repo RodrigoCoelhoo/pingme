@@ -13,6 +13,7 @@ import Logout from '../pages/Logout.tsx';
 import Chat from '../pages/Chat.tsx';
 import PublicRoute from './PublicRoute.tsx';
 import Layout from '../layouts/Layout.tsx';
+import { ThemeProvider } from 'next-themes';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -25,14 +26,22 @@ const router = createBrowserRouter(
 				<Route path="/signup" element={<Signup />} />
 			</Route>
 
-				<Route element={<ProtectedRoute />}>
-					<Route path="/chats" element={<Chat />} />
-					<Route path="/logout" element={<Logout />} />
-				</Route>
+			<Route element={<ProtectedRoute />}>
+				<Route path="/chats" element={<Chat />} />
+				<Route path="/logout" element={<Logout />} />
+			</Route>
 		</>
 	)
 );
 
 export default function App() {
-	return <RouterProvider router={router} />;
+	return (
+		<ThemeProvider
+			attribute="data-theme"
+			defaultTheme="dark"
+			enableSystem={false}
+		>
+			<RouterProvider router={router} />
+		</ThemeProvider>
+	);
 }

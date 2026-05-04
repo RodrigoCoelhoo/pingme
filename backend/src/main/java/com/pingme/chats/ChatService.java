@@ -1,7 +1,6 @@
 package com.pingme.chats;
 
 import com.pingme.chats.dto.ChatPreview;
-import com.pingme.chats.dto.LastMessageDTO;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.chats.members.ChatRole;
@@ -42,17 +41,10 @@ public class ChatService {
 
         User otherUser = userService.getUserById(otherUserId);
 
-        LastMessageDTO lastMessageDTO = null;
+        String lastMessage = null;
         if (chat.getLastMessageId() != null) {
-            Message lastMessage = messageService.getMessage(chat.getLastMessageId());
-            User sender = lastMessage.getSenderId().equals(otherUserId) ?
-                    otherUser :
-                    userService.getUserById(lastMessage.getSenderId());
-
-            lastMessageDTO = new LastMessageDTO(
-                    sender.getDisplayName(),
-                    lastMessage.getContent()
-            );
+            Message message = messageService.getMessage(chat.getLastMessageId());
+            lastMessage = message.getContent();
         }
 
         return new ChatPreview(
@@ -60,7 +52,7 @@ public class ChatService {
                 chat.getChatType(),
                 otherUser.getDisplayName(),
                 otherUser.getAvatarUrl(),
-                lastMessageDTO,
+                lastMessage,
                 0
         );
     }
@@ -182,17 +174,11 @@ public class ChatService {
 
         return chats.stream()
                 .map(chat -> {
-                    LastMessageDTO lastMessageDTO = null;
-
+                    String lastMessage = null;
                     if (chat.getLastMessageId() != null) {
-                        Message lastMessage = lastMessageMap.get(chat.getLastMessageId());
-                        if (lastMessage != null) {
-                            User sender = senderMap.get(lastMessage.getSenderId());
-
-                            lastMessageDTO = new LastMessageDTO(
-                                    sender != null ? sender.getDisplayName() : "Unknown",
-                                    lastMessage.getContent()
-                            );
+                        Message message = lastMessageMap.get(chat.getLastMessageId());
+                        if (message != null) {
+                            lastMessage = message.getContent();
                         }
                     }
 
@@ -220,7 +206,7 @@ public class ChatService {
                             chat.getChatType(),
                             chatName,
                             chatImageUrl,
-                            lastMessageDTO,
+                            lastMessage,
                             0 // TODO: unread count
                     );
                 })
