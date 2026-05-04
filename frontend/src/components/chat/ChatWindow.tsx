@@ -3,7 +3,6 @@ import { MessageCircle, Loader } from 'lucide-react';
 import type { Message } from '../../services/message/messageTypes';
 import type { ChatPreview } from '../../services/chat/chatTypes';
 import messageService from '../../services/message/messageService';
-import chatService from '../../services/chat/chatService';
 import ChatHeader from './ChatHeader';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
@@ -11,144 +10,13 @@ import styles from '../../styles/chat/ChatWindow.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface ChatWindowProps {
-	chatId: string | null;
+	chat: ChatPreview | null;
+	chatId: string | null; // Remove this later
 	setSidebarOpen: (open: boolean) => void;
 }
 
-export default function ChatWindow({ chatId, setSidebarOpen }: ChatWindowProps) {
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			messageId: "msg-1",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Hey, how are you? 🙂",
-			timestamp: "2026-05-03T10:15:00Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-2",
-			chatId: "chat-123",
-			senderId: "user-2",
-			senderName: "Bob",
-			senderAvatar: "https://i.pravatar.cc/150?img=2",
-			content: "I'm good! Working on the project.",
-			timestamp: "2026-05-03T10:16:30Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-3",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Nice, same here 😄",
-			timestamp: "2026-05-03T10:17:10Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-4",
-			chatId: "chat-123",
-			senderId: "user-2",
-			senderName: "Bob",
-			senderAvatar: "https://i.pravatar.cc/150?img=2",
-			content: "Want to jump on a call later?",
-			timestamp: "2026-05-03T10:18:45Z",
-			isRead: false,
-		},
-		{
-			messageId: "msg-5",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Sure, sounds good 👍",
-			timestamp: "2026-05-03T10:19:20Z",
-			isRead: false,
-		},
-		{
-			messageId: "msg-2",
-			chatId: "chat-123",
-			senderId: "user-2",
-			senderName: "Bob",
-			senderAvatar: "https://i.pravatar.cc/150?img=2",
-			content: "I'm good! Working on the project.",
-			timestamp: "2026-05-03T10:16:30Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-3",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Nice, same here 😄",
-			timestamp: "2026-05-03T10:17:10Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-4",
-			chatId: "chat-123",
-			senderId: "user-2",
-			senderName: "Bob",
-			senderAvatar: "https://i.pravatar.cc/150?img=2",
-			content: "Want to jump on a call later?",
-			timestamp: "2026-05-03T10:18:45Z",
-			isRead: false,
-		},
-		{
-			messageId: "msg-5",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Sure, sounds good 👍",
-			timestamp: "2026-05-03T10:19:20Z",
-			isRead: false,
-		},
-		{
-			messageId: "msg-2",
-			chatId: "chat-123",
-			senderId: "user-2",
-			senderName: "Bob",
-			senderAvatar: "https://i.pravatar.cc/150?img=2",
-			content: "I'm good! Working on the project.",
-			timestamp: "2026-05-03T10:16:30Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-3",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Nice, same here 😄",
-			timestamp: "2026-05-03T10:17:10Z",
-			isRead: true,
-		},
-		{
-			messageId: "msg-4",
-			chatId: "chat-123",
-			senderId: "user-2",
-			senderName: "Bob",
-			senderAvatar: "https://i.pravatar.cc/150?img=2",
-			content: "Want to jump on a call later?",
-			timestamp: "2026-05-03T10:18:45Z",
-			isRead: false,
-		},
-		{
-			messageId: "msg-5",
-			chatId: "chat-123",
-			senderId: "user-1",
-			senderName: "Alice",
-			senderAvatar: "https://i.pravatar.cc/150?img=1",
-			content: "Sure, sounds good 👍",
-			timestamp: "2026-05-03T10:19:20Z",
-			isRead: false,
-		}
-	]);
-	const [chat, setChat] = useState<ChatPreview | null>(null);
+export default function ChatWindow({ chat, chatId, setSidebarOpen }: ChatWindowProps) {
+	const [messages, setMessages] = useState<Message[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -157,28 +25,21 @@ export default function ChatWindow({ chatId, setSidebarOpen }: ChatWindowProps) 
 	const currentUserId = user?.id || 'current-user-id';
 
 	useEffect(() => {
-		if (chatId) {
-			loadChatAndMessages();
-		}
+		if (!chatId) return;
+
+		setMessages([]);
+		loadMessages();
 	}, [chatId]);
 
 	useEffect(() => {
 		scrollToBottom();
 	}, [messages]);
 
-	const loadChatAndMessages = async () => {
+	const loadMessages = async () => {
 		if (!chatId) return;
 
 		setIsLoading(true);
 		try {
-			// Load chat details
-			const chats = await chatService.getMyChats();
-			const currentChat = chats.find(c => c.chatId === chatId);
-			if (currentChat) {
-				setChat(currentChat);
-			}
-
-			// Load messages
 			const msgs = await messageService.getChatMessages(chatId);
 			setMessages(msgs);
 		} catch (error) {

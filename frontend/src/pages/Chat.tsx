@@ -8,6 +8,7 @@ import ChatWindow from '../components/chat/ChatWindow';
 import NewChatModal from '../components/chat/NewChatModal';
 import AddContactModal from '../components/contact/AddContactModal';
 import Sidebar from '../components/Sidebar';
+import chatMemberService from '../services/chat/chatMemberService';
 
 type SidebarTab = 'chats' | 'contacts';
 
@@ -72,12 +73,10 @@ export default function Chat() {
 	const handleCreatePrivateChat = async (userId: string) => {
 		try {
 			const chat = await chatService.getOrCreatePrivateChat(userId);
-			setChats(prev => {
-				const exists = prev.some(c => c.chatId === chat.chatId);
-				return exists ? prev : [chat, ...prev];
-			});
+			insertChatSorted(chat);
 			setActiveChat(chat.chatId);
 			setActiveTab('chats');
+			setIsSidebarOpen(false);
 		} catch (error) {
 			console.error('Error creating private chat:', error);
 		}
@@ -89,8 +88,10 @@ export default function Chat() {
 				membersIds: memberIds,
 				chatName: groupName
 			});
-			await loadChats();
+
+			insertChatSorted(chat);
 			setActiveChat(chat.chatId);
+
 		} catch (error) {
 			console.error('Error creating group chat:', error);
 		}
@@ -102,6 +103,48 @@ export default function Chat() {
 		await loadContacts();
 	};
 
+	const handleDeleteChat = async (chatId: string) => {
+		try {
+			await chatMemberService.leaveChat(chatId);
+
+			setChats(prev => prev.filter(chat => chat.chatId !== chatId));
+
+			if (activeChat === chatId) {
+				setActiveChat(null);
+			}
+		} catch (error) {
+			console.error('Error leaving chat:', error);
+		}
+	};
+
+	const handleActiveChatChange = (chatId: string) => {
+		setActiveChat(chatId);
+		if (isMobile) {
+			setIsSidebarOpen(false);
+		}
+	};
+
+	const insertChatSorted = (newChat: ChatPreview) => {
+		setChats(prev => {
+			const exists = prev.some(c => c.chatId === newChat.chatId);
+			if (exists) return prev;
+
+			if (newChat.lastMessageTimestamp === null) return [newChat, ...prev];
+
+			const updated = [newChat, ...prev];
+
+			return updated.sort((a, b) => {
+				if (!a.lastMessageTimestamp) return -1;
+				if (!b.lastMessageTimestamp) return 1;
+
+				return (
+					new Date(b.lastMessageTimestamp).getTime() -
+					new Date(a.lastMessageTimestamp).getTime()
+				);
+			});
+		});
+	};
+
 	return (
 		<div className={styles.chatPage}>
 			<Sidebar
@@ -110,7 +153,7 @@ export default function Chat() {
 				chats={chats}
 				contacts={contacts}
 				activeChat={activeChat}
-				setActiveChat={setActiveChat}
+				setActiveChat={handleActiveChatChange}
 				searchQuery={searchQuery}
 				setSearchQuery={setSearchQuery}
 				isLoadingChats={isLoadingChats}
@@ -119,10 +162,12 @@ export default function Chat() {
 				onOpenNewChat={() => setIsNewChatModalOpen(true)}
 				onOpenAddContact={() => setIsAddContactModalOpen(true)}
 				onStartChat={handleCreatePrivateChat}
+				onDeleteChat={handleDeleteChat}
 			/>
 
 			<div className={styles.chatMain}>
 				<ChatWindow
+					chat={chats.find(c => c.chatId === activeChat) || null}
 					chatId={activeChat}
 					setSidebarOpen={setIsSidebarOpen}
 				/>

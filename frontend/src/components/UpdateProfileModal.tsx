@@ -1,31 +1,41 @@
-// components/UpdateProfileModal.tsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Camera } from 'lucide-react';
 import Input from './Input';
 import Avatar from './Avatar';
 import styles from '../styles/UpdateProfileModal.module.css';
+import type { UserProfile } from '../services/auth/authTypes';
 
 interface UpdateProfileModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	currentDisplayName: string;
-	currentAvatarUrl: string | null;
+	user: UserProfile | null;
 	onUpdate: (displayName: string, avatarFile?: File) => void;
 }
 
 export default function UpdateProfileModal({
 	isOpen,
 	onClose,
-	currentDisplayName,
-	currentAvatarUrl,
+	user,
 	onUpdate
 }: UpdateProfileModalProps) {
-	const [displayName, setDisplayName] = useState(currentDisplayName);
-	const [avatarPreview, setAvatarPreview] = useState<string | null>(currentAvatarUrl);
+	const [displayName, setDisplayName] = useState(() => user?.displayName || '');
+	const [username, setUsername] = useState(() => user?.username || '');
+	const [email, setEmail] = useState(() => user?.email || '');
+	const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatarUrl || null);
 	const [avatarFile, setAvatarFile] = useState<File | undefined>(undefined);
 	const [isValid, setIsValid] = useState(true);
 
-	if (!isOpen) return null;
+	useEffect(() => {
+        if (isOpen && user) {
+            setDisplayName(user.displayName || '');
+            setAvatarPreview(user.avatarUrl || null);
+            setAvatarFile(undefined);
+        }
+    }, [isOpen, user]); // Dependências cruciais
+
+	const hasChanges = displayName.trim() !== (user?.displayName || '').trim() || !!avatarFile;
+
+    if (!isOpen) return null;
 
 	const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -62,7 +72,7 @@ export default function UpdateProfileModal({
 						<div className={styles.avatarSection}>
 							<div className={styles.avatarWrapper}>
 								<Avatar
-									name={displayName || 'User'}
+									name={user?.displayName || 'User'}
 									src={avatarPreview}
 									size="xl"
 								/>
@@ -94,8 +104,8 @@ export default function UpdateProfileModal({
 						<Input
 							label="Username"
 							type="text"
-							value={displayName}
-							onChange={(e) => setDisplayName(e.target.value)}
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
 							onValidationChange={setIsValid}
 							disabled
 							placeholder="Digite seu nome de exibição"
@@ -104,8 +114,8 @@ export default function UpdateProfileModal({
 						<Input
 							label="Email"
 							type="email"
-							value={displayName}
-							onChange={(e) => setDisplayName(e.target.value)}
+							value={email}
+							onChange={(e) => setEmail(e.target.value)}
 							onValidationChange={setIsValid}
 							disabled
 							placeholder="Digite seu nome de exibição"
@@ -123,7 +133,7 @@ export default function UpdateProfileModal({
 						<button
 							type="submit"
 							className={styles.submitBtn}
-							disabled={!isValid || !displayName.trim()}
+							disabled={!isValid || !displayName.trim() || !hasChanges}
 						>
 							Guardar Alterações
 						</button>

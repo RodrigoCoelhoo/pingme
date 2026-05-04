@@ -1,6 +1,8 @@
-import React, { useState, useRef, type KeyboardEvent } from 'react';
+import React, { useState, useRef, type KeyboardEvent, useEffect } from 'react';
 import { SendHorizonal, Smile, Paperclip } from 'lucide-react';
 import styles from '../../styles/chat/MessageInput.module.css';
+import EmojiPicker, { Theme } from 'emoji-picker-react';
+import { useTheme } from 'next-themes';
 
 interface MessageInputProps {
 	onSendMessage: (content: string) => void;
@@ -9,7 +11,28 @@ interface MessageInputProps {
 
 export default function MessageInput({ onSendMessage, disabled = false }: MessageInputProps) {
 	const [message, setMessage] = useState('');
+	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const pickerRef = useRef<HTMLDivElement>(null);
+
+	const { theme } = useTheme();
+
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				pickerRef.current &&
+				!pickerRef.current.contains(event.target as Node)
+			) {
+				setShowEmojiPicker(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, []);
 
 	const handleSend = () => {
 		if (message.trim() && !disabled) {
@@ -38,15 +61,27 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
 		}
 	};
 
+	const handleEmojiClick = (emojiData: any) => {
+		setMessage(prev => prev + emojiData.emoji);
+	};
+
 	return (
 		<div className={styles.messageInput}>
 			<button
 				className={styles.iconBtn}
-				title="Emojis (em breve)"
-				disabled
+				onClick={() => setShowEmojiPicker(prev => !prev)}
 			>
 				<Smile size={20} />
 			</button>
+
+			{showEmojiPicker && (
+				<div style={{ position: 'absolute', bottom: '60px', zIndex: 10 }} ref={pickerRef}>
+					<EmojiPicker
+						onEmojiClick={handleEmojiClick}
+						theme={theme === 'dark' ? Theme.DARK : Theme.LIGHT}
+					/>
+				</div>
+			)}
 
 			<button
 				className={styles.iconBtn}

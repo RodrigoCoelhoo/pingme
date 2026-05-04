@@ -1,24 +1,24 @@
 package com.pingme.chats.members;
 
-import com.pingme.chats.Chat;
-import com.pingme.chats.ChatService;
-import com.pingme.chats.ChatType;
-import com.pingme.exceptions.BadRequestException;
 import com.pingme.exceptions.ForbiddenException;
-import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class ChatMemberService {
 
     private final ChatMemberRepository chatMemberRepository;
-    private final ChatService chatService;
 
-    private ChatMember getChatMember(String chatId, String userId) {
+    public ChatMember getChatMember(String chatId, String userId) {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId)
                 .orElseThrow(() -> new ForbiddenException("User is not a member of this chat"));
+    }
+
+    public List<ChatMember> getUserChats(String userId) {
+        return chatMemberRepository.findByUserIdAndActiveTrue(userId);
     }
 
     public void markAsRead(String chatId, String userId, String messageId) {
@@ -28,26 +28,8 @@ public class ChatMemberService {
         chatMemberRepository.save(member);
     }
 
-    public void activateChat(String chatId, String userId) {
-
-        Chat chat = chatService.getChat(chatId, userId);
-
-        if(chat.getChatType() == ChatType.GROUP) {
-            throw new BadRequestException("Group chats don't support this function");
-        }
-
-        ChatMember member = getChatMember(chatId, userId);
-
-        if (!member.isActive()) {
-            member.setActive(true);
-            chatMemberRepository.save(member);
-        }
-    }
-
-    public void addMemberToGroup(UserProfile user, String chatId, String userId) {
-
-        Chat chat = chatService.getChat(chatId, user.id());
-
+    // Batch
+    /*public void addMemberToGroup(UserProfile user, String chatId, String userId) {
         ChatMember member = chatMemberRepository
                 .findByChatIdAndUserId(chatId, userId)
                 .orElse(null);
@@ -63,17 +45,30 @@ public class ChatMemberService {
         }
 
         chatMemberRepository.save(member);
+    }*/
+
+    public void activateChat(ChatMember member) {
+        if (!member.isActive()) {
+            member.setActive(true);
+            chatMemberRepository.save(member);
+        }
     }
 
-    public void leaveGroup(String chatId, String userId) {
-        Chat chat = chatService.getChat(chatId, userId);
+    public void activateChat(String chatId, String userId) {
+        ChatMember member = getChatMember(chatId, userId);
+        activateChat(member);
+    }
+
+    public void leaveChat(String chatId, String userId) {
         ChatMember member = getChatMember(chatId, userId);
 
-        if (chat.getChatType() != ChatType.GROUP) {
-            throw new BadRequestException("Cannot leave a private chat");
+        if(member.isActive()) {
+            member.setActive(false);
+            chatMemberRepository.save(member);
         }
+    }
 
-        member.setActive(false);
-        chatMemberRepository.save(member);
+    public void saveAll(List<ChatMember> members) {
+        chatMemberRepository.saveAll(members);
     }
 }

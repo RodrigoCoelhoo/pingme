@@ -8,9 +8,7 @@ import { EllipsisVertical, User, Languages, Palette, LogOut } from 'lucide-react
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
 
-interface UserMenuProps { }
-
-export default function UserMenu(props: UserMenuProps) {
+export default function UserMenu() {
 	const { user, signOut } = useAuth();
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -136,8 +134,7 @@ export default function UserMenu(props: UserMenuProps) {
 			<UpdateProfileModal
 				isOpen={isProfileModalOpen}
 				onClose={() => setIsProfileModalOpen(false)}
-				currentDisplayName={user?.displayName || ''}
-				currentAvatarUrl={user?.avatarUrl || null}
+				user={user}
 				onUpdate={handleUpdateProfile}
 			/>
 		</>

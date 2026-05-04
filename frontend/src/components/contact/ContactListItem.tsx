@@ -36,14 +36,6 @@ export default function ContactListItem({ contact, onStartChat }: ContactListIte
 			>
 				<MessageCircle size={18} />
 			</button>
-
-			<button
-				className={styles.chatBtn}
-				onClick={() => onStartChat(contact.userId)}
-				title="Iniciar conversa"
-			>
-				<MessageCircle size={18} />
-			</button>
 		</div>
 	);
 };

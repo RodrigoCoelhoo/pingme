@@ -20,4 +20,12 @@ public class ChatMemberController {
     ) {
         chatMemberService.markAsRead(chatId, user.id(), messageId);
     }
+
+    @PutMapping("/{chatId}/leave")
+    public void leaveChat(
+            @AuthenticationPrincipal UserProfile user,
+            @PathVariable String chatId
+    ) {
+        chatMemberService.leaveChat(chatId, user.id());
+    }
 }

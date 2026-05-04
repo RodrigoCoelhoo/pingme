@@ -23,8 +23,6 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 
 	const handleDelete = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		
-		chat.lastMessage = 'Teste'
 
 		if (onDelete) {
 			onDelete(chat.chatId);

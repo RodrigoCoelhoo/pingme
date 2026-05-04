@@ -10,6 +10,9 @@
 	justify-content: center;
 	z-index: 1000;
 	padding: 1rem;
+	
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(4px);
 }
 
 .modalContent {
@@ -17,7 +20,7 @@
 	border-radius: 12px;
 	width: 100%;
 	max-width: 450px;
-	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	box-shadow: var(--shadow-xl);
 	overflow: hidden;
 	color: var(--text);
 }

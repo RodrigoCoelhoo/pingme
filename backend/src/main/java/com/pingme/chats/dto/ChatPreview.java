@@ -1,6 +1,9 @@
 package com.pingme.chats.dto;
 
 import com.pingme.chats.ChatType;
+import com.pingme.chats.members.ChatRole;
+
+import java.time.Instant;
 
 public record ChatPreview(
 
@@ -11,6 +14,10 @@ public record ChatPreview(
         String chatImageUrl,
 
         String lastMessage,
+        Instant lastMessageTimestamp,
+
+        ChatRole role,
+        boolean isMuted,
 
         int unreadCount
 ) {}

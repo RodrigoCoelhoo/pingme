@@ -30,6 +30,7 @@ type Props = {
 	onOpenAddContact: () => void;
 
 	onStartChat: (userId: string) => void;
+	onDeleteChat: (chatId: string) => void;
 };
 
 export default function Sidebar({
@@ -46,7 +47,8 @@ export default function Sidebar({
 	isSidebarOpen,
 	onOpenNewChat,
 	onOpenAddContact,
-	onStartChat
+	onStartChat,
+	onDeleteChat
 }: Props) {
 	const filteredChats = chats.filter(chat =>
 		chat.chatName.toLowerCase().includes(searchQuery.toLowerCase())
@@ -55,8 +57,6 @@ export default function Sidebar({
 	const filteredContacts = contacts.filter(contact =>
 		contact.username.toLowerCase().includes(searchQuery.toLowerCase())
 	);
-
-
 
 	return (
 		<div className={`${styles.chatSidebar} ${isSidebarOpen ? styles.open : ''}`}>
@@ -117,7 +117,7 @@ export default function Sidebar({
 							chats={filteredChats}
 							activeChat={activeChat}
 							onChatSelect={setActiveChat}
-							onDeleteChat={(chatId) => console.log(chatId)}
+							onDeleteChat={onDeleteChat}
 						/>
 					)
 				) : isLoadingContacts ? (

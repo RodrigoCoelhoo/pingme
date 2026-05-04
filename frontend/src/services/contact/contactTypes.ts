@@ -1,7 +1,6 @@
 export enum ContactStatus {
 	PENDING = 'PENDING',
-	ACCEPTED = 'ACCEPTED',
-	BLOCKED = 'BLOCKED'
+	ACCEPTED = 'ACCEPTED'
 }
 
 export interface ContactResponse {

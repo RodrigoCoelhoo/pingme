@@ -2,6 +2,7 @@ package com.pingme.chats;
 
 import com.pingme.chats.dto.ChatDTO;
 import com.pingme.chats.dto.ChatPreview;
+import com.pingme.chats.members.ChatRole;
 import com.pingme.users.dto.UserProfile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +29,7 @@ public class ChatController {
     }
 
     @PostMapping("/group")
-    public ResponseEntity<?> createGroupChat(
+    public ResponseEntity<ChatPreview> createGroupChat(
             @AuthenticationPrincipal UserProfile user,
             @RequestBody @Valid ChatDTO dto
     ) {
@@ -38,7 +39,19 @@ public class ChatController {
                 dto.chatName()
         );
 
-        return ResponseEntity.ok(chat);
+        ChatPreview response = new ChatPreview(
+                chat.getId(),
+                chat.getChatType(),
+                chat.getChatName(),
+                chat.getImageUrl(),
+                "",
+                null,
+                ChatRole.ADMIN,
+                false,
+                0
+        );
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

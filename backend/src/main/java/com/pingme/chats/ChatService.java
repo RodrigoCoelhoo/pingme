@@ -2,7 +2,7 @@ package com.pingme.chats;
 
 import com.pingme.chats.dto.ChatPreview;
 import com.pingme.chats.members.ChatMember;
-import com.pingme.chats.members.ChatMemberRepository;
+import com.pingme.chats.members.ChatMemberService;
 import com.pingme.chats.members.ChatRole;
 import com.pingme.contacts.ContactService;
 import com.pingme.exceptions.BadRequestException;
@@ -14,6 +14,7 @@ import com.pingme.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,10 +23,10 @@ import java.util.stream.Collectors;
 public class ChatService {
 
     private final ChatRepository chatRepository;
-    private final ChatMemberRepository chatMemberRepository;
     private final ContactService contactService;
     private final MessageService messageService;
     private final UserService userService;
+    private final ChatMemberService chatMemberService;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
         Chat chat = chatRepository.findPrivateChat(
@@ -33,6 +34,10 @@ public class ChatService {
                 userId,
                 targetId
         ).orElseGet(() -> createPrivateChat(userId, targetId));
+
+        ChatMember member = chatMemberService.getChatMember(chat.getId(), userId);
+        chatMemberService.activateChat(member);
+
 
         String otherUserId = chat.getMemberIds().stream()
                 .filter(id -> !id.equals(userId))
@@ -42,9 +47,11 @@ public class ChatService {
         User otherUser = userService.getUserById(otherUserId);
 
         String lastMessage = null;
+        Instant lastMessageTimestamp = null;
         if (chat.getLastMessageId() != null) {
             Message message = messageService.getMessage(chat.getLastMessageId());
             lastMessage = message.getContent();
+            lastMessageTimestamp = message.getCreatedAt();
         }
 
         return new ChatPreview(
@@ -53,6 +60,9 @@ public class ChatService {
                 otherUser.getDisplayName(),
                 otherUser.getAvatarUrl(),
                 lastMessage,
+                lastMessageTimestamp,
+                member.getRole(),
+                member.isMuted(),
                 0
         );
     }
@@ -79,11 +89,12 @@ public class ChatService {
                     .build()
         );
 
-        chatMemberRepository.saveAll(List.of(
+        chatMemberService.saveAll(List.of(
                 ChatMember.builder()
                         .chatId(chat.getId())
                         .userId(userId)
                         .active(true)
+                        .muted(false)
                         .role(ChatRole.MEMBER)
                         .build(),
 
@@ -91,6 +102,7 @@ public class ChatService {
                         .chatId(chat.getId())
                         .userId(targetId)
                         .active(false)
+                        .muted(false)
                         .role(ChatRole.MEMBER)
                         .build()
         ));
@@ -132,19 +144,26 @@ public class ChatService {
                         .chatId(chat.getId())
                         .userId(id)
                         .active(true)
+                        .muted(false)
                         .role(id.equals(userId) ? ChatRole.ADMIN : ChatRole.MEMBER)
                         .build()
                 )
                 .toList();
 
-        chatMemberRepository.saveAll(chatMembers);
+        chatMemberService.saveAll(chatMembers);
 
         return chat;
     }
 
     public List<ChatPreview> getUserChats(String userId) {
-        List<ChatMember> memberships = chatMemberRepository.findByUserIdAndActiveTrue(userId);
+        List<ChatMember> memberships = chatMemberService.getUserChats(userId);
         if (memberships.isEmpty()) return List.of();
+
+        Map<String, ChatMember> memberMap = memberships.stream()
+                .collect(Collectors.toMap(
+                        ChatMember::getChatId,
+                        m -> m
+                ));
 
         List<String> chatIds = memberships.stream()
                 .map(ChatMember::getChatId)
@@ -163,22 +182,17 @@ public class ChatService {
         Map<String, Message> lastMessageMap = lastMessages.stream()
                 .collect(Collectors.toMap(Message::getId, m -> m));
 
-
-        Set<String> senderIds = lastMessages.stream()
-                .map(Message::getSenderId)
-                .collect(Collectors.toSet());
-        List<User> senders = userService.getUsersByIds(senderIds);
-
-        Map<String, User> senderMap = senders.stream()
-                .collect(Collectors.toMap(User::getId, u -> u));
-
         return chats.stream()
                 .map(chat -> {
+                    ChatMember member = memberMap.get(chat.getId());
+
                     String lastMessage = null;
+                    Instant lastMessageTimestamp = null;
                     if (chat.getLastMessageId() != null) {
                         Message message = lastMessageMap.get(chat.getLastMessageId());
                         if (message != null) {
                             lastMessage = message.getContent();
+                            lastMessageTimestamp = message.getCreatedAt();
                         }
                     }
 
@@ -207,6 +221,9 @@ public class ChatService {
                             chatName,
                             chatImageUrl,
                             lastMessage,
+                            lastMessageTimestamp,
+                            member.getRole(),
+                            member.isMuted(),
                             0 // TODO: unread count
                     );
                 })
