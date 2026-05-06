@@ -1,5 +1,5 @@
 import styles from '../../styles/chat/MessageBubble.module.css';
-import type { Message } from '../../services/message/messageTypes';
+import type { Message } from '../../services/message/message.types';
 
 interface MessageBubbleProps {
 	message: Message;

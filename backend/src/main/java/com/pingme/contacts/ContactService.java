@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -112,5 +113,9 @@ public class ContactService {
                                 : contact.getSenderId()
                 )
                 .toList();
+    }
+
+    public List<Contact> getContactsBetween(String userId, Set<String> otherUsers) {
+        return contactRepository.findContactsBetween(userId, otherUsers);
     }
 }

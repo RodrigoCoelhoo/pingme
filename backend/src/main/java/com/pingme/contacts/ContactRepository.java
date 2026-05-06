@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ContactRepository extends MongoRepository<Contact, String> {
 
@@ -20,6 +21,22 @@ public interface ContactRepository extends MongoRepository<Contact, String> {
     }
     """)
     Optional<Contact> findContactBetween(String user1, String user2);
+
+    @Query("""
+    {
+      $or: [
+        {
+          senderId: ?0,
+          receiverId: { $in: ?1 }
+        },
+        {
+          receiverId: ?0,
+          senderId: { $in: ?1 }
+        }
+      ]
+    }
+    """)
+    List<Contact> findContactsBetween(String currentUserId, Set<String> memberIds);
 
     @Query("{ '_id': ?0, '$or': [ { 'senderId': ?1 }, { 'receiverId': ?1 } ] }")
     Optional<Contact> findByIdAndUser(String id, String userId);

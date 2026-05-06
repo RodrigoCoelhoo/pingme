@@ -296,29 +296,72 @@
 .memberInfo {
 	flex: 1;
 	min-width: 0;
+	display: flex;
+
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
 }
 
-.memberName {
+/* top row: name + role */
+.memberNameRow {
 	display: flex;
-	align-items: center;
-	gap: var(--space-2);
+	flex-direction: column;
 	font-size: var(--text-base);
 	font-weight: var(--font-medium);
 	color: var(--text);
 }
 
+.memberText {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	flex: 1; /* ⭐ critical */
+}
+
+.memberDisplayName {
+	font-size: var(--text-base);
+	color: var(--text);
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	min-width: 0;
+}
+
+.memberUsername {
+	flex: 1;
+	font-size: var(--text-xs);
+	color: var(--muted);
+
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	min-width: 0;
+}
+
 .roleTag {
+	position: relative;
+	color: white;
+	z-index: 0;
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
-	padding: 2px 8px;
-	background: var(--gradient);
-	border-radius: 4px;
+	gap: var(--space-1);
+	padding: 4px 8px;
 	font-size: var(--text-xs);
 	font-weight: var(--font-semibold);
-	color: white;
 	text-transform: uppercase;
 	letter-spacing: 0.3px;
+}
+
+.roleTag::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--gradient);
+	opacity: 0.7;
+	border-radius: 4px;
+	z-index: -1;
 }
 
 .roleIcon {

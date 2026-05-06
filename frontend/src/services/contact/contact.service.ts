@@ -1,6 +1,6 @@
 import api from '../api';
 import type { PageResponseDTO } from '../api.dto';
-import type { ContactResponse, ContactStatus } from './contactTypes';
+import type { ContactResponse, ContactStatus } from './contact.types';
 
 class ContactService {
 	async getContacts(

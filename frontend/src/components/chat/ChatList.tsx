@@ -1,4 +1,4 @@
-import type { ChatPreview } from '../../services/chat/chatTypes';
+import type { ChatPreview } from '../../services/chat/chat.types';
 import ChatListItem from './ChatListItem';
 import styles from '../../styles/chat/ChatList.module.css';
 

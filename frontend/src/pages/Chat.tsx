@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { type ChatPreview } from '../services/chat/chatTypes';
-import chatService from '../services/chat/chatService';
+import { type ChatPreview } from '../services/chat/chat.types';
+import chatService from '../services/chat/chat.service';
 import styles from '../styles/chat/Chat.module.css';
-import { ContactStatus, type ContactResponse } from '../services/contact/contactTypes';
-import contactService from '../services/contact/contactService';
+import { ContactStatus, type ContactResponse } from '../services/contact/contact.types';
+import contactService from '../services/contact/contact.service';
 import ChatWindow from '../components/chat/ChatWindow';
 import NewChatModal from '../components/chat/NewChatModal';
 import AddContactModal from '../components/contact/AddContactModal';
 import Sidebar from '../components/Sidebar';
-import chatMemberService from '../services/chat/chatMemberService';
+import chatMemberService from '../services/chat/chatMember.service';
 
 type SidebarTab = 'chats' | 'contacts';
 

@@ -25,8 +25,6 @@ public class Chat {
 
     private ChatType chatType; // PRIVATE or GROUP
 
-    private List<String> memberIds;
-
     private String lastMessageId;
 
     @CreatedDate

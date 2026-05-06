@@ -1,10 +1,12 @@
 package com.pingme.chats.members;
 
+import com.pingme.chats.Chat;
 import com.pingme.exceptions.ForbiddenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +21,19 @@ public class ChatMemberService {
 
     public List<ChatMember> getUserChats(String userId) {
         return chatMemberRepository.findByUserIdAndActiveTrue(userId);
+    }
+
+    public List<ChatMember> getChatMembers(String chatId) {
+        return chatMemberRepository.findByChatId(chatId);
+    }
+
+    public List<ChatMember> getChatMembers(String chatId, int page, int size) {
+        int skip = page * size;
+        return chatMemberRepository.findPagedMembers(chatId, skip, size);
+    }
+
+    public long getTotalMembers(String chatId) {
+        return chatMemberRepository.countByChatId(chatId);
     }
 
     public void markAsRead(String chatId, String userId, String messageId) {
@@ -70,5 +85,17 @@ public class ChatMemberService {
 
     public void saveAll(List<ChatMember> members) {
         chatMemberRepository.saveAll(members);
+    }
+
+    public boolean exists(String chatId, String userId) {
+        return chatMemberRepository.findByChatIdAndUserId(chatId, userId).isPresent();
+    }
+
+    public List<ChatMember> getOtherMembers(List<String> chatIds, String userId) {
+        return chatMemberRepository.findByChatIdInAndUserIdNot(chatIds, userId);
+    }
+
+    public Optional<Chat> findPrivateChat(String user1, String user2) {
+        return chatMemberRepository.findPrivateChat(user1, user2);
     }
 }

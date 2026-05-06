@@ -1,7 +1,7 @@
 import { Plus, Search, MessageSquare, Users } from 'lucide-react';
 import styles from '../styles/Sidebar.module.css';
-import type { ChatPreview } from '../services/chat/chatTypes';
-import type { ContactResponse } from '../services/contact/contactTypes';
+import type { ChatPreview } from '../services/chat/chat.types';
+import type { ContactResponse } from '../services/contact/contact.types';
 import ChatList from './chat/ChatList';
 import ContactsList from './contact/ContactList';
 import UserMenu from './UserMenu';

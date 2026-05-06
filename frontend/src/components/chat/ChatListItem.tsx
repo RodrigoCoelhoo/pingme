@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { ChatPreview } from '../../services/chat/chatTypes';
+import type { ChatPreview } from '../../services/chat/chat.types';
 import { X } from 'lucide-react';
 import styles from '../../styles/chat/ChatListItem.module.css';
 import Avatar from '../Avatar';

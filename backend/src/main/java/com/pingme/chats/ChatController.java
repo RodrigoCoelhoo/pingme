@@ -1,13 +1,17 @@
 package com.pingme.chats;
 
 import com.pingme.chats.dto.ChatDTO;
+import com.pingme.chats.dto.ChatMembers;
 import com.pingme.chats.dto.ChatPreview;
 import com.pingme.chats.members.ChatRole;
 import com.pingme.users.dto.UserProfile;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("api/chats")
 @RequiredArgsConstructor
+@Validated
 public class ChatController {
 
     private final ChatService chatService;
@@ -61,5 +66,15 @@ public class ChatController {
         return ResponseEntity.ok(
                 chatService.getUserChats(user.id())
         );
+    }
+
+    @GetMapping("/{chatId}/members")
+    public ResponseEntity<ChatMembers> getChatMembers(
+            @AuthenticationPrincipal UserProfile user,
+            @PathVariable String chatId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+    ) {
+        return ResponseEntity.ok(chatService.getChatMembers(user.id(), chatId, page, size));
     }
 }

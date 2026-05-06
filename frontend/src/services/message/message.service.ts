@@ -1,5 +1,5 @@
 import api from '../api';
-import type { Message, SendMessageDTO } from './messageTypes';
+import type { Message, SendMessageDTO } from './message.types';
 
 class MessageService {
 	async getChatMessages(chatId: string, page: number = 0, limit: number = 50): Promise<Message[]> {

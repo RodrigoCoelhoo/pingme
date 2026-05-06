@@ -1,9 +1,9 @@
 import { ArrowLeft, Search, Bell, BellOff } from 'lucide-react';
-import { ChatType, type ChatPreview } from '../../services/chat/chatTypes';
+import { ChatType, type ChatPreview } from '../../services/chat/chat.types';
 import styles from '../../styles/chat/ChatHeader.module.css';
 import { useEffect, useState } from 'react';
 import Avatar from '../Avatar';
-import ChatDetailsModal, { ContactStatus, MemberRole, type ChatDetails } from './ChatDetailsModal';
+import ChatDetailsModal from './ChatDetailsModal';
 
 interface ChatHeaderProps {
 	chat: ChatPreview;
@@ -21,42 +21,6 @@ export default function ChatHeader({ chat, setSidebarOpen }: ChatHeaderProps) {
 
 	const [showGroupDetails, setShowGroupDetails] = useState(false);
 
-	const mockGroupDetails: ChatDetails = {
-		id: 'group-123',
-		name: 'Team Project Chat',
-		imageUrl: 'https://i.pravatar.cc/150?img=1',
-		currentUserRole: MemberRole.ADMIN,
-		members: [
-			{
-				id: 'user-1',
-				name: 'John Doe',
-				avatarUrl: 'https://i.pravatar.cc/150?img=11',
-				role: MemberRole.ADMIN,
-				contactStatus: ContactStatus.ACCEPTED
-			},
-			{
-				id: 'user-2',
-				name: 'Jane Smith',
-				avatarUrl: 'https://i.pravatar.cc/150?img=5',
-				role: MemberRole.MODERATOR,
-				contactStatus: ContactStatus.ACCEPTED
-			},
-			{
-				id: 'user-3',
-				name: 'Bob Johnson',
-				avatarUrl: 'https://i.pravatar.cc/150?img=12',
-				role: MemberRole.MEMBER,
-				contactStatus: ContactStatus.PENDING
-			},
-			{
-				id: 'user-4',
-				name: 'Alice Williams',
-				role: MemberRole.MEMBER,
-				contactStatus: null // Show contact request button
-			}
-		]
-	};
-
 	const handleLeaveGroup = () => {
 		console.log('Leaving group...');
 		// Implement your leave group logic
@@ -72,19 +36,11 @@ export default function ChatHeader({ chat, setSidebarOpen }: ChatHeaderProps) {
 	};
 
 	const handleTransferOwnership = (memberId: string) => {
-		const member = mockGroupDetails.members.find(m => m.id === memberId);
-		if (confirm(`Are you sure you want to transfer ownership to ${member?.name}?`)) {
-			console.log('Transferring ownership to:', memberId);
-			// Implement your transfer ownership logic
-		}
+		
 	};
 
 	const handleKickMember = (memberId: string) => {
-		const member = mockGroupDetails.members.find(m => m.id === memberId);
-		if (confirm(`Remove ${member?.name} from the group?`)) {
-			console.log('Kicking member:', memberId);
-			// Implement your kick member logic
-		}
+		
 	};
 
 	const handleAddMembers = () => {
@@ -145,7 +101,7 @@ export default function ChatHeader({ chat, setSidebarOpen }: ChatHeaderProps) {
 
 			{showGroupDetails && (
 				<ChatDetailsModal
-					group={mockGroupDetails}
+					chat={chat}
 					onClose={() => setShowGroupDetails(false)}
 					onLeaveGroup={handleLeaveGroup}
 					onDeleteGroup={handleDeleteGroup}

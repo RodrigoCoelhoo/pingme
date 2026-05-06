@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { MessageCircle, Loader } from 'lucide-react';
-import type { Message } from '../../services/message/messageTypes';
-import type { ChatPreview } from '../../services/chat/chatTypes';
-import messageService from '../../services/message/messageService';
+import type { Message } from '../../services/message/message.types';
+import type { ChatPreview } from '../../services/chat/chat.types';
+import messageService from '../../services/message/message.service';
 import ChatHeader from './ChatHeader';
 import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';

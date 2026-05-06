@@ -1,6 +1,6 @@
 import { MessageCircle } from 'lucide-react';
 import styles from '../../styles/contact/ContactListItem.module.css';
-import type { ContactResponse } from '../../services/contact/contactTypes';
+import type { ContactResponse } from '../../services/contact/contact.types';
 import { useEffect, useState } from 'react';
 import Avatar from '../Avatar';
 

@@ -1,6 +1,6 @@
 import ContactListItem from './ContactListItem';
 import styles from '../../styles/contact/ContactList.module.css';
-import type { ContactResponse } from '../../services/contact/contactTypes';
+import type { ContactResponse } from '../../services/contact/contact.types';
 
 interface ContactsListProps {
 	contacts: ContactResponse[];

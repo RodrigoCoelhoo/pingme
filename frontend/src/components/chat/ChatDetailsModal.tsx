@@ -2,36 +2,12 @@ import { X, Crown, Shield, UserPlus, UserMinus, LogOut, Trash2, Camera, Edit2, U
 import { useState, useRef, useEffect } from 'react';
 import Avatar from '../Avatar';
 import styles from '../../styles/chat/ChatDetailsModal.module.css';
-
-export enum MemberRole {
-	ADMIN = 'admin',
-	MODERATOR = 'moderator',
-	MEMBER = 'member'
-}
-
-export enum ContactStatus {
-	PENDING = 'PENDING',
-	ACCEPTED = 'ACCEPTED'
-}
-
-export interface GroupMember {
-	id: string;
-	name: string;
-	avatarUrl?: string;
-	role: MemberRole;
-	contactStatus?: ContactStatus | null;
-}
-
-export interface ChatDetails {
-	id: string;
-	name: string;
-	imageUrl?: string;
-	members: GroupMember[];
-	currentUserRole: MemberRole;
-}
+import { MemberRole, type ChatMember, type ChatPreview } from '../../services/chat/chat.types';
+import chatService from '../../services/chat/chat.service';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ChatDetailsModalProps {
-	group: ChatDetails;
+	chat: ChatPreview;
 	onClose: () => void;
 	onLeaveGroup?: () => void;
 	onDeleteGroup?: () => void;
@@ -45,7 +21,7 @@ interface ChatDetailsModalProps {
 }
 
 export default function ChatDetailsModal({
-	group,
+	chat,
 	onClose,
 	onLeaveGroup,
 	onDeleteGroup,
@@ -58,13 +34,24 @@ export default function ChatDetailsModal({
 	onSendContactRequest
 }: ChatDetailsModalProps) {
 	const [isEditingName, setIsEditingName] = useState(false);
-	const [newGroupName, setNewGroupName] = useState(group.name);
+	const [newGroupName, setNewGroupName] = useState(chat.chatName);
 	const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	const isAdmin = group.currentUserRole === MemberRole.ADMIN;
-	const isModerator = group.currentUserRole === MemberRole.MODERATOR;
+	const { user } = useAuth();
+
+	const userId = user?.id || '';
+	const isAdmin = chat.role === MemberRole.ADMIN;
+	const isModerator = chat.role === MemberRole.MODERATOR;
 	const canManageMembers = isAdmin || isModerator;
+
+	const [members, setMembers] = useState<ChatMember[]>([]);
+	const [loadingMembers, setLoadingMembers] = useState(false);
+	const [membersError, setMembersError] = useState<string | null>(null);
+	const [page, setPage] = useState(0);
+	const [hasMore, setHasMore] = useState(true);
+	const [totalMembers, setTotalMembers] = useState(0);
+
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
@@ -80,6 +67,31 @@ export default function ChatDetailsModal({
 		}
 	}, [openDropdownId]);
 
+	useEffect(() => {
+		fetchMembers(0, false);
+	}, [chat.chatId]);
+
+	const fetchMembers = async (pageNumber = 0, append = false) => {
+		try {
+			setLoadingMembers(true);
+			setMembersError(null);
+
+			const res = await chatService.getChatMembers(chat.chatId, pageNumber, 20);
+
+			setMembers(prev =>
+				append ? [...prev, ...res.members] : res.members
+			);
+
+			setHasMore(members.length === res.totalMembers);
+			setPage(pageNumber);
+			setTotalMembers(res.totalMembers);
+		} catch (err: any) {
+			setMembersError(err.message || 'Error loading members');
+		} finally {
+			setLoadingMembers(false);
+		}
+	};
+
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (file && onUpdateGroupImage) {
@@ -88,7 +100,7 @@ export default function ChatDetailsModal({
 	};
 
 	const handleSaveName = () => {
-		if (newGroupName.trim() && newGroupName !== group.name && onUpdateGroupName) {
+		if (newGroupName.trim() && newGroupName !== chat.chatName && onUpdateGroupName) {
 			onUpdateGroupName(newGroupName.trim());
 		}
 		setIsEditingName(false);
@@ -122,8 +134,8 @@ export default function ChatDetailsModal({
 					<div className={styles.groupInfo}>
 						<div className={styles.avatarWrapper}>
 							<Avatar
-								name={group.name}
-								src={group.imageUrl}
+								name={chat.chatName}
+								src={chat.chatImageUrl}
 								size="xl"
 							/>
 							{isAdmin && (
@@ -151,7 +163,7 @@ export default function ChatDetailsModal({
 									onKeyDown={(e) => {
 										if (e.key === 'Enter') handleSaveName();
 										if (e.key === 'Escape') {
-											setNewGroupName(group.name);
+											setNewGroupName(chat.chatName);
 											setIsEditingName(false);
 										}
 									}}
@@ -160,7 +172,7 @@ export default function ChatDetailsModal({
 									<button
 										className={styles.cancelBtn}
 										onClick={() => {
-											setNewGroupName(group.name);
+											setNewGroupName(chat.chatName);
 											setIsEditingName(false);
 										}}
 									>
@@ -176,7 +188,7 @@ export default function ChatDetailsModal({
 							</div>
 						) : (
 							<div className={styles.nameDisplay}>
-								<h3 className={styles.groupName}>{group.name}</h3>
+								<h3 className={styles.groupName}>{chat.chatName}</h3>
 								{isAdmin && (
 									<button
 										className={styles.editNameBtn}
@@ -194,7 +206,7 @@ export default function ChatDetailsModal({
 						<div className={styles.sectionHeader}>
 							<div className={styles.sectionTitle}>
 								<Users size={18} />
-								<span>Members ({group.members.length})</span>
+								<span>Members ({totalMembers})</span>
 							</div>
 							{canManageMembers && (
 								<button
@@ -208,37 +220,45 @@ export default function ChatDetailsModal({
 						</div>
 
 						<div className={styles.membersList}>
-							{group.members.map((member) => {
-								const isCurrentUserAdmin = group.currentUserRole === MemberRole.ADMIN;
-								const isCurrentUserModerator = group.currentUserRole === MemberRole.MODERATOR;
-								const canModifyMember =
-									(isCurrentUserAdmin && member.role !== MemberRole.ADMIN) ||
-									(isCurrentUserModerator && member.role === MemberRole.MEMBER);
-								const showContactRequest = member.contactStatus === null || member.contactStatus === undefined;
+							{members.map((member) => {
+								const memberId = member.memberId;
+								const isCurrentUser = memberId === userId;
+								const canModifyMember = (
+									(isAdmin && member.role !== MemberRole.ADMIN) ||
+									(isModerator && member.role === MemberRole.MEMBER)
+								);
+								const showContactRequest = (member.status === null || member.status === undefined) && !isCurrentUser;
 
 								return (
-									<div key={member.id} className={styles.memberItem}>
+									<div key={memberId} className={styles.memberItem}>
 										<Avatar
-											name={member.name}
+											name={member.displayName}
 											src={member.avatarUrl}
 											size="sm"
 										/>
 										<div className={styles.memberInfo}>
-											<div className={styles.memberName}>
-												{member.name}
-												{member.role !== MemberRole.MEMBER && (
-													<span className={styles.roleTag}>
-														{getRoleIcon(member.role)}
-														{getRoleLabel(member.role)}
-													</span>
-												)}
+											<div className={styles.memberText}>
+												<div className={styles.memberDisplayName}>
+													{member.displayName}
+												</div>
+
+												<div className={styles.memberUsername}>
+													@{member.username}
+												</div>
 											</div>
+
+											{member.role !== MemberRole.MEMBER && (
+												<span className={styles.roleTag}>
+													{getRoleIcon(member.role)}
+													{getRoleLabel(member.role)}
+												</span>
+											)}
 										</div>
 
 										{showContactRequest && (
 											<button
 												className={styles.contactRequestBtn}
-												onClick={() => onSendContactRequest?.(member.id)}
+												onClick={() => onSendContactRequest?.(memberId)}
 												title="Send contact request"
 											>
 												<UserPlus size={16} />
@@ -246,23 +266,23 @@ export default function ChatDetailsModal({
 										)}
 
 										{canModifyMember && (
-											<div className={styles.dropdownWrapper} ref={openDropdownId === member.id ? dropdownRef : null}>
+											<div className={styles.dropdownWrapper} ref={openDropdownId === memberId ? dropdownRef : null}>
 												<button
 													className={styles.moreBtn}
-													onClick={() => setOpenDropdownId(openDropdownId === member.id ? null : member.id)}
+													onClick={() => setOpenDropdownId(openDropdownId === memberId ? null : memberId)}
 												>
 													<MoreVertical size={18} />
 												</button>
 
-												{openDropdownId === member.id && (
+												{openDropdownId === memberId && (
 													<div className={styles.dropdown}>
-														{isCurrentUserAdmin && (
+														{isAdmin && (
 															<>
 																{member.role === MemberRole.MEMBER && (
 																	<button
 																		className={styles.dropdownItem}
 																		onClick={() => {
-																			onPromoteMember?.(member.id, MemberRole.MODERATOR);
+																			onPromoteMember?.(memberId, MemberRole.MODERATOR);
 																			setOpenDropdownId(null);
 																		}}
 																	>
@@ -275,7 +295,7 @@ export default function ChatDetailsModal({
 																		<button
 																			className={styles.dropdownItem}
 																			onClick={() => {
-																				onPromoteMember?.(member.id, MemberRole.MEMBER);
+																				onPromoteMember?.(memberId, MemberRole.MEMBER);
 																				setOpenDropdownId(null);
 																			}}
 																		>
@@ -287,7 +307,7 @@ export default function ChatDetailsModal({
 																<button
 																	className={`${styles.dropdownItem} ${styles.danger}`}
 																	onClick={() => {
-																		onTransferOwnership?.(member.id);
+																		onTransferOwnership?.(memberId);
 																		setOpenDropdownId(null);
 																	}}
 																>
@@ -299,7 +319,7 @@ export default function ChatDetailsModal({
 														<button
 															className={`${styles.dropdownItem} ${styles.danger}`}
 															onClick={() => {
-																onKickMember?.(member.id);
+																onKickMember?.(memberId);
 																setOpenDropdownId(null);
 															}}
 														>

@@ -3,7 +3,7 @@ import { X, Camera } from 'lucide-react';
 import Input from './Input';
 import Avatar from './Avatar';
 import styles from '../styles/UpdateProfileModal.module.css';
-import type { UserProfile } from '../services/auth/authTypes';
+import type { UserProfile } from '../services/auth/auth.types';
 
 interface UpdateProfileModalProps {
 	isOpen: boolean;

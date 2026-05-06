@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Search, Users, User } from 'lucide-react';
-import { ContactStatus, type ContactResponse } from '../../services/contact/contactTypes';
-import contactService from '../../services/contact/contactService';
+import { ContactStatus, type ContactResponse } from '../../services/contact/contact.types';
+import contactService from '../../services/contact/contact.service';
 import styles from '../../styles/chat/NewChatModal.module.css';
 
 interface NewChatModalProps {
