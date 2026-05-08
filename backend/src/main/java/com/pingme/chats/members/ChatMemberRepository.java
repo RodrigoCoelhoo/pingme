@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface ChatMemberRepository extends MongoRepository<ChatMember, String> {
 
@@ -18,19 +19,7 @@ public interface ChatMemberRepository extends MongoRepository<ChatMember, String
     List<ChatMember> findByChatIdInAndUserIdNot(List<String> chatIds, String userId);
 
     @Aggregation(pipeline = {
-            "{ $match: { userId: { $in: [?0, ?1] } } }",
-            "{ $group: { _id: '$chatId', users: { $addToSet: '$userId' } } }",
-            "{ $match: { users: { $all: [?0, ?1] } } }",
-            "{ $lookup: { from: 'chats', localField: '_id', foreignField: '_id', as: 'chat' } }",
-            "{ $unwind: '$chat' }",
-            "{ $match: { 'chat.chatType': 'PRIVATE' } }",
-            "{ $replaceRoot: { newRoot: '$chat' } }",
-            "{ $limit: 1 }"
-    })
-    Optional<Chat> findPrivateChat(String user1, String user2);
-
-    @Aggregation(pipeline = {
-            "{ $match: { chatId: ?0 } }",
+            "{ $match: { chatId: ?0, active: true } }",
 
             "{ $addFields: { rolePriority: { $switch: { " +
                     "branches: [ " +
@@ -47,5 +36,7 @@ public interface ChatMemberRepository extends MongoRepository<ChatMember, String
     })
     List<ChatMember> findPagedMembers(String chatId, int skip, int limit);
 
-    long countByChatId(String chatId);
+    long countByChatIdAndActiveTrue(String chatId);
+
+    List<ChatMember> findByChatIdAndUserIdInAndActiveFalse(String chatId, Set<String> userIds);
 }

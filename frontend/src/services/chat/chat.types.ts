@@ -8,7 +8,7 @@ export interface ChatPreview {
 	lastMessage: string;
 	lastMessageTimestamp: string;
 	role: MemberRole;
-	isMuted: boolean;
+	muted: boolean;
 	unreadCount: number;
 }
 

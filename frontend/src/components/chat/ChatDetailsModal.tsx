@@ -5,6 +5,7 @@ import styles from '../../styles/chat/ChatDetailsModal.module.css';
 import { MemberRole, type ChatMember, type ChatPreview } from '../../services/chat/chat.types';
 import chatService from '../../services/chat/chat.service';
 import { useAuth } from '../../contexts/AuthContext';
+import type { number } from 'react-i18next/icu.macro';
 
 interface ChatDetailsModalProps {
 	chat: ChatPreview;

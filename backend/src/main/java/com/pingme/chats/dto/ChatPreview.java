@@ -17,7 +17,7 @@ public record ChatPreview(
         Instant lastMessageTimestamp,
 
         ChatRole role,
-        boolean isMuted,
+        boolean muted,
 
         int unreadCount
 ) {}

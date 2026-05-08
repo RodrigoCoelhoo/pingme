@@ -3,6 +3,7 @@ package com.pingme.chats;
 import com.pingme.chats.dto.ChatDTO;
 import com.pingme.chats.dto.ChatMembers;
 import com.pingme.chats.dto.ChatPreview;
+import com.pingme.chats.members.ChatMemberService;
 import com.pingme.chats.members.ChatRole;
 import com.pingme.users.dto.UserProfile;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/chats")
@@ -23,6 +25,7 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+    private final ChatMemberService chatMemberService;
 
     @PostMapping("/private/{targetId}")
     public ResponseEntity<ChatPreview> getOrCreatePrivateChat(
@@ -38,22 +41,10 @@ public class ChatController {
             @AuthenticationPrincipal UserProfile user,
             @RequestBody @Valid ChatDTO dto
     ) {
-        Chat chat = chatService.createGroupChat(
+        ChatPreview response = chatService.createGroupChat(
                 user.id(),
                 dto.membersIds(),
                 dto.chatName()
-        );
-
-        ChatPreview response = new ChatPreview(
-                chat.getId(),
-                chat.getChatType(),
-                chat.getChatName(),
-                chat.getImageUrl(),
-                "",
-                null,
-                ChatRole.ADMIN,
-                false,
-                0
         );
 
         return ResponseEntity.ok(response);
@@ -63,9 +54,7 @@ public class ChatController {
     public ResponseEntity<List<ChatPreview>> getMyChats(
             @AuthenticationPrincipal UserProfile user
     ) {
-        return ResponseEntity.ok(
-                chatService.getUserChats(user.id())
-        );
+        return ResponseEntity.ok(chatService.getUserChats(user.id()));
     }
 
     @GetMapping("/{chatId}/members")

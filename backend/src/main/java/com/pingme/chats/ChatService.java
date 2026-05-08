@@ -1,5 +1,6 @@
 package com.pingme.chats;
 
+import com.mongodb.DuplicateKeyException;
 import com.pingme.chats.dto.ChatMemberResponse;
 import com.pingme.chats.dto.ChatMembers;
 import com.pingme.chats.dto.ChatPreview;
@@ -23,6 +24,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -35,13 +37,11 @@ public class ChatService {
     private final ChatMemberService chatMemberService;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
-        Chat chat = chatMemberService.findPrivateChat(
-                userId,
-                targetId
-        ).orElseGet(() -> createPrivateChat(userId, targetId));
+        Chat chat = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId))
+                .orElseGet(() -> createPrivateChat(userId, targetId));
 
         ChatMember member = chatMemberService.getChatMember(chat.getId(), userId);
-        chatMemberService.activateChat(member);
+        member = chatMemberService.activateChatMember(member);
 
         List<ChatMember> members = chatMemberService.getChatMembers(chat.getId());
 
@@ -99,9 +99,12 @@ public class ChatService {
             throw new ForbiddenException("User is not in your contact list");
         }
 
-        Chat chat = chatRepository.save(
+        String privateChatKey = createPrivateChatKey(userId, targetId);
+
+        Chat chat = createChat(
                 Chat.builder()
                     .chatType(ChatType.PRIVATE)
+                    .privateChatKey(privateChatKey)
                     .build()
         );
 
@@ -126,7 +129,13 @@ public class ChatService {
         return chat;
     }
 
-    public Chat createGroupChat(String userId, List<String> memberIds, String chatName) {
+    private String createPrivateChatKey(String user1, String user2) {
+        return Stream.of(user1, user2)
+                .sorted()
+                .collect(Collectors.joining("_"));
+    }
+
+    public ChatPreview createGroupChat(String userId, List<String> memberIds, String chatName) {
 
         List<String> members = new ArrayList<>(memberIds);
 
@@ -146,7 +155,7 @@ public class ChatService {
             throw new ForbiddenException("Some users are not in your contact list");
         }
 
-        Chat chat = chatRepository.save(
+        Chat chat = createChat(
                 Chat.builder()
                         .chatType(ChatType.GROUP)
                         .chatName(chatName)
@@ -167,7 +176,40 @@ public class ChatService {
 
         chatMemberService.saveAll(chatMembers);
 
-        return chat;
+        return new ChatPreview(
+                chat.getId(),
+                chat.getChatType(),
+                chat.getChatName(),
+                chat.getImageUrl(),
+                "",
+                null,
+                ChatRole.ADMIN,
+                false,
+                0
+        );
+    }
+
+    private Chat createChat(Chat chat) {
+
+        if (chat.getChatType() == ChatType.PRIVATE) {
+            if (chat.getPrivateChatKey() == null || chat.getPrivateChatKey().isBlank()) {
+                throw new IllegalArgumentException("PRIVATE chat must have privateChatKey");
+            }
+        }
+        else if (chat.getChatType() == ChatType.GROUP) {
+            if (chat.getPrivateChatKey() != null) {
+                throw new IllegalArgumentException("GROUP chat cannot have privateChatKey");
+            }
+        }
+
+        try {
+            return chatRepository.save(chat);
+        } catch (DuplicateKeyException e) {
+            return chatRepository.findByPrivateChatKey(chat.getPrivateChatKey())
+                    .orElseThrow(() -> new IllegalStateException(
+                            "Duplicate key conflict but chat was not found"
+                    ));
+        }
     }
 
     public List<ChatPreview> getUserChats(String userId) {
