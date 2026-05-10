@@ -12,52 +12,81 @@ type Props = {
 	activeTab: SidebarTab;
 	setActiveTab: (tab: SidebarTab) => void;
 
+	// Chats
 	chats: ChatPreview[];
-	contacts: ContactResponse[];
-
 	activeChat: string | null;
 	setActiveChat: (id: string) => void;
+	isLoadingChats: boolean;
+	chatsHasMore: boolean;
+	onLoadMoreChats: () => void;
 
+	// Accepted contacts
+	acceptedContacts: ContactResponse[];
+	isLoadingAccepted: boolean;
+	acceptedHasMore: boolean;
+	onLoadMoreAccepted: () => void;
+
+	// Received pending contacts
+	receivedPending: ContactResponse[];
+	isLoadingReceivedPending: boolean;
+	receivedPendingHasMore: boolean;
+	onLoadMoreReceivedPending: () => void;
+
+	// Sent pending contacts
+	sentPending: ContactResponse[];
+	isLoadingSentPending: boolean;
+	sentPendingHasMore: boolean;
+	onLoadMoreSentPending: () => void;
+
+	// Search
 	searchQuery: string;
 	setSearchQuery: (q: string) => void;
 
-	isLoadingChats: boolean;
-	isLoadingContacts: boolean;
-
+	// UI
 	isSidebarOpen: boolean;
 
+	// Actions
 	onOpenNewChat: () => void;
 	onOpenAddContact: () => void;
-
 	onStartChat: (userId: string) => void;
 	onDeleteChat: (chatId: string) => void;
+	onAcceptContact: (contactId: string) => void;
+	onRejectContact: (contactId: string) => void;
+	onCancelRequest: (contactId: string) => void;
 };
 
 export default function Sidebar({
 	activeTab,
 	setActiveTab,
 	chats,
-	contacts,
 	activeChat,
 	setActiveChat,
+	isLoadingChats,
+	chatsHasMore,
+	onLoadMoreChats,
+	acceptedContacts,
+	isLoadingAccepted,
+	acceptedHasMore,
+	onLoadMoreAccepted,
+	receivedPending,
+	isLoadingReceivedPending,
+	receivedPendingHasMore,
+	onLoadMoreReceivedPending,
+	sentPending,
+	isLoadingSentPending,
+	sentPendingHasMore,
+	onLoadMoreSentPending,
 	searchQuery,
 	setSearchQuery,
-	isLoadingChats,
-	isLoadingContacts,
 	isSidebarOpen,
 	onOpenNewChat,
 	onOpenAddContact,
 	onStartChat,
-	onDeleteChat
+	onDeleteChat,
+	onAcceptContact,
+	onRejectContact,
+	onCancelRequest,
 }: Props) {
-	const filteredChats = chats.filter(chat =>
-		chat.chatName.toLowerCase().includes(searchQuery.toLowerCase())
-	);
-
-	const filteredContacts = contacts.filter(contact =>
-		contact.username.toLowerCase().includes(searchQuery.toLowerCase())
-	);
-
 	return (
 		<div className={`${styles.chatSidebar} ${isSidebarOpen ? styles.open : ''}`}>
 			<div className={styles.sidebarHeader}>
@@ -98,7 +127,7 @@ export default function Sidebar({
 					placeholder={
 						activeTab === 'chats'
 							? 'Procurar conversas...'
-							: 'Procurar contactos...'
+							: 'Procurar contactos... (@ para username)'
 					}
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
@@ -107,28 +136,33 @@ export default function Sidebar({
 
 			<div className={styles.sidebarContent}>
 				{activeTab === 'chats' ? (
-					isLoadingChats ? (
-						<div className={styles.loadingState}>
-							<div className={styles.loadingSpinner}></div>
-							<p>A carregar conversas...</p>
-						</div>
-					) : (
-						<ChatList
-							chats={filteredChats}
-							activeChat={activeChat}
-							onChatSelect={setActiveChat}
-							onDeleteChat={onDeleteChat}
-						/>
-					)
-				) : isLoadingContacts ? (
-					<div className={styles.loadingState}>
-						<div className={styles.loadingSpinner}></div>
-						<p>A carregar contactos...</p>
-					</div>
+					<ChatList
+						chats={chats}
+						activeChat={activeChat}
+						onChatSelect={setActiveChat}
+						onDeleteChat={onDeleteChat}
+						isLoading={isLoadingChats}
+						hasMore={chatsHasMore}
+						onLoadMore={onLoadMoreChats}
+					/>
 				) : (
 					<ContactsList
-						contacts={filteredContacts}
+						acceptedContacts={acceptedContacts}
+						isLoadingAccepted={isLoadingAccepted}
+						acceptedHasMore={acceptedHasMore}
+						onLoadMoreAccepted={onLoadMoreAccepted}
+						receivedPending={receivedPending}
+						isLoadingReceivedPending={isLoadingReceivedPending}
+						receivedPendingHasMore={receivedPendingHasMore}
+						onLoadMoreReceivedPending={onLoadMoreReceivedPending}
+						sentPending={sentPending}
+						isLoadingSentPending={isLoadingSentPending}
+						sentPendingHasMore={sentPendingHasMore}
+						onLoadMoreSentPending={onLoadMoreSentPending}
 						onStartChat={onStartChat}
+						onAcceptContact={onAcceptContact}
+						onRejectContact={onRejectContact}
+						onCancelRequest={onCancelRequest}
 					/>
 				)}
 			</div>

@@ -14,6 +14,7 @@ import Chat from '../pages/Chat.tsx';
 import PublicRoute from './PublicRoute.tsx';
 import Layout from '../layouts/Layout.tsx';
 import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'react-hot-toast';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -41,6 +42,30 @@ export default function App() {
 			defaultTheme="dark"
 			enableSystem={false}
 		>
+			<Toaster
+				position="top-right"
+				toastOptions={{
+					duration: 3000,
+					style: {
+						background: 'var(--surface)',
+						color: 'var(--text)',
+						border: '1px solid var(--border)',
+					},
+					success: {
+						iconTheme: {
+							primary: '#22c55e',
+							secondary: '#fff',
+						},
+					},
+					error: {
+						iconTheme: {
+							primary: '#ef4444',
+							secondary: '#fff',
+						},
+					},
+				}}
+			/>
+
 			<RouterProvider router={router} />
 		</ThemeProvider>
 	);

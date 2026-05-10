@@ -1,4 +1,7 @@
+// hooks/useGroupActions.ts
 import { MemberRole } from '../services/chat/chat.types';
+import { showError, showSuccess } from '../utils/toast';
+import { useConfirmation } from './useConfirmation';
 
 interface UseGroupActionsProps {
 	onLeaveGroup: (chatId: string) => Promise<void>;
@@ -25,86 +28,100 @@ export function useGroupActions({
 	onMuteChat,
 	onSendContactRequest,
 }: UseGroupActionsProps) {
+	const confirmation = useConfirmation();
 
 	const handleLeaveGroup = async (chatId: string) => {
+		const confirmed = await confirmation.confirm({
+			title: 'Sair do Grupo',
+			message: 'Tens a certeza que queres sair deste grupo?',
+			confirmText: 'Sair',
+			cancelText: 'Cancelar',
+			variant: 'warning'
+		});
+
+		if (!confirmed) return;
+
 		try {
 			await onLeaveGroup(chatId);
 		} catch (error) {
-			alert('Erro ao sair do grupo. Tenta novamente.');
+			showError('Erro ao sair do grupo. Tenta novamente.');
 		}
 	};
 
 	const handleDeleteGroup = async (chatId: string) => {
-		if (!confirm('Tens a certeza que queres eliminar este grupo? Esta ação não pode ser revertida.')) {
-			return;
-		}
+		const confirmed = await confirmation.confirm({
+			title: 'Eliminar Grupo',
+			message: 'Tens a certeza que queres eliminar este grupo? Esta ação não pode ser revertida.',
+			confirmText: 'Eliminar',
+			cancelText: 'Cancelar',
+			variant: 'danger'
+		});
+
+		if (!confirmed) return;
 
 		try {
 			await onDeleteGroup(chatId);
 		} catch (error) {
-			alert('Erro ao eliminar o grupo. Tenta novamente.');
+			showError('Erro ao eliminar o grupo. Tenta novamente.');
 		}
 	};
 
 	const handleTransferOwnership = async (chatId: string, newOwnerId: string) => {
-		if (!confirm('Tens a certeza que queres transferir a propriedade do grupo?')) {
-			return;
-		}
+		const confirmed = await confirmation.confirm({
+			title: 'Transferir Propriedade',
+			message: 'Tens a certeza que queres transferir a propriedade do grupo?',
+			confirmText: 'Transferir',
+			cancelText: 'Cancelar',
+			variant: 'warning'
+		});
+
+		if (!confirmed) return;
 
 		try {
 			await onTransferOwnership(chatId, newOwnerId);
-			alert('Propriedade transferida com sucesso!');
+			showSuccess('Propriedade transferida com sucesso!');
 		} catch (error) {
-			alert('Erro ao transferir a propriedade. Tenta novamente.');
+			showError('Erro ao transferir a propriedade. Tenta novamente.');
 		}
 	};
 
 	const handleKickMember = async (chatId: string, memberId: string) => {
-		if (!confirm('Tens a certeza que queres remover este membro?')) {
-			return;
-		}
-
 		try {
 			await onKickMember(chatId, memberId);
-			alert('Membro removido com sucesso!');
 		} catch (error) {
-			alert('Erro ao remover o membro. Tenta novamente.');
+			showError('Erro ao remover o membro. Tenta novamente.');
 		}
 	};
 
 	const handleAddMembers = async (chatId: string, memberIds: string[]) => {
 		try {
 			await onAddMembers(chatId, memberIds);
-			alert('Membros adicionados com sucesso!');
 		} catch (error) {
-			alert('Erro ao adicionar membros. Tenta novamente.');
+			showError('Erro ao adicionar membros. Tenta novamente.');
 		}
 	};
 
 	const handleUpdateGroupName = async (chatId: string, newName: string) => {
 		try {
 			await onUpdateGroupName(chatId, newName);
-			alert('Nome do grupo atualizado!');
 		} catch (error) {
-			alert('Erro ao atualizar o nome. Tenta novamente.');
+			showError('Erro ao atualizar o nome. Tenta novamente.');
 		}
 	};
 
 	const handleUpdateGroupImage = async (chatId: string, file: File) => {
 		try {
 			await onUpdateGroupImage(chatId, file);
-			alert('Imagem do grupo atualizada!');
 		} catch (error) {
-			alert('Erro ao atualizar a imagem. Tenta novamente.');
+			showError('Erro ao atualizar a imagem. Tenta novamente.');
 		}
 	};
 
 	const handlePromoteMember = async (chatId: string, memberId: string, newRole: MemberRole) => {
 		try {
 			await onPromoteMember(chatId, memberId, newRole);
-			alert('Role atualizado com sucesso!');
 		} catch (error) {
-			alert('Erro ao atualizar o role. Tenta novamente.');
+			showError('Erro ao atualizar o role. Tenta novamente.');
 		}
 	};
 
@@ -112,20 +129,20 @@ export function useGroupActions({
 		try {
 			await onMuteChat(chatId);
 		} catch (error) {
-			alert('Erro ao silenciar o chat. Tenta novamente.');
+			showError('Erro ao silenciar o chat. Tenta novamente.');
 		}
 	};
 
 	const handleSendContactRequest = async (userId: string) => {
 		try {
 			await onSendContactRequest(userId);
-			alert('Pedido de contacto enviado!');
 		} catch (error) {
-			alert('Erro ao enviar pedido de contacto.');
+			showError('Erro ao enviar pedido de contacto.');
 		}
 	};
 
 	return {
+		confirmation,
 		handleLeaveGroup,
 		handleDeleteGroup,
 		handleTransferOwnership,

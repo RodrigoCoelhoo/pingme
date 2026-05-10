@@ -121,6 +121,10 @@
 	transform: scale(1.1);
 }
 
+.tab span {
+	display: inline-block;
+}
+
 /* ── Search ── */
 
 .sidebarSearch {
@@ -279,10 +283,6 @@
 	.tab {
 		padding: var(--space-2) var(--space-3);
 		font-size: var(--text-xs);
-	}
-
-	.tab span {
-		display: none;
 	}
 }
 

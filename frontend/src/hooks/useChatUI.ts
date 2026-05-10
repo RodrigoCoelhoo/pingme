@@ -16,6 +16,11 @@ export function useChatUI() {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
+	// Reset search when changing tabs
+	useEffect(() => {
+		setSearchQuery('');
+	}, [activeTab]);
+
 	const openNewChatModal = () => setIsNewChatModalOpen(true);
 	const closeNewChatModal = () => setIsNewChatModalOpen(false);
 	const openAddContactModal = () => setIsAddContactModalOpen(true);

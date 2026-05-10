@@ -1,7 +1,5 @@
 package com.pingme.utils;
 
-import lombok.Builder;
-
 import java.util.List;
 
 public record PagedResponse<T>(

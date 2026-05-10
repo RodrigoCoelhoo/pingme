@@ -1,4 +1,6 @@
+// hooks/useChatInteractions.ts
 import { useEffect } from 'react';
+import type { ChatPreview } from '../services/chat/chat.types';
 
 interface UseChatInteractionsProps {
 	activeChat: string | null;
@@ -7,8 +9,9 @@ interface UseChatInteractionsProps {
 	setActiveChat: (chatId: string) => void;
 	setIsSidebarOpen: (open: boolean) => void;
 	setActiveTab: (tab: 'chats' | 'contacts') => void;
-	handleCreatePrivateChat: (userId: string) => Promise<string>;
-	handleCreateGroupChat: (memberIds: string[], groupName?: string) => Promise<string>;
+	handleCreatePrivateChat: (userId: string) => Promise<ChatPreview>;
+	handleCreateGroupChat: (memberIds: string[], groupName?: string) => Promise<ChatPreview>;
+	insertChatSorted: (chat: ChatPreview) => void;
 }
 
 export function useChatInteractions({
@@ -20,14 +23,15 @@ export function useChatInteractions({
 	setActiveTab,
 	handleCreatePrivateChat,
 	handleCreateGroupChat,
+	insertChatSorted,
 }: UseChatInteractionsProps) {
 
-	// Auto-close sidebar when chat is selected
+	// Auto-close sidebar when chat is selected on mobile
 	useEffect(() => {
-		if (activeChat) {
+		if (activeChat && isMobile) {
 			setIsSidebarOpen(false);
 		}
-	}, [activeChat, setIsSidebarOpen]);
+	}, [activeChat, isMobile, setIsSidebarOpen]);
 
 	// Auto-open sidebar when no chat is selected on mobile
 	useEffect(() => {
@@ -45,9 +49,12 @@ export function useChatInteractions({
 
 	const handleCreatePrivateChatWithUI = async (userId: string) => {
 		try {
-			await handleCreatePrivateChat(userId);
+			const chat = await handleCreatePrivateChat(userId);
+			insertChatSorted(chat);
 			setActiveTab('chats');
-			setIsSidebarOpen(false);
+			if (isMobile) {
+				setIsSidebarOpen(false);
+			}
 		} catch (error) {
 			// Error already handled in hook
 		}
@@ -55,9 +62,12 @@ export function useChatInteractions({
 
 	const handleCreateGroupChatWithUI = async (memberIds: string[], groupName?: string) => {
 		try {
-			await handleCreateGroupChat(memberIds, groupName);
+			const chat = await handleCreateGroupChat(memberIds, groupName);
+			insertChatSorted(chat);
 			setActiveTab('chats');
-			setIsSidebarOpen(false);
+			if (isMobile) {
+				setIsSidebarOpen(false);
+			}
 		} catch (error) {
 			// Error already handled in hook
 		}

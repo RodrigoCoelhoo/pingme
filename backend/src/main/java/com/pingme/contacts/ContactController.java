@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/contacts")
 @RequiredArgsConstructor
@@ -29,6 +27,15 @@ public class ContactController {
             @RequestParam(required = false) PendingType pendingType
     ) {
         return ResponseEntity.ok(contactService.getContacts(user, status, page, limit, search, pendingType));
+    }
+
+    @PostMapping
+    public ResponseEntity<ContactResponse> createContactRequest(
+            @AuthenticationPrincipal UserProfile user,
+            @RequestBody @Valid ContactDTO data
+    ) {
+        ContactResponse response = contactService.createContactRequest(user, data);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
