@@ -72,12 +72,14 @@ export function useChat() {
 		}
 	};
 
-	const handleTransferOwnership = async (chatId: string, newOwnerId: string) => {
+	const handleTransferOwnership = async (chatId: string, newOwnerId: string) : Promise<MemberRole> => {
 		try {
 			await chatMemberService.updateRole(chatId, {
 				userId: newOwnerId,
 				role: MemberRole.ADMIN
 			});
+
+			return MemberRole.MODERATOR;
 		} catch (error) {
 			console.error('Error transferring ownership:', error);
 			throw error;

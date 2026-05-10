@@ -1,12 +1,13 @@
 // hooks/useGroupActions.ts
-import { MemberRole } from '../services/chat/chat.types';
+import { MemberRole, type ChatPreview } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useConfirmation } from './useConfirmation';
 
 interface UseGroupActionsProps {
 	onLeaveGroup: (chatId: string) => Promise<void>;
 	onDeleteGroup: (chatId: string) => Promise<void>;
-	onTransferOwnership: (chatId: string, newOwnerId: string) => Promise<void>;
+	onTransferOwnership: (chatId: string, newOwnerId: string) => Promise<MemberRole>;
+	onUpdateChat: (chatId: string, updates: Partial<ChatPreview>) => void;
 	onKickMember: (chatId: string, memberId: string) => Promise<void>;
 	onAddMembers: (chatId: string, memberIds: string[]) => Promise<void>;
 	onUpdateGroupName: (chatId: string, newName: string) => Promise<void>;
@@ -20,6 +21,7 @@ export function useGroupActions({
 	onLeaveGroup,
 	onDeleteGroup,
 	onTransferOwnership,
+	onUpdateChat,
 	onKickMember,
 	onAddMembers,
 	onUpdateGroupName,
@@ -79,6 +81,11 @@ export function useGroupActions({
 
 		try {
 			await onTransferOwnership(chatId, newOwnerId);
+
+			onUpdateChat(chatId, {
+				role: MemberRole.MODERATOR
+			});
+
 			showSuccess('Propriedade transferida com sucesso!');
 		} catch (error) {
 			showError('Erro ao transferir a propriedade. Tenta novamente.');

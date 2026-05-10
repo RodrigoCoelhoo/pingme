@@ -306,9 +306,32 @@ export default function ChatDetailsModal({
 																)}
 																<button
 																	className={`${styles.dropdownItem} ${styles.danger}`}
-																	onClick={() => {
-																		onTransferOwnership?.(memberId);
-																		setOpenDropdownId(null);
+																	onClick={async () => {
+																		try {
+																			await onTransferOwnership?.(memberId);
+
+																			setMembers(prev =>
+																				prev.map(member => {
+																					if (member.memberId === memberId) {
+																						return {
+																							...member,
+																							role: MemberRole.ADMIN
+																						};
+																					}
+
+																					if (member.memberId === userId) {
+																						return {
+																							...member,
+																							role: MemberRole.MODERATOR
+																						};
+																					}
+
+																					return member;
+																				})
+																			);
+																		} finally {
+																			setOpenDropdownId(null);
+																		}
 																	}}
 																>
 																	<Crown size={16} />

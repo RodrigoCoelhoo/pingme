@@ -1,39 +1,46 @@
 import React, { useState } from 'react';
 import { X, UserPlus, Loader } from 'lucide-react';
 import styles from '../../styles/contact/AddContactModal.module.css';
+import Input from '../Input';
+import { usernameRules } from '../../rules/rules';
+import { useTranslation } from 'react-i18next';
 
 interface AddContactModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onAddContact: (username: string) => Promise<void>;
+	onAddContact: (username: string) => Promise<boolean>;
 }
 
 export default function AddContactModal({ isOpen, onClose, onAddContact }: AddContactModalProps) {
 	const [username, setUsername] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [success, setSuccess] = useState(false);
+
+	const { t } = useTranslation("auth");
+	const [validity, setValidity] = useState({
+		username: false
+	});
+
+	const isValid = validity.username;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!username.trim()) {
-			setError('Por favor introduz um username');
-			return;
-		}
-
-		setIsLoading(true);
-		setError(null);
-		setSuccess(false);
-
 		try {
-			await onAddContact(username.trim());
-			setSuccess(true);
+			setIsLoading(true);
+			setSuccess(false);
+
+			const wasSuccessful = await onAddContact(
+				username.trim()
+			);
+			setSuccess(wasSuccessful);
+
 			setTimeout(() => {
-				handleClose();
+				if (wasSuccessful) {
+					setUsername("");
+				}
+				setSuccess(false);
 			}, 1500);
-		} catch (err: any) {
-			setError(err.response?.data?.message || 'Erro ao adicionar contacto');
 		} finally {
 			setIsLoading(false);
 		}
@@ -41,7 +48,6 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 
 	const handleClose = () => {
 		setUsername('');
-		setError(null);
 		setSuccess(false);
 		onClose();
 	};
@@ -63,29 +69,21 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 
 				<form onSubmit={handleSubmit} className={styles.body}>
 					<div className={styles.inputGroup}>
-						<label htmlFor="username">Username</label>
-						<input
-							id="username"
+						<Input
+							label={t('signup.username')}
 							type="text"
-							placeholder="Digite o username..."
+							placeholder={`${t('signup.usernamePlaceholder')}`}
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
+							rules={usernameRules(t)}
 							disabled={isLoading || success}
-							autoFocus
+							required
+							onValidationChange={(isValid) =>
+								setValidity(v => ({ ...v, username: isValid }))
+							}
+
 						/>
 					</div>
-
-					{error && (
-						<div className={styles.errorMessage}>
-							{error}
-						</div>
-					)}
-
-					{success && (
-						<div className={styles.successMessage}>
-							Pedido de contacto enviado com sucesso!
-						</div>
-					)}
 
 					<div className={styles.footer}>
 						<button
@@ -99,7 +97,7 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 						<button
 							type="submit"
 							className={styles.btnPrimary}
-							disabled={isLoading || success}
+							disabled={!isValid || isLoading || success}
 						>
 							{isLoading ? (
 								<>

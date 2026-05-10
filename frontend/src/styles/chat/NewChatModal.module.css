@@ -21,7 +21,7 @@
 }
 
 .modalContent {
-	background: var(--surface);
+	background: var(--bg-dark);
 	border-radius: 16px;
 	width: 90%;
 	max-width: 500px;
@@ -111,12 +111,17 @@
 	border-radius: 12px;
 	border: 1px solid var(--border);
 	background: var(--bg-light);
+	margin-bottom: var(--space-4);
+	margin-top: 0px;
 }
 
 .selectedContacts {
-	padding: var(--space-2);
-	background: var(--green-100);
+	padding: 0px var(--space-2);
 	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: end;
+	margin-bottom: 0px;
 }
 
 .selectedCount {
@@ -127,6 +132,7 @@
 
 .contactsList {
 	flex: 1;
+	max-height: 400px;
 	overflow-y: auto;
 	display: flex;
 	flex-direction: column;
@@ -136,6 +142,7 @@
 .contactItem {
 	display: flex;
 	align-items: center;
+	background-color: var(--bg);
 	gap: var(--space-3);
 	padding: var(--space-3);
 	border-radius: 12px;
@@ -177,10 +184,97 @@
 	flex: 1;
 }
 
-.checkbox input {
+.hr {
+	opacity: 0.4;
+}
+
+.contactInfo h3 {
+	font-size: var(--text-base);
+	color: var(--text);
+}
+
+.contactInfo span {
+	font-size: var(--text-sm);
+	color: var(--muted);
+	display: flex;
+	gap: 1px;
+	align-items: center;
+}
+
+.contactInfo span::before {
+	content: '@ ';
+}
+
+.checkbox {
+	position: relative;
 	width: 20px;
 	height: 20px;
+	cursor: pointer;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	user-select: none;
 }
+
+.checkboxInput {
+	position: absolute;
+	opacity: 0;
+	cursor: pointer;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+}
+
+.checkmark {
+	width: 20px;
+	height: 20px;
+
+	border: 2px solid var(--border);
+	border-radius: 6px;
+
+	background-color: var(--bg-dark);
+
+	transition: all 0.2s ease;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* checked state */
+.checkboxInput:checked+.checkmark {
+	background: var(--gradient);
+	border-color: var(--green-500);
+}
+
+/* check icon */
+.checkmark::after {
+	content: "";
+
+	width: 5px;
+	height: 10px;
+
+	border: solid white;
+	border-width: 0 2px 2px 0;
+
+	transform: rotate(45deg);
+
+	opacity: 0;
+
+	transition: opacity 0.2s ease;
+}
+
+.checkboxInput:checked+.checkmark::after {
+	opacity: 1;
+}
+
+/* hover */
+.checkbox:hover .checkmark {
+	border-color: var(--green-500);
+}
+
 
 .loadingState,
 .emptyState {
@@ -191,6 +285,8 @@
 
 .modalFooter {
 	display: flex;
+	justify-content: end;
+	align-items: center;
 	gap: var(--space-3);
 	padding: var(--space-6);
 	border-top: 1px solid var(--border);
@@ -198,17 +294,39 @@
 
 .btnSecondary,
 .btnPrimary {
-	flex: 1;
-	padding: var(--space-3);
-	border-radius: 12px;
+	all: unset;
+
+	padding: var(--space-3) var(--space-5);
+	border-radius: var(--space-3);
 	cursor: pointer;
+	border-color: var(--border);
+	box-shadow: var(--shadow-m);
 }
 
 .btnSecondary {
+	background: var(--bg);
+	color: var(--muted);
+}
+
+.btnSecondary:hover {
 	background: var(--bg-light);
+	color: var(--text);
+	scale: 1.02;
+	transform: translateY(-1px);
 }
 
 .btnPrimary {
-	background: var(--gradient);
+	background: var(--green-500);
 	color: white;
+}
+
+.btnPrimary:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+
+.btnPrimary:hover:not(:disabled) {
+	background: var(--gradient);
+	scale: 1.02;
+	transform: translateY(-1px);
 }

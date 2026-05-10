@@ -12,7 +12,7 @@ import { useChatInteractions } from '../hooks/useChatInteractions';
 import { useContacts } from '../hooks/useContacts';
 import { useChats } from '../hooks/useChats';
 import { ChatType } from '../services/chat/chat.types';
-import { showError } from '../utils/toast';
+import { showError, showSuccess } from '../utils/toast';
 
 export default function Chat() {
 	// UI state - modals, sidebar, tabs, search
@@ -104,6 +104,7 @@ export default function Chat() {
 		onLeaveGroup: handleLeaveGroup,
 		onDeleteGroup: handleDeleteGroup,
 		onTransferOwnership: handleTransferOwnership,
+		onUpdateChat: updateChat,
 		onKickMember: handleKickMember,
 		onAddMembers: handleAddMembers,
 		onUpdateGroupName: handleUpdateGroupName,
@@ -118,11 +119,11 @@ export default function Chat() {
 
 		if (chat === ChatType.GROUP) {
 			const confirmed = await groupActions.confirmation.confirm({
-				title: 'Eliminar Conversa',
-				message: 'Tens a certeza que queres eliminar esta conversa?',
-				confirmText: 'Eliminar',
+				title: 'Sair do grupo',
+				message: 'Tens a certeza que queres sair deste grupo?',
+				confirmText: 'Sair',
 				cancelText: 'Cancelar',
-				variant: 'danger'
+				variant: 'warning'
 			});
 
 			if (!confirmed) return;
@@ -160,11 +161,14 @@ export default function Chat() {
 		}
 	};
 
-	const handleAddContactWrapper = async (username: string) => {
+	const handleAddContactWrapper = async (username: string) : Promise<boolean> => {
 		try {
 			await handleAddContact(username);
+			showSuccess('Contacto adicionado com sucesso!')
+			return true;
 		} catch (error) {
 			showError('Erro ao adicionar contacto. Tenta novamente.');
+			return false;
 		}
 	};
 
