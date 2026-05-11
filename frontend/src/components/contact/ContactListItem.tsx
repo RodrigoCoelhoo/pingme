@@ -1,4 +1,4 @@
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, UserMinus } from 'lucide-react';
 import styles from '../../styles/contact/ContactListItem.module.css';
 import type { ContactResponse } from '../../services/contact/contact.types';
 import { useEffect, useState } from 'react';
@@ -7,9 +7,10 @@ import Avatar from '../Avatar';
 interface ContactListItemProps {
 	contact: ContactResponse;
 	onStartChat: (userId: string) => void;
+	onDeleteContact: (contactId: string) => Promise<void>
 }
 
-export default function ContactListItem({ contact, onStartChat }: ContactListItemProps) {
+export default function ContactListItem({ contact, onStartChat, onDeleteContact }: ContactListItemProps) {
 	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
 	useEffect(() => {
@@ -35,6 +36,14 @@ export default function ContactListItem({ contact, onStartChat }: ContactListIte
 				title="Iniciar conversa"
 			>
 				<MessageCircle size={18} />
+			</button>
+
+			<button
+				className={styles.chatBtn}
+				onClick={() => onDeleteContact(contact.contactId)}
+				title="Eliminar contacto"
+			>
+				<UserMinus size={18} />
 			</button>
 		</div>
 	);

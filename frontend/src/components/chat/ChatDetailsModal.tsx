@@ -9,15 +9,15 @@ import { useAuth } from '../../contexts/AuthContext';
 interface ChatDetailsModalProps {
 	chat: ChatPreview;
 	onClose: () => void;
-	onLeaveGroup?: () => void;
-	onDeleteGroup?: () => void;
-	onTransferOwnership?: (memberId: string) => void;
-	onKickMember?: (memberId: string) => void;
-	onAddMembers?: () => void;
-	onUpdateGroupName?: (name: string) => void;
-	onUpdateGroupImage?: (file: File) => void;
-	onPromoteMember?: (memberId: string, newRole: MemberRole) => void;
-	onSendContactRequest?: (memberId: string) => void;
+	onLeaveGroup: () => void;
+	onDeleteGroup: () => void;
+	onAddMembers: () => void;
+	onTransferOwnership: (memberId: string) => void;
+	onKickMember: (memberId: string) => void;
+	onUpdateGroupName: (name: string) => void;
+	onUpdateGroupImage: (file: File) => void;
+	onPromoteMember: (memberId: string, newRole: MemberRole) => void;
+	onSendContactRequest: (memberId: string) => void;
 }
 
 export default function ChatDetailsModal({
@@ -117,6 +117,28 @@ export default function ChatDetailsModal({
 		if (role === MemberRole.MODERATOR) return 'Moderator';
 		return '';
 	};
+
+	const updateMemberRole = (memberId: string, role: MemberRole) => {
+		setMembers(prev => prev.map(member => (
+			member.memberId === memberId
+					? {
+						...member,
+						role: role
+					}
+					: member
+			)
+		));
+	}
+
+	const kickMember = (memberId: string) => {
+		setMembers(prev =>
+			prev.filter(member =>
+				member.memberId !== memberId
+			)
+		);
+
+		setTotalMembers(prev => prev - 1);
+	}
 
 	return (
 		<>
@@ -283,6 +305,7 @@ export default function ChatDetailsModal({
 																		className={styles.dropdownItem}
 																		onClick={() => {
 																			onPromoteMember?.(memberId, MemberRole.MODERATOR);
+																			updateMemberRole(memberId, MemberRole.MODERATOR);
 																			setOpenDropdownId(null);
 																		}}
 																	>
@@ -296,6 +319,7 @@ export default function ChatDetailsModal({
 																			className={styles.dropdownItem}
 																			onClick={() => {
 																				onPromoteMember?.(memberId, MemberRole.MEMBER);
+																				updateMemberRole(memberId, MemberRole.MEMBER);
 																				setOpenDropdownId(null);
 																			}}
 																		>
@@ -343,6 +367,7 @@ export default function ChatDetailsModal({
 															className={`${styles.dropdownItem} ${styles.danger}`}
 															onClick={() => {
 																onKickMember?.(memberId);
+																kickMember(memberId);
 																setOpenDropdownId(null);
 															}}
 														>

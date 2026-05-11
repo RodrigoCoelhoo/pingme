@@ -188,6 +188,16 @@ export function useContacts({ searchQuery = '' }: UseContactsProps = {}) {
 		}
 	};
 
+	const handleDeleteContact = async (contactId: string) => {
+		try {
+			await contactService.deleteContact(contactId);
+			setAcceptedContacts(prev => prev.filter(c => c.contactId !== contactId));
+		} catch (error) {
+			console.error('Error canceling contact request:', error);
+			throw error;
+		}
+	}
+
 	return {
 		// Accepted contacts
 		acceptedContacts,
@@ -211,6 +221,7 @@ export function useContacts({ searchQuery = '' }: UseContactsProps = {}) {
 		handleAcceptContact,
 		handleRejectContact,
 		handleCancelRequest,
-		handleAddContact
+		handleAddContact,
+		handleDeleteContact
 	};
 }

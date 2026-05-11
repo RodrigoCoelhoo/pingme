@@ -66,8 +66,8 @@
 }
 
 .chatBtn {
-	background: var(--bg-light);
-	border: 1px solid var(--border);
+	all: unset;
+	background: transparent;
 	border-radius: 8px;
 	width: 36px;
 	height: 36px;
@@ -81,8 +81,6 @@
 }
 
 .chatBtn:hover {
-	background: var(--gradient);
-	border-color: var(--green-500);
 	color: white;
 	transform: scale(1.05);
 }

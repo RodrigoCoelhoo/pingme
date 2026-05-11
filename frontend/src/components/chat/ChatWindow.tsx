@@ -124,7 +124,7 @@ export default function ChatWindow({
 				onDeleteGroup={() => onDeleteGroup(chat.chatId)}
 				onTransferOwnership={(memberId) => onTransferOwnership(chat.chatId, memberId)}
 				onKickMember={(memberId) => onKickMember(chat.chatId, memberId)}
-				onAddMembers={(memberIds) => onAddMembers(chat.chatId, memberIds)}
+				onAddMembers={onAddMembers}
 				onUpdateGroupName={(name) => onUpdateGroupName(chat.chatId, name)}
 				onUpdateGroupImage={(file) => onUpdateGroupImage(chat.chatId, file)}
 				onPromoteMember={(memberId, newRole) => onPromoteMember(chat.chatId, memberId, newRole)}

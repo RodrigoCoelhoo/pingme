@@ -53,6 +53,7 @@ type Props = {
 	onAcceptContact: (contactId: string) => void;
 	onRejectContact: (contactId: string) => void;
 	onCancelRequest: (contactId: string) => void;
+	onDeleteContact: (contactId: string) => Promise<void>;
 };
 
 export default function Sidebar({
@@ -86,6 +87,7 @@ export default function Sidebar({
 	onAcceptContact,
 	onRejectContact,
 	onCancelRequest,
+	onDeleteContact
 }: Props) {
 	return (
 		<div className={`${styles.chatSidebar} ${isSidebarOpen ? styles.open : ''}`}>
@@ -160,6 +162,7 @@ export default function Sidebar({
 						sentPendingHasMore={sentPendingHasMore}
 						onLoadMoreSentPending={onLoadMoreSentPending}
 						onStartChat={onStartChat}
+						onDeleteContact={onDeleteContact}
 						onAcceptContact={onAcceptContact}
 						onRejectContact={onRejectContact}
 						onCancelRequest={onCancelRequest}

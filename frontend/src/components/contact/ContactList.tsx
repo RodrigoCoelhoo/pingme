@@ -32,6 +32,7 @@ interface ContactsListProps {
 	onAcceptContact: (contactId: string) => void;
 	onRejectContact: (contactId: string) => void;
 	onCancelRequest: (contactId: string) => void;
+	onDeleteContact: (contactId: string) => Promise<void>
 }
 
 export default function ContactsList({
@@ -51,6 +52,7 @@ export default function ContactsList({
 	onAcceptContact,
 	onRejectContact,
 	onCancelRequest,
+	onDeleteContact
 }: ContactsListProps) {
 	const [activeTab, setActiveTab] = useState<ContactTab>('accepted');
 
@@ -92,6 +94,7 @@ export default function ContactsList({
 										key={contact.contactId}
 										contact={contact}
 										onStartChat={onStartChat}
+										onDeleteContact={onDeleteContact}
 									/>
 								))}
 								{isLoadingAccepted && (

@@ -79,7 +79,8 @@ export default function Chat() {
 		handleAcceptContact,
 		handleRejectContact,
 		handleCancelRequest,
-		handleAddContact
+		handleAddContact,
+		handleDeleteContact
 	} = useContacts({ searchQuery: activeTab === 'contacts' ? searchQuery : '' });
 
 	// Chat interactions - selecting chats, creating with UI updates
@@ -172,6 +173,24 @@ export default function Chat() {
 		}
 	};
 
+	const handleDeleteContactWrapper = async (contactId: string) => {
+		try {
+			const confirmed = await groupActions.confirmation.confirm({
+				title: 'Eliminar contacto',
+				message: 'Tens a certeza que queres eliminar este contacto?',
+				confirmText: 'Eliminar',
+				cancelText: 'Cancelar',
+				variant: 'danger'
+			});
+
+			if (!confirmed) return;
+
+			await handleDeleteContact(contactId);
+		} catch (error) {
+			showError('Erro ao remover contacto. Tenta novamente.');
+		}
+	};
+
 	const activeChatData = chats.find(c => c.chatId === activeChat) || null;
 
 	return (
@@ -202,6 +221,7 @@ export default function Chat() {
 				isSidebarOpen={isSidebarOpen}
 				onOpenNewChat={openNewChatModal}
 				onOpenAddContact={openAddContactModal}
+				onDeleteContact={handleDeleteContactWrapper}
 				onStartChat={handleCreatePrivateChatWithUI}
 				onDeleteChat={handleDeleteChatWithConfirm}
 				onAcceptContact={handleAcceptContactWrapper}

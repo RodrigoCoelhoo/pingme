@@ -60,9 +60,6 @@ export function useChat() {
 
 	const handleDeleteGroup = async (chatId: string) => {
 		try {
-			// Implement when API is ready
-			// await chatService.deleteChat(chatId);
-
 			if (activeChat === chatId) {
 				setActiveChat(null);
 			}

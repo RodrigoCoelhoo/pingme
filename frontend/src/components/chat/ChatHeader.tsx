@@ -4,6 +4,7 @@ import styles from '../../styles/chat/ChatHeader.module.css';
 import { useEffect, useState } from 'react';
 import Avatar from '../Avatar';
 import ChatDetailsModal from './ChatDetailsModal';
+import AddMembersModal from './AddMembersModal';
 
 interface ChatHeaderProps {
 	chat: ChatPreview;
@@ -12,7 +13,7 @@ interface ChatHeaderProps {
 	onDeleteGroup: () => void;
 	onTransferOwnership: (memberId: string) => void;
 	onKickMember: (memberId: string) => void;
-	onAddMembers: (memberIds: string[]) => void;
+	onAddMembers: (chatId: string, memberIds: string[]) => void;
 	onUpdateGroupName: (name: string) => void;
 	onUpdateGroupImage: (file: File) => void;
 	onPromoteMember: (memberId: string, newRole: MemberRole) => void;
@@ -35,7 +36,10 @@ export default function ChatHeader({
 	onSendContactRequest
 }: ChatHeaderProps) {
 	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-	const [showGroupDetails, setShowGroupDetails] = useState(false);
+
+	const [showGroupDetails, setShowGroupDetails] = useState<boolean>(false);
+	const [showAddMembers, setShowAddMembers] = useState<boolean>(false);
+	
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -53,12 +57,15 @@ export default function ChatHeader({
 		setShowGroupDetails(false);
 	};
 
-	const handleAddMembersClick = () => {
-		// TODO: Implementar modal para selecionar membros
-		// Por agora, exemplo com IDs fixos
-		console.log('Opening add members dialog...');
-		// onAddMembers(['user-id-1', 'user-id-2']);
+	const handleAddMembersClick = (chatId: string, memberIds: string[]) => {
+		onAddMembers(chatId, memberIds);
+		setShowAddMembers(false);
 	};
+
+	const handleOpenAddMembers = () => {
+		setShowGroupDetails(false);
+		setShowAddMembers(true);
+	}
 
 	return (
 		<div className={styles.header}>
@@ -101,11 +108,20 @@ export default function ChatHeader({
 					onDeleteGroup={handleDeleteGroup}
 					onTransferOwnership={onTransferOwnership}
 					onKickMember={onKickMember}
-					onAddMembers={handleAddMembersClick}
 					onUpdateGroupName={onUpdateGroupName}
 					onUpdateGroupImage={onUpdateGroupImage}
 					onPromoteMember={onPromoteMember}
 					onSendContactRequest={onSendContactRequest}
+					onAddMembers={handleOpenAddMembers}
+				/>
+			)}
+
+			{showAddMembers && (
+				<AddMembersModal 
+					chat={chat}
+					isOpen={showAddMembers}
+					onAddMembers={handleAddMembersClick}
+					onClose={() => setShowAddMembers(false)}
 				/>
 			)}
 		</div>
