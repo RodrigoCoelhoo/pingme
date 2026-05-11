@@ -1,4 +1,3 @@
-// hooks/useGroupActions.ts
 import { MemberRole, type ChatPreview } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useConfirmation } from './useConfirmation';
@@ -74,7 +73,7 @@ export function useGroupActions({
 			message: 'Tens a certeza que queres transferir a propriedade do grupo?',
 			confirmText: 'Transferir',
 			cancelText: 'Cancelar',
-			variant: 'warning'
+			variant: 'danger'
 		});
 
 		if (!confirmed) return;

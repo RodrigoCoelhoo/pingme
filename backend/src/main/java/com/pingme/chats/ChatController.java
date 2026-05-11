@@ -66,4 +66,13 @@ public class ChatController {
     ) {
         return ResponseEntity.ok(chatService.getChatMembers(user.id(), chatId, page, size));
     }
+
+    @DeleteMapping("/{chatId}")
+    public ResponseEntity<Void> deleteChat(
+            @AuthenticationPrincipal UserProfile user,
+            @PathVariable String chatId
+    ) {
+        chatService.deleteChat(user.id(), chatId);
+        return ResponseEntity.noContent().build();
+    }
 }

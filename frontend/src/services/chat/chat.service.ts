@@ -26,6 +26,10 @@ class ChatService {
 		const response = await api.get<ChatMembers>(`/chats/${chatId}/members?${params.toString()}`);
 		return response.data;
 	}
+
+	async deleteChat(chatId: string): Promise<void> {
+		await api.delete<void>(`/chats/${chatId}`)
+	}
 }
 
 export default new ChatService();

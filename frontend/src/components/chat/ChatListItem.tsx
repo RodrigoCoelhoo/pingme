@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type { ChatPreview } from '../../services/chat/chat.types';
+import { MemberRole, type ChatPreview } from '../../services/chat/chat.types';
 import { X } from 'lucide-react';
 import styles from '../../styles/chat/ChatListItem.module.css';
 import Avatar from '../Avatar';
@@ -51,7 +51,7 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 				)}
 			</div>
 
-			{isHovered && onDelete && (
+			{chat.role != MemberRole.ADMIN && isHovered && onDelete && (
 				<button
 					className={styles.deleteChatBtn}
 					onClick={handleDelete}

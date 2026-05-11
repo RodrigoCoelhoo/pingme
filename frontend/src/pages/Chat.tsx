@@ -1,4 +1,3 @@
-// pages/Chat.tsx
 import styles from '../styles/chat/Chat.module.css';
 import ChatWindow from '../components/chat/ChatWindow';
 import NewChatModal from '../components/chat/NewChatModal';
@@ -162,7 +161,7 @@ export default function Chat() {
 		}
 	};
 
-	const handleAddContactWrapper = async (username: string) : Promise<boolean> => {
+	const handleAddContactWrapper = async (username: string): Promise<boolean> => {
 		try {
 			await handleAddContact(username);
 			showSuccess('Contacto adicionado com sucesso!')
@@ -188,6 +187,21 @@ export default function Chat() {
 			await handleDeleteContact(contactId);
 		} catch (error) {
 			showError('Erro ao remover contacto. Tenta novamente.');
+		}
+	};
+
+	const handleDeleteGroupWithUI = async (chatId: string) => {
+		try {
+			await groupActions.handleDeleteGroup(chatId);
+			removeChat(chatId);
+
+			if (activeChat === chatId) {
+				setActiveChat(null);
+			}
+
+			showSuccess('Grupo eliminado com sucesso!');
+		} catch (error) {
+			showError('Erro ao eliminar grupo. Tenta novamente.');
 		}
 	};
 
@@ -234,7 +248,7 @@ export default function Chat() {
 					chat={activeChatData}
 					setSidebarOpen={setIsSidebarOpen}
 					onLeaveGroup={groupActions.handleLeaveGroup}
-					onDeleteGroup={groupActions.handleDeleteGroup}
+					onDeleteGroup={handleDeleteGroupWithUI}
 					onTransferOwnership={groupActions.handleTransferOwnership}
 					onKickMember={groupActions.handleKickMember}
 					onAddMembers={groupActions.handleAddMembers}

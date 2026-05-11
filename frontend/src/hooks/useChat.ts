@@ -60,23 +60,24 @@ export function useChat() {
 
 	const handleDeleteGroup = async (chatId: string) => {
 		try {
+			await chatService.deleteChat(chatId);
+
 			if (activeChat === chatId) {
 				setActiveChat(null);
 			}
+
 		} catch (error) {
 			console.error('Error deleting group:', error);
 			throw error;
 		}
 	};
 
-	const handleTransferOwnership = async (chatId: string, newOwnerId: string) : Promise<MemberRole> => {
+	const handleTransferOwnership = async (chatId: string, newOwnerId: string) => {
 		try {
 			await chatMemberService.updateRole(chatId, {
 				userId: newOwnerId,
 				role: MemberRole.ADMIN
 			});
-
-			return MemberRole.MODERATOR;
 		} catch (error) {
 			console.error('Error transferring ownership:', error);
 			throw error;

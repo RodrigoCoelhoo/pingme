@@ -356,4 +356,17 @@ public class ChatService {
 
         return new ChatMembers(memberResponses, totalMembers);
     }
+
+    public void deleteChat(String userId, String chatId) {
+        ChatMember currentUser = chatMemberService.getChatMember(chatId, userId);
+
+        if(currentUser.getRole() != ChatRole.ADMIN) {
+            throw new ForbiddenException("You don't have enough permissions for this action");
+        }
+
+        Chat chat = getChat(chatId, userId);
+        List<ChatMember> members = chatMemberService.getChatMembers(chatId);
+        chatMemberService.deleteAll(members);
+        chatRepository.delete(chat);
+    }
 }

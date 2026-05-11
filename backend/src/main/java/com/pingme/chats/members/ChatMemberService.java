@@ -55,6 +55,10 @@ public class ChatMemberService {
     public void leaveChat(String chatId, String userId) {
         ChatMember member = getChatMember(chatId, userId);
 
+        if(member.getRole() == ChatRole.ADMIN) {
+            throw new ForbiddenException("You can't leave a group while you're ADMIN");
+        }
+
         if(member.isActive()) {
             member.setRole(ChatRole.MEMBER);
             member.setActive(false);
@@ -64,6 +68,10 @@ public class ChatMemberService {
 
     public void saveAll(List<ChatMember> members) {
         chatMemberRepository.saveAll(members);
+    }
+
+    public void deleteAll(List<ChatMember> members) {
+        chatMemberRepository.deleteAll(members);
     }
 
     public boolean exists(String chatId, String userId) {

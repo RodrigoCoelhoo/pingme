@@ -1,4 +1,3 @@
-// hooks/useChatInteractions.ts
 import { useEffect } from 'react';
 import type { ChatPreview } from '../services/chat/chat.types';
 
