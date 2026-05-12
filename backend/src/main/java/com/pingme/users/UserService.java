@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -68,5 +70,12 @@ public class UserService {
                 user.getDisplayName(),
                 user.getAvatarUrl()
         );
+    }
+
+    public List<User> getUsersByIds(Set<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return List.of();
+        }
+        return userRepository.findAllById(userIds);
     }
 }

@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ThemeProvider } from 'next-themes'
 import Header from '../components/Header'
 import { useState, useEffect } from 'react'
 import Footer from '../components/Footer.tsx'
@@ -22,13 +21,13 @@ const Layout = () => {
 	}
 
 	return (
-		<ThemeProvider attribute="data-theme" defaultTheme="dark">
+		<>
 			<Header lang={lang} toggleLang={toggleLang} />
             
 			<Outlet />
             
 			<Footer />
-		</ThemeProvider>
+		</>
 	)
 }
 

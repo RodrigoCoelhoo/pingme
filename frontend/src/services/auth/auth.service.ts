@@ -1,5 +1,5 @@
 import api from '../api';
-import type { AuthResponse, SignInRequest, SignUpRequest, UserProfile } from './authTypes';
+import type { AuthResponse, SignInRequest, SignUpRequest, UserProfile } from './auth.types';
 
 class AuthService {
 	async getProfile(): Promise<UserProfile> {

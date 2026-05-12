@@ -1,0 +1,150 @@
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--space-5) var(--space-5);
+	background: var(--bg);
+	border-bottom: 1px solid var(--border);
+	box-shadow: var(--shadow-xs);
+}
+
+.info {
+	all: unset;
+
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	flex: 1;
+	min-width: 0;
+}
+
+.clickable {
+	cursor: pointer;
+}
+
+.disabled {
+	cursor: default;
+}
+
+.avatar {
+	width: var(--avatar-md);
+	height: var(--avatar-md);
+	border-radius: 50%;
+	overflow: hidden;
+	flex-shrink: 0;
+	background: var(--gradient);
+	cursor: pointer;
+	transition: transform var(--transition-fast);
+}
+
+.avatar:hover {
+	transform: scale(1.05);
+}
+
+.avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.avatarPlaceholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: var(--text-lg);
+	font-weight: var(--font-semibold);
+	color: white;
+}
+
+.details {
+	flex: 1;
+	min-width: 0;
+}
+
+.name {
+	font-size: var(--text-lg);
+	font-weight: var(--font-bold);
+	color: var(--text);
+	margin: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.status {
+	font-size: var(--text-xs);
+	color: var(--green-500);
+	margin: 0;
+	margin-top: 2px;
+	font-weight: var(--font-medium);
+}
+
+.actions {
+	display: flex;
+	gap: var(--space-1);
+	align-items: center;
+}
+
+.actionBtn {
+	background: none;
+	border: none;
+	color: var(--muted);
+	cursor: pointer;
+	padding: var(--space-2);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all var(--transition-fast);
+}
+
+.actionBtn:hover {
+	background: var(--bg-light);
+	color: var(--text);
+}
+
+.actionBtn:active {
+	transform: scale(0.95);
+}
+
+.backBtn {
+	display: none;
+	margin-right: var(--space-3);
+	background-color: var(--bg);
+	color: var(--text);
+	box-shadow: none;
+	border: none;
+	color: var(--muted);
+}
+
+.backBtn:hover {
+	color: var(--text);
+	transform: scale(1.05);
+	cursor: pointer;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+	.header {
+		padding: var(--space-3) var(--space-4);
+	}
+
+	.avatar {
+		width: var(--avatar-sm);
+		height: var(--avatar-sm);
+	}
+
+	.name {
+		font-size: var(--text-base);
+	}
+
+	.status {
+		font-size: 10px;
+	}
+
+	.backBtn {
+		display: block;
+	}
+}

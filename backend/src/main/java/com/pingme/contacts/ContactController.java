@@ -1,18 +1,14 @@
 package com.pingme.contacts;
 
 import com.pingme.contacts.dto.ContactDTO;
-import com.pingme.contacts.dto.ContactRequestResponse;
 import com.pingme.contacts.dto.ContactResponse;
-import com.pingme.contacts.dto.UpdateContactDTO;
 import com.pingme.users.dto.UserProfile;
-import com.pingme.utils.PageResponseDTO;
+import com.pingme.utils.PagedResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/contacts")
@@ -22,33 +18,33 @@ public class ContactController {
     private final ContactService contactService;
 
     @GetMapping
-    public ResponseEntity<PageResponseDTO<ContactResponse>> getContacts(
+    public ResponseEntity<PagedResponse<ContactResponse>> getContacts(
             @AuthenticationPrincipal UserProfile user,
-            @RequestParam(required = false) ContactStatus status,
-
+            @RequestParam ContactStatus status,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) PendingType pendingType
     ) {
-        List<ContactResponse> response = contactService.getContacts(user, status, page, limit);
-        return ResponseEntity.ok(PageResponseDTO.format(response, page, limit));
+        return ResponseEntity.ok(contactService.getContacts(user, status, page, limit, search, pendingType));
     }
 
     @PostMapping
-    public ResponseEntity<ContactRequestResponse> createContactRequest(
+    public ResponseEntity<ContactResponse> createContactRequest(
             @AuthenticationPrincipal UserProfile user,
             @RequestBody @Valid ContactDTO data
     ) {
-        Contact response = contactService.createContactRequest(user, data);
-        return ResponseEntity.ok(ContactRequestResponse.format(response));
+        ContactResponse response = contactService.createContactRequest(user, data);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateContactRequest(
             @AuthenticationPrincipal UserProfile user,
             @PathVariable String id,
-            @RequestBody @Valid UpdateContactDTO status
+            @RequestParam ContactAction action
     ) {
-        contactService.updateContactRequest(user, id, status.status());
+        contactService.handleContactRequest(user, id, action);
         return ResponseEntity.noContent().build();
     }
 

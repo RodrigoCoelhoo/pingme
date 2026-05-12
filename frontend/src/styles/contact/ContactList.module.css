@@ -1,0 +1,145 @@
+.list {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+}
+
+.tabs {
+	display: flex;
+	border-bottom: 1px solid var(--border);
+	background: var(--bg);
+	position: sticky;
+	top: 0;
+	z-index: 10;
+}
+
+.tab {
+	flex: 1;
+	padding: var(--space-3);
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	font-size: var(--text-sm);
+	font-weight: var(--font-medium);
+	color: var(--muted);
+	cursor: pointer;
+	transition: all var(--transition-fast);
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: var(--space-2);
+}
+
+.tab:hover {
+	color: var(--text);
+	background: var(--bg-light);
+}
+
+.tab.active {
+	color: var(--green-500);
+	border-bottom-color: var(--green-500);
+}
+
+.badge {
+	background: var(--gradient);
+	color: white;
+	font-size: var(--text-xs);
+	font-weight: var(--font-semibold);
+	padding: 2px 6px;
+	border-radius: 10px;
+	min-width: 18px;
+	height: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.scrollContainer {
+	flex: 1;
+	overflow-y: auto;
+	overflow-x: hidden;
+}
+
+.scrollContainer::-webkit-scrollbar {
+	width: 6px;
+}
+
+.scrollContainer::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb {
+	background: var(--border);
+	border-radius: 3px;
+}
+
+.scrollContainer::-webkit-scrollbar-thumb:hover {
+	background: var(--muted);
+}
+
+.empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: var(--space-8);
+	text-align: center;
+	gap: var(--space-2);
+	height: 100%;
+}
+
+.empty p {
+	font-size: var(--text-base);
+	font-weight: var(--font-semibold);
+	color: var(--text);
+	margin: 0;
+}
+
+.empty span {
+	font-size: var(--text-sm);
+	color: var(--muted);
+}
+
+.loading {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding: var(--space-4);
+	gap: var(--space-2);
+}
+
+.loading span {
+	font-size: var(--text-sm);
+	color: var(--muted);
+}
+
+.spinner {
+	width: 24px;
+	height: 24px;
+	border: 3px solid var(--border);
+	border-top-color: var(--green-500);
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+@media (max-width: 768px) {
+	.tab {
+		padding: var(--space-2);
+		font-size: var(--text-sm);
+	}
+
+	.badge {
+		font-size: 10px;
+		padding: 1px 4px;
+		min-width: 16px;
+		height: 16px;
+	}
+}
