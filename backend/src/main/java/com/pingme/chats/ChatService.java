@@ -1,8 +1,8 @@
 package com.pingme.chats;
 
 import com.mongodb.DuplicateKeyException;
+import com.pingme.chats.dto.ChatContext;
 import com.pingme.chats.dto.ChatMemberResponse;
-import com.pingme.chats.dto.ChatMembers;
 import com.pingme.chats.dto.ChatPreview;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberService;
@@ -12,11 +12,12 @@ import com.pingme.contacts.ContactService;
 import com.pingme.contacts.ContactStatus;
 import com.pingme.exceptions.BadRequestException;
 import com.pingme.exceptions.ForbiddenException;
-import com.pingme.exceptions.ResourceNotFound;
 import com.pingme.messages.Message;
 import com.pingme.messages.MessageService;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
+import com.pingme.utils.PagedResponse;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -212,120 +213,17 @@ public class ChatService {
         }
     }
 
-    public List<ChatPreview> getUserChats(String userId) {
-        List<ChatMember> memberships = chatMemberService.getUserChats(userId);
-        if (memberships.isEmpty()) return List.of();
-
-        Map<String, ChatMember> memberMap = mapMemberships(memberships);
-        List<String> chatIds = extractChatIds(memberships);
-
-        List<Chat> chats = chatRepository.findAllById(chatIds);
-        if (chats.isEmpty()) return List.of();
-
-        Map<String, Message> lastMessageMap = getLastMessageMap(chats);
-
-        List<String> privateChats = chats.stream()
-                .filter(c -> c.getChatType() == ChatType.PRIVATE)
-                .map(Chat::getId)
-                .toList();
-
-        Map<String, String> otherUserByChat = getOtherUserMap(privateChats, userId);
-
-        return chats.stream()
-                .map(chat -> buildChatPreview(chat, memberMap, lastMessageMap, otherUserByChat))
-                .toList();
-    }
-
-    private Map<String, ChatMember> mapMemberships(List<ChatMember> memberships) {
-        return memberships.stream()
-                .collect(Collectors.toMap(
-                        ChatMember::getChatId,
-                        m -> m
-                ));
-    }
-
-    private List<String> extractChatIds(List<ChatMember> memberships) {
-        return memberships.stream()
-                .map(ChatMember::getChatId)
-                .toList();
-    }
-
-    private Map<String, Message> getLastMessageMap(List<Chat> chats) {
-        List<String> lastMessageIds = chats.stream()
-                .map(Chat::getLastMessageId)
-                .filter(Objects::nonNull)
-                .toList();
-
-        if (lastMessageIds.isEmpty()) return Map.of();
-
-        return messageService.getMessagesByIds(lastMessageIds).stream()
-                .collect(Collectors.toMap(Message::getId, m -> m));
-    }
-
-    private Map<String, String> getOtherUserMap(List<String> chatIds, String userId) {
-
-        List<ChatMember> otherMembers = chatMemberService.getOtherMembers(chatIds, userId);
-
-        return otherMembers.stream()
-                .collect(Collectors.toMap(
-                        ChatMember::getChatId,
-                        ChatMember::getUserId
-                ));
-    }
-
-    private ChatPreview buildChatPreview(
-            Chat chat,
-            Map<String, ChatMember> memberMap,
-            Map<String, Message> lastMessageMap,
-            Map<String, String> otherUserByChat
+    public PagedResponse<ChatMemberResponse> getChatMembers(
+            String userId,
+            String chatId,
+            int page,
+            int size,
+            String search
     ) {
-
-        ChatMember member = memberMap.get(chat.getId());
-
-        String lastMessage = null;
-        Instant lastMessageTimestamp = null;
-
-        if (chat.getLastMessageId() != null) {
-            Message message = lastMessageMap.get(chat.getLastMessageId());
-            if (message != null) {
-                lastMessage = message.getContent();
-                lastMessageTimestamp = message.getCreatedAt();
-            }
-        }
-
-        String chatName;
-        String chatImageUrl;
-
-        if (chat.getChatType() == ChatType.PRIVATE) {
-
-            String otherUserId = otherUserByChat.get(chat.getId());
-            User otherUser = userService.getUserById(otherUserId);
-
-            chatName = otherUser.getDisplayName();
-            chatImageUrl = otherUser.getAvatarUrl();
-        } else {
-            chatName = chat.getChatName();
-            chatImageUrl = chat.getImageUrl();
-        }
-
-        return new ChatPreview(
-                chat.getId(),
-                chat.getChatType(),
-                chatName,
-                chatImageUrl,
-                lastMessage,
-                lastMessageTimestamp,
-                member.getRole(),
-                member.isMuted(),
-                0
-        );
-    }
-
-    public ChatMembers getChatMembers(String userId, String chatId, int page, int size) {
         validateChatAccess(chatId, userId);
 
-        List<ChatMember> members = chatMemberService.getChatMembers(chatId, page, size);
-        long totalMembers = chatMemberService.getTotalMembers(chatId);
+        List<ChatMember> members = chatMemberService.getChatMembers(chatId, page, size, search);
+        long totalMembers = chatMemberService.getTotalMembers(chatId, search);
 
         Set<String> memberIds = members.stream()
                 .map(ChatMember::getUserId)
@@ -354,7 +252,14 @@ public class ChatService {
                 })
                 .toList();
 
-        return new ChatMembers(memberResponses, totalMembers);
+        return new PagedResponse<>(
+                memberResponses,
+                page,
+                size,
+                totalMembers,
+                (int) Math.ceil((double) totalMembers / size),
+                (long) (page + 1) * size < totalMembers
+        );
     }
 
     public void deleteChat(String userId, String chatId) {
@@ -368,5 +273,164 @@ public class ChatService {
         List<ChatMember> members = chatMemberService.getChatMembers(chatId);
         chatMemberService.deleteAll(members);
         chatRepository.delete(chat);
+    }
+
+    public PagedResponse<ChatPreview> getUserChats(
+            String userId,
+            int page,
+            int size,
+            String search
+    ) {
+        List<ChatMember> memberships = chatMemberService.getUserChats(userId);
+        if (memberships.isEmpty()) {
+            return emptyPagedResponse(page, size);
+        }
+
+        Map<String, ChatMember> memberByChatId = memberships.stream()
+                .collect(Collectors.toMap(
+                        ChatMember::getChatId,
+                        m -> m,
+                        (a, b) -> a
+                ));
+
+        List<String> chatIds = memberships.stream()
+                .map(ChatMember::getChatId)
+                .toList();
+
+        List<Chat> chats = chatRepository.findAllById(chatIds);
+        if (chats.isEmpty()) {
+            return emptyPagedResponse(page, size);
+        }
+
+        Map<String, User> otherUserByChatId = getOtherUsersMap(chats, userId);
+        Map<String, Message> lastMessageById = getLastMessageMap(chats);
+
+        List<ChatContext> contexts = chats.stream()
+                .map(chat -> buildContext(
+                        chat,
+                        memberByChatId,
+                        otherUserByChatId,
+                        lastMessageById
+                ))
+                .filter(ctx -> filterBySearch(ctx, search))
+                .sorted(Comparator.comparing(ChatContext::sortTime).reversed())
+                .toList();
+
+        int totalElements = contexts.size();
+        int totalPages = (int) Math.ceil((double) totalElements / size);
+
+        int fromIndex = page * size;
+        if (fromIndex >= totalElements) {
+            return emptyPagedResponse(page, size);
+        }
+
+        int toIndex = Math.min(fromIndex + size, totalElements);
+        List<ChatContext> pageItems = contexts.subList(fromIndex, toIndex);
+
+        List<ChatPreview> previews = pageItems.stream()
+                .map(ChatContext::toPreview)
+                .toList();
+
+        return new PagedResponse<>(
+                previews,
+                page,
+                size,
+                totalElements,
+                totalPages,
+                page < totalPages - 1
+        );
+    }
+
+    private PagedResponse<ChatPreview> emptyPagedResponse(int page, int size) {
+        return new PagedResponse<>(List.of(), page, size, 0, 0, false);
+    }
+
+    private Map<String, User> getOtherUsersMap(
+            List<Chat> chats,
+            String userId
+    ) {
+        List<Chat> privateChats = chats.stream()
+                .filter(c -> c.getChatType() == ChatType.PRIVATE)
+                .toList();
+
+        Set<String> otherUserIds = privateChats.stream()
+                .map(chat -> getOtherUserId(chat, userId))
+                .collect(Collectors.toSet());
+
+        Map<String, User> userById = userService.getUsersByIds(otherUserIds).stream()
+                .collect(Collectors.toMap(User::getId, u -> u));
+
+        return privateChats.stream()
+                .collect(Collectors.toMap(
+                        Chat::getId,
+                        chat -> userById.get(getOtherUserId(chat, userId))
+                ));
+    }
+
+    private String getOtherUserId(Chat chat, String userId) {
+        String[] parts = chat.getPrivateChatKey().split("_");
+        return parts[0].equals(userId) ? parts[1] : parts[0];
+    }
+
+    private boolean filterBySearch(ChatContext ctx, String search) {
+        if (search == null || search.isBlank()) {
+            return true;
+        }
+
+        String q = search.toLowerCase().trim();
+        Chat chat = ctx.chat();
+
+        if (chat.getChatType() == ChatType.GROUP) {
+            return chat.getChatName() != null &&
+                    chat.getChatName().toLowerCase().contains(q);
+        }
+
+        User other = ctx.otherUser();
+        return other != null &&
+                other.getDisplayName() != null &&
+                other.getDisplayName().toLowerCase().contains(q);
+    }
+
+    private Map<String, Message> getLastMessageMap(List<Chat> chats) {
+        List<String> lastMessageIds = chats.stream()
+                .map(Chat::getLastMessageId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        if (lastMessageIds.isEmpty()) return Map.of();
+
+        return messageService.getMessagesByIds(lastMessageIds).stream()
+                .collect(Collectors.toMap(Message::getId, m -> m));
+    }
+
+    private ChatContext buildContext(
+            Chat chat,
+            Map<String, ChatMember> memberByChatId,
+            Map<String, User> otherUserByChatId,
+            Map<String, Message> lastMessageById
+    ) {
+        ChatMember member = memberByChatId.get(chat.getId());
+
+        User otherUser = chat.getChatType() == ChatType.PRIVATE
+                ? otherUserByChatId.get(chat.getId())
+                : null;
+
+        Message lastMessage = null;
+
+        if (chat.getLastMessageId() != null) {
+            lastMessage = lastMessageById.get(chat.getLastMessageId());
+        }
+
+        Instant sortTime = lastMessage != null
+                ? lastMessage.getCreatedAt()
+                : chat.getCreatedAt();
+
+        return new ChatContext(
+                chat,
+                member,
+                otherUser,
+                lastMessage,
+                sortTime
+        );
     }
 }

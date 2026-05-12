@@ -1,6 +1,5 @@
 package com.pingme.chats.members;
 
-import com.pingme.chats.Chat;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,13 +34,16 @@ public class ChatMemberService {
         return chatMemberRepository.findByChatId(chatId);
     }
 
-    public List<ChatMember> getChatMembers(String chatId, int page, int size) {
+    public List<ChatMember> getChatMembers(String chatId, int page, int size, String search) {
         int skip = page * size;
-        return chatMemberRepository.findPagedMembers(chatId, skip, size);
+        String safeSearch = (search == null || search.isBlank()) ? "" : search;
+
+        return chatMemberRepository.findPagedMembers(chatId, skip, size, safeSearch);
     }
 
-    public long getTotalMembers(String chatId) {
-        return chatMemberRepository.countByChatIdAndActiveTrue(chatId);
+    public long getTotalMembers(String chatId, String search) {
+        Long totalCount = chatMemberRepository.countMembersWithSearch(chatId, search);
+        return totalCount != null ? totalCount : 0L;
     }
 
     public void markAsRead(String chatId, String userId, String messageId) {

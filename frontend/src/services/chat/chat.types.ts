@@ -28,11 +28,6 @@ export enum MemberRole {
 	MEMBER = 'MEMBER'
 }
 
-export interface ChatMembers {
-	members: ChatMember[];
-	totalMembers: number;
-}
-
 export interface ChatMember {
 	memberId: string;
 	displayName: string;

@@ -17,18 +17,14 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 	const loadChats = useCallback(async (pageNum: number, search: string, append: boolean = false) => {
 		setIsLoading(true);
 		try {
-			// When API supports pagination, uncomment:
-			// const response = await chatService.getMyChats(pageNum, CHATS_PAGE_SIZE, search);
-			const response = await chatService.getMyChats();
-
+			const response = await chatService.getMyChats(pageNum, CHATS_PAGE_SIZE, search);
 			if (append) {
-				setChats(prev => [...prev, ...response]);
+				setChats(prev => [...prev, ...response.content]);
 			} else {
-				setChats(response);
+				setChats(response.content);
 			}
 
-			// setHasMore(response.hasNext);
-			setHasMore(false); // Temporary until API supports pagination
+			setHasMore(response.hasNext);
 			setPage(pageNum);
 		} catch (error) {
 			console.error('Error loading chats:', error);

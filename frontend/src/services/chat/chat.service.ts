@@ -1,9 +1,16 @@
 import api from '../api';
-import type { ChatDTO, ChatMembers, ChatPreview } from './chat.types';
+import type { PagedResponse } from '../api.types';
+import type { ChatDTO, ChatMember, ChatPreview } from './chat.types';
 
 class ChatService {
-	async getMyChats(): Promise<ChatPreview[]> {
-		const response = await api.get<ChatPreview[]>('/chats');
+	async getMyChats(page: number, size: number, search: string): Promise<PagedResponse<ChatPreview>> {
+		const params = new URLSearchParams({
+			page: page.toString(),
+			size: size.toString(),
+			search: search
+		});
+
+		const response = await api.get<PagedResponse<ChatPreview>>(`/chats?${params.toString()}`);
 		return response.data;
 	}
 
@@ -17,13 +24,14 @@ class ChatService {
 		return response.data;
 	}
 
-	async getChatMembers(chatId: string, page: number, size: number): Promise<ChatMembers> {
+	async getChatMembers(chatId: string, page: number, size: number, search: string): Promise<PagedResponse<ChatMember>> {
 		const params = new URLSearchParams({
 			page: page.toString(),
 			size: size.toString(),
+			search: search
 		});
 
-		const response = await api.get<ChatMembers>(`/chats/${chatId}/members?${params.toString()}`);
+		const response = await api.get<PagedResponse<ChatMember>>(`/chats/${chatId}/members?${params.toString()}`);
 		return response.data;
 	}
 

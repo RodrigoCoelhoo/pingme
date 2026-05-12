@@ -5,8 +5,8 @@ import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 
 interface ChatListProps {
 	chats: ChatPreview[];
-	activeChat: string | null;
-	onChatSelect: (chatId: string) => void;
+	activeChat: ChatPreview | null;
+	onChatSelect: (chat: ChatPreview) => void;
 	onDeleteChat?: (chatId: string) => void;
 	isLoading: boolean;
 	hasMore: boolean;
@@ -33,14 +33,16 @@ export default function ChatList({
 		);
 	}
 
+	//INIFNITY SCROLL + PAGE + SEARCH PARA OS CHATS
+
 	return (
 		<div ref={containerRef} className={styles.chatList}>
 			{chats.map((chat) => (
 				<ChatListItem
 					key={chat.chatId}
 					chat={chat}
-					isActive={activeChat === chat.chatId}
-					onClick={() => onChatSelect(chat.chatId)}
+					isActive={activeChat?.chatId === chat.chatId}
+					onClick={() => onChatSelect(chat)}
 					onDelete={onDeleteChat}
 				/>
 			))}

@@ -195,7 +195,7 @@ export default function Chat() {
 			await groupActions.handleDeleteGroup(chatId);
 			removeChat(chatId);
 
-			if (activeChat === chatId) {
+			if (activeChat?.chatId === chatId) {
 				setActiveChat(null);
 			}
 
@@ -204,8 +204,6 @@ export default function Chat() {
 			showError('Erro ao eliminar grupo. Tenta novamente.');
 		}
 	};
-
-	const activeChatData = chats.find(c => c.chatId === activeChat) || null;
 
 	return (
 		<div className={styles.chatPage}>
@@ -245,7 +243,7 @@ export default function Chat() {
 
 			<div className={styles.chatMain}>
 				<ChatWindow
-					chat={activeChatData}
+					chat={activeChat}
 					setSidebarOpen={setIsSidebarOpen}
 					onLeaveGroup={groupActions.handleLeaveGroup}
 					onDeleteGroup={handleDeleteGroupWithUI}

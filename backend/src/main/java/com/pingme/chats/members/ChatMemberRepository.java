@@ -1,6 +1,5 @@
 package com.pingme.chats.members;
 
-import com.pingme.chats.Chat;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
@@ -19,8 +18,55 @@ public interface ChatMemberRepository extends MongoRepository<ChatMember, String
     List<ChatMember> findByChatIdInAndUserIdNot(List<String> chatIds, String userId);
 
     @Aggregation(pipeline = {
+
+            // Base filter
             "{ $match: { chatId: ?0, active: true } }",
 
+            // User join
+            "{ $addFields: { userObjectId: { $toObjectId: '$userId' } } }",
+
+            "{ $lookup: { " +
+                    "from: 'users', " +
+                    "localField: 'userObjectId', " +
+                    "foreignField: '_id', " +
+                    "as: 'user' " +
+                    "} }",
+
+            "{ $unwind: '$user' }",
+
+            // Search
+            "{ $match: { " +
+                    "$expr: { " +
+                    "$or: [ " +
+
+                    // Empty search
+                    "{ $eq: [?3, ''] }, " +
+
+                    // @username
+                    "{ $and: [ " +
+                    "{ $regexMatch: { input: ?3, regex: '^@' } }, " +
+                    "{ $regexMatch: { " +
+                    "input: '$user.username', " +
+                    "regex: { $substr: [?3, 1, -1] }, " +
+                    "options: 'i' " +
+                    "} } " +
+                    "] }, " +
+
+                    // displayName
+                    "{ $and: [ " +
+                    "{ $not: { $regexMatch: { input: ?3, regex: '^@' } } }, " +
+                    "{ $regexMatch: { " +
+                    "input: '$user.displayName', " +
+                    "regex: ?3, " +
+                    "options: 'i' " +
+                    "} } " +
+                    "] } " +
+
+                    "] " +
+                    "} " +
+                    "} }",
+
+            // Role ordering
             "{ $addFields: { rolePriority: { $switch: { " +
                     "branches: [ " +
                     "{ case: { $eq: ['$role', 'ADMIN'] }, then: 0 }, " +
@@ -29,14 +75,72 @@ public interface ChatMemberRepository extends MongoRepository<ChatMember, String
                     "], " +
                     "default: 3 } } } }",
 
-            "{ $sort: { rolePriority: 1, userId: 1 } }",
+            // Sort
+            "{ $sort: { rolePriority: 1, 'user.displayName': 1 } }",
 
+            // Pagination
             "{ $skip: ?1 }",
             "{ $limit: ?2 }"
     })
-    List<ChatMember> findPagedMembers(String chatId, int skip, int limit);
+    List<ChatMember> findPagedMembers(
+            String chatId,
+            int skip,
+            int limit,
+            String search
+    );
 
-    long countByChatIdAndActiveTrue(String chatId);
+    @Aggregation(pipeline = {
+
+            // Base filter
+            "{ $match: { chatId: ?0, active: true } }",
+
+            // User join
+            "{ $addFields: { userObjectId: { $toObjectId: '$userId' } } }",
+
+            "{ $lookup: { " +
+                    "from: 'users', " +
+                    "localField: 'userObjectId', " +
+                    "foreignField: '_id', " +
+                    "as: 'user' " +
+                    "} }",
+
+            "{ $unwind: '$user' }",
+
+            // Search
+            "{ $match: { " +
+                    "$expr: { " +
+                    "$or: [ " +
+
+                    // Empty search
+                    "{ $eq: [?1, ''] }, " +
+
+                    // @username
+                    "{ $and: [ " +
+                    "{ $regexMatch: { input: ?1, regex: '^@' } }, " +
+                    "{ $regexMatch: { " +
+                    "input: '$user.username', " +
+                    "regex: { $substr: [?1, 1, -1] }, " +
+                    "options: 'i' " +
+                    "} } " +
+                    "] }, " +
+
+                    // displayName
+                    "{ $and: [ " +
+                    "{ $not: { $regexMatch: { input: ?1, regex: '^@' } } }, " +
+                    "{ $regexMatch: { " +
+                    "input: '$user.displayName', " +
+                    "regex: ?1, " +
+                    "options: 'i' " +
+                    "} } " +
+                    "] } " +
+
+                    "] " +
+                    "} " +
+                    "} }",
+
+            "{ $count: 'total' }"
+    })
+    Long countMembersWithSearch(String chatId, String search);
 
     List<ChatMember> findByChatIdAndUserIdInAndActiveFalse(String chatId, Set<String> userIds);
 }

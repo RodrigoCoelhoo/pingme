@@ -1,11 +1,13 @@
 package com.pingme.chats;
 
 import com.pingme.chats.dto.ChatDTO;
+import com.pingme.chats.dto.ChatMemberResponse;
 import com.pingme.chats.dto.ChatMembers;
 import com.pingme.chats.dto.ChatPreview;
 import com.pingme.chats.members.ChatMemberService;
 import com.pingme.chats.members.ChatRole;
 import com.pingme.users.dto.UserProfile;
+import com.pingme.utils.PagedResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -51,20 +53,30 @@ public class ChatController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ChatPreview>> getMyChats(
-            @AuthenticationPrincipal UserProfile user
+    public ResponseEntity<PagedResponse<ChatPreview>> getMyChats(
+            @AuthenticationPrincipal UserProfile user,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) int size,
+            @RequestParam(required = false) String search
     ) {
-        return ResponseEntity.ok(chatService.getUserChats(user.id()));
+        PagedResponse<ChatPreview> response = chatService.getUserChats(
+                user.id(),
+                page,
+                size,
+                search
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{chatId}/members")
-    public ResponseEntity<ChatMembers> getChatMembers(
+    public ResponseEntity<PagedResponse<ChatMemberResponse>> getChatMembers(
             @AuthenticationPrincipal UserProfile user,
             @PathVariable String chatId,
             @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int size,
+            @RequestParam(required = false) String search
     ) {
-        return ResponseEntity.ok(chatService.getChatMembers(user.id(), chatId, page, size));
+        return ResponseEntity.ok(chatService.getChatMembers(user.id(), chatId, page, size, search));
     }
 
     @DeleteMapping("/{chatId}")

@@ -5,7 +5,7 @@ import { useConfirmation } from './useConfirmation';
 interface UseGroupActionsProps {
 	onLeaveGroup: (chatId: string) => Promise<void>;
 	onDeleteGroup: (chatId: string) => Promise<void>;
-	onTransferOwnership: (chatId: string, newOwnerId: string) => Promise<MemberRole>;
+	onTransferOwnership: (chatId: string, newOwnerId: string) => Promise<void>;
 	onUpdateChat: (chatId: string, updates: Partial<ChatPreview>) => void;
 	onKickMember: (chatId: string, memberId: string) => Promise<void>;
 	onAddMembers: (chatId: string, memberIds: string[]) => Promise<void>;

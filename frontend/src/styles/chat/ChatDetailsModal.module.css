@@ -85,9 +85,15 @@
 
 /* Content */
 .content {
-	overflow: visible;
+	display: flex;
+	flex-direction: column;
+
+	overflow: hidden;
+
 	padding: var(--space-6);
+
 	flex: 1;
+	min-height: 0;
 }
 
 /* Group Info */
@@ -226,6 +232,15 @@
 /* Section */
 .section {
 	margin-bottom: var(--space-6);
+	min-height: 0;
+}
+
+.membersSection {
+	display: flex;
+	flex-direction: column;
+
+	flex: 1;
+	min-height: 0;
 }
 
 .section:last-child {
@@ -277,6 +292,13 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-1);
+
+	overflow-y: auto;
+
+	min-height: 0;
+	flex: 1;
+
+	padding-right: 4px;
 }
 
 .memberItem {
@@ -316,7 +338,8 @@
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
-	flex: 1; /* ⭐ critical */
+	flex: 1;
+	/* ⭐ critical */
 }
 
 .memberDisplayName {
@@ -546,4 +569,93 @@
 	.groupName {
 		font-size: var(--text-lg);
 	}
+}
+
+.sectionActions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.searchBtn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	width: 36px;
+	height: 36px;
+
+	border: none;
+	border-radius: 10px;
+
+	background: transparent;
+	color: var(--muted);
+
+	cursor: pointer;
+
+	transition: background 0.2s ease;
+}
+
+.searchBtn:hover {
+	color: var(--text);
+}
+
+.searchWrapper {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+
+	padding: 0.75rem 1rem;
+
+	background: var(--bg);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+}
+
+.searchIcon {
+	color: var(--text-secondary);
+	flex-shrink: 0;
+}
+
+.searchInput {
+	flex: 1;
+
+	background: transparent;
+	border: none;
+	outline: none;
+
+	font-size: 0.95rem;
+	color: var(--text-primary);
+}
+
+.searchInput::placeholder {
+	color: var(--text-secondary);
+}
+
+.closeSearchBtn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	background: transparent;
+	border: none;
+
+	color: var(--text-secondary);
+
+	cursor: pointer;
+}
+
+.membersLoading,
+.membersEmpty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	padding: 1rem;
+
+	font-size: 0.9rem;
+	color: var(--muted);
 }

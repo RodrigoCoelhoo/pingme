@@ -2,15 +2,15 @@ import { useState } from 'react';
 import chatService from '../services/chat/chat.service';
 import chatMemberService from '../services/chat/chatMember.service';
 import contactService from '../services/contact/contact.service';
-import { MemberRole } from '../services/chat/chat.types';
+import { MemberRole, type ChatPreview } from '../services/chat/chat.types';
 
 export function useChat() {
-	const [activeChat, setActiveChat] = useState<string | null>(null);
+	const [activeChat, setActiveChat] = useState<ChatPreview | null>(null);
 
 	const handleCreatePrivateChat = async (userId: string) => {
 		try {
 			const chat = await chatService.getOrCreatePrivateChat(userId);
-			setActiveChat(chat.chatId);
+			setActiveChat(chat);
 			return chat;
 		} catch (error) {
 			console.error('Error creating private chat:', error);
@@ -24,7 +24,7 @@ export function useChat() {
 				membersIds: memberIds,
 				chatName: groupName
 			});
-			setActiveChat(chat.chatId);
+			setActiveChat(chat);
 			return chat;
 		} catch (error) {
 			console.error('Error creating group chat:', error);
@@ -36,7 +36,7 @@ export function useChat() {
 		try {
 			await chatMemberService.leaveChat(chatId);
 
-			if (activeChat === chatId) {
+			if (activeChat?.chatId === chatId) {
 				setActiveChat(null);
 			}
 		} catch (error) {
@@ -49,7 +49,7 @@ export function useChat() {
 		try {
 			await chatMemberService.leaveChat(chatId);
 
-			if (activeChat === chatId) {
+			if (activeChat?.chatId === chatId) {
 				setActiveChat(null);
 			}
 		} catch (error) {
@@ -62,7 +62,7 @@ export function useChat() {
 		try {
 			await chatService.deleteChat(chatId);
 
-			if (activeChat === chatId) {
+			if (activeChat?.chatId === chatId) {
 				setActiveChat(null);
 			}
 

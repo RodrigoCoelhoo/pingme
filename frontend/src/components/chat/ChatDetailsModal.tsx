@@ -1,10 +1,11 @@
-import { X, Crown, Shield, UserPlus, UserMinus, LogOut, Trash2, Camera, Edit2, Users, MoreVertical, ArrowUp, ArrowDown } from 'lucide-react';
+import { X, Crown, Shield, UserPlus, UserMinus, LogOut, Trash2, Camera, Edit2, Users, MoreVertical, ArrowUp, ArrowDown, Search } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import Avatar from '../Avatar';
 import styles from '../../styles/chat/ChatDetailsModal.module.css';
 import { MemberRole, type ChatMember, type ChatPreview } from '../../services/chat/chat.types';
 import chatService from '../../services/chat/chat.service';
 import { useAuth } from '../../contexts/AuthContext';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 
 interface ChatDetailsModalProps {
 	chat: ChatPreview;
@@ -38,6 +39,10 @@ export default function ChatDetailsModal({
 	const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
+	const [showSearch, setShowSearch] = useState(false);
+	const [search, setSearch] = useState('');
+	const [debouncedSearch, setDebouncedSearch] = useState('');
+
 	const { user } = useAuth();
 
 	const userId = user?.id || '';
@@ -51,7 +56,6 @@ export default function ChatDetailsModal({
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [totalMembers, setTotalMembers] = useState(0);
-
 
 	// Close dropdown when clicking outside
 	useEffect(() => {
@@ -69,28 +73,52 @@ export default function ChatDetailsModal({
 
 	useEffect(() => {
 		fetchMembers(0, false);
-	}, [chat.chatId]);
+	}, [chat.chatId, debouncedSearch]);
+
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			setDebouncedSearch(search.trim());
+		}, 300);
+
+		return () => clearTimeout(timeout);
+	}, [search]);
 
 	const fetchMembers = async (pageNumber = 0, append = false) => {
 		try {
 			setLoadingMembers(true);
 			setMembersError(null);
 
-			const res = await chatService.getChatMembers(chat.chatId, pageNumber, 20);
+			const res = await chatService.getChatMembers(chat.chatId, pageNumber, 20, debouncedSearch);
 
 			setMembers(prev =>
-				append ? [...prev, ...res.members] : res.members
+				append ? [...prev, ...res.content] : res.content
 			);
 
-			setHasMore(members.length === res.totalMembers);
+			setHasMore(res.hasNext);
 			setPage(pageNumber);
-			setTotalMembers(res.totalMembers);
+			setTotalMembers(res.totalElements);
 		} catch (err: any) {
 			setMembersError(err.message || 'Error loading members');
 		} finally {
 			setLoadingMembers(false);
 		}
 	};
+
+	const loadMoreMembers = async () => {
+		if (loadingMembers || !hasMore) return;
+
+		await fetchMembers(page + 1, true);
+	};
+
+	const { containerRef } = useInfiniteScroll(
+		loadMoreMembers,
+		hasMore,
+		loadingMembers,
+		{
+			threshold: 120,
+			enabled: true
+		}
+	);
 
 	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
@@ -121,12 +149,12 @@ export default function ChatDetailsModal({
 	const updateMemberRole = (memberId: string, role: MemberRole) => {
 		setMembers(prev => prev.map(member => (
 			member.memberId === memberId
-					? {
-						...member,
-						role: role
-					}
-					: member
-			)
+				? {
+					...member,
+					role: role
+				}
+				: member
+		)
 		));
 	}
 
@@ -224,24 +252,65 @@ export default function ChatDetailsModal({
 					</div>
 
 					{/* Members Section */}
-					<div className={styles.section}>
+					<div className={`${styles.section} ${styles.membersSection}`}>
 						<div className={styles.sectionHeader}>
 							<div className={styles.sectionTitle}>
 								<Users size={18} />
 								<span>Members ({totalMembers})</span>
 							</div>
-							{canManageMembers && (
+
+							<div className={styles.sectionActions}>
 								<button
-									className={styles.addMemberBtn}
-									onClick={onAddMembers}
+									className={styles.searchBtn}
+									onClick={() => {
+										if (showSearch) {
+											setSearch('');
+										}
+
+										setShowSearch(prev => !prev);
+									}}
 								>
-									<UserPlus size={18} />
-									<span>Add</span>
+									<Search size={18} />
 								</button>
-							)}
+
+								{canManageMembers && (
+									<button
+										className={styles.addMemberBtn}
+										onClick={onAddMembers}
+									>
+										<UserPlus size={18} />
+										<span>Add</span>
+									</button>
+								)}
+							</div>
 						</div>
 
-						<div className={styles.membersList}>
+						{showSearch && (
+							<div className={styles.searchWrapper}>
+								<Search size={16} className={styles.searchIcon} />
+
+								<input
+									type="text"
+									placeholder="Search members or @username..."
+									value={search}
+									onChange={(e) => setSearch(e.target.value)}
+									className={styles.searchInput}
+									autoFocus
+								/>
+
+								<button
+									className={styles.closeSearchBtn}
+									onClick={() => {
+										setShowSearch(false);
+										setSearch('');
+									}}
+								>
+									<X size={16} />
+								</button>
+							</div>
+						)}
+
+						<div className={styles.membersList} ref={containerRef}>
 							{members.map((member) => {
 								const memberId = member.memberId;
 								const isCurrentUser = memberId === userId;
@@ -381,6 +450,18 @@ export default function ChatDetailsModal({
 									</div>
 								);
 							})}
+
+							{loadingMembers && (
+								<div className={styles.membersLoading}>
+									Loading members...
+								</div>
+							)}
+
+							{!loadingMembers && members.length === 0 && (
+								<div className={styles.membersEmpty}>
+									No members found
+								</div>
+							)}
 						</div>
 					</div>
 
