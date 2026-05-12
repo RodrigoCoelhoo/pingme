@@ -104,6 +104,7 @@ export function useChat() {
 
 	const handleUpdateGroupName = async (chatId: string, newName: string) => {
 		try {
+			console.log(chatId, newName);
 			// Implement when API is ready
 			// await chatService.updateChatName(chatId, newName);
 		} catch (error) {
@@ -114,6 +115,7 @@ export function useChat() {
 
 	const handleUpdateGroupImage = async (chatId: string, file: File) => {
 		try {
+			console.log(chatId);
 			const formData = new FormData();
 			formData.append('image', file);
 			// Implement when API is ready

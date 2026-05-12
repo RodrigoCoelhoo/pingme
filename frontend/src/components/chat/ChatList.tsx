@@ -33,8 +33,6 @@ export default function ChatList({
 		);
 	}
 
-	//INIFNITY SCROLL + PAGE + SEARCH PARA OS CHATS
-
 	return (
 		<div ref={containerRef} className={styles.chatList}>
 			{chats.map((chat) => (

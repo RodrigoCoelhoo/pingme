@@ -4,7 +4,6 @@ import type { ChatPreview } from '../services/chat/chat.types';
 interface UseChatInteractionsProps {
 	activeChat: ChatPreview | null;
 	isMobile: boolean;
-	isSidebarOpen: boolean;
 	setActiveChat: (chat: ChatPreview) => void;
 	setIsSidebarOpen: (open: boolean) => void;
 	setActiveTab: (tab: 'chats' | 'contacts') => void;
@@ -16,7 +15,6 @@ interface UseChatInteractionsProps {
 export function useChatInteractions({
 	activeChat,
 	isMobile,
-	isSidebarOpen,
 	setActiveChat,
 	setIsSidebarOpen,
 	setActiveTab,

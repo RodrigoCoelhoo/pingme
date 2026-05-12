@@ -52,7 +52,6 @@ export default function ChatDetailsModal({
 
 	const [members, setMembers] = useState<ChatMember[]>([]);
 	const [loadingMembers, setLoadingMembers] = useState(false);
-	const [membersError, setMembersError] = useState<string | null>(null);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [totalMembers, setTotalMembers] = useState(0);
@@ -86,7 +85,6 @@ export default function ChatDetailsModal({
 	const fetchMembers = async (pageNumber = 0, append = false) => {
 		try {
 			setLoadingMembers(true);
-			setMembersError(null);
 
 			const res = await chatService.getChatMembers(chat.chatId, pageNumber, 20, debouncedSearch);
 
@@ -98,7 +96,6 @@ export default function ChatDetailsModal({
 			setPage(pageNumber);
 			setTotalMembers(res.totalElements);
 		} catch (err: any) {
-			setMembersError(err.message || 'Error loading members');
 		} finally {
 			setLoadingMembers(false);
 		}

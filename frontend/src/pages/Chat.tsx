@@ -90,7 +90,6 @@ export default function Chat() {
 	} = useChatInteractions({
 		activeChat,
 		isMobile,
-		isSidebarOpen,
 		setActiveChat,
 		setIsSidebarOpen,
 		setActiveTab,
