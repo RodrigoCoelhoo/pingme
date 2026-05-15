@@ -433,4 +433,8 @@ public class ChatService {
                 sortTime
         );
     }
+
+    public Chat save(Chat chat) {
+        return chatRepository.save(chat);
+    }
 }
