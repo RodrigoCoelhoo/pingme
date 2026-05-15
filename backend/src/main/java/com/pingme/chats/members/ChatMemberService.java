@@ -1,12 +1,14 @@
 package com.pingme.chats.members;
 
 import com.pingme.chats.Chat;
+import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatService;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
 import com.pingme.exceptions.BadRequestException;
 import com.pingme.exceptions.ForbiddenException;
+import com.pingme.exceptions.ResourceNotFound;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class ChatMemberService {
 
     private final ChatMemberRepository chatMemberRepository;
     private final ContactService contactService;
-    private final ChatService chatService;
+    private final ChatRepository chatRepository;
 
     public ChatMember getChatMember(String chatId, String userId) {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId)
@@ -140,7 +142,15 @@ public class ChatMemberService {
             throw new BadRequestException("Members to add is empty");
         }
 
-        Chat chat = chatService.getChat(chatId, currentUserId);
+        boolean isMember = chatMemberRepository.findByChatIdAndUserId(chatId, currentUserId).isPresent();
+
+        if (!isMember) {
+            throw new ForbiddenException("Current user doesn't belong to this chat");
+        }
+
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResourceNotFound("Chat not found"));
+
         String chatLastMessageId = chat.getLastMessageId();
         ChatMember currentUser = getChatMember(chatId, currentUserId);
 

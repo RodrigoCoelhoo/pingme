@@ -1,7 +1,10 @@
 package com.pingme.messages;
 
 import com.pingme.chats.Chat;
+import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatService;
+import com.pingme.chats.members.ChatMemberRepository;
+import com.pingme.chats.members.ChatMemberService;
 import com.pingme.exceptions.BadRequestException;
 import com.pingme.exceptions.ForbiddenException;
 import com.pingme.exceptions.ResourceNotFound;
@@ -20,7 +23,8 @@ import java.util.List;
 public class MessageService {
 
     private final MessageRepository messageRepository;
-    private final ChatService chatService;
+    private final ChatMemberRepository chatMemberRepository;
+    private final ChatRepository chatRepository;
 
     public Message getMessage(String messageId) {
         return messageRepository.findById(messageId)
@@ -32,6 +36,16 @@ public class MessageService {
     }
 
     public Message saveMessage(String chatId, String senderId, String content, MessageType type) {
+
+        boolean isMember = chatMemberRepository.findByChatIdAndUserId(chatId, senderId).isPresent();
+
+        if (!isMember) {
+            throw new ForbiddenException("Current user doesn't belong to this chat");
+        }
+
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResourceNotFound("Chat not found"));
+
         Message message = Message.builder()
                 .chatId(chatId)
                 .senderId(senderId)
@@ -43,9 +57,8 @@ public class MessageService {
 
         Message savedMessage = messageRepository.save(message);
 
-        Chat chat = chatService.getChat(chatId, senderId);
         chat.setLastMessageId(savedMessage.getId());
-        chatService.save(chat);
+        chatRepository.save(chat);
 
         return savedMessage;
     }
