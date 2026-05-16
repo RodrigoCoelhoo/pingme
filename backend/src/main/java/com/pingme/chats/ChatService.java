@@ -62,6 +62,8 @@ public class ChatService {
             lastMessageTimestamp = message.getCreatedAt();
         }
 
+        long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
+
         return new ChatPreview(
                 chat.getId(),
                 chat.getChatType(),
@@ -71,7 +73,7 @@ public class ChatService {
                 lastMessageTimestamp,
                 member.getRole(),
                 member.isMuted(),
-                0
+                (int) unreadCount
         );
     }
 
@@ -425,12 +427,15 @@ public class ChatService {
                 ? lastMessage.getCreatedAt()
                 : chat.getCreatedAt();
 
+        long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
+
         return new ChatContext(
                 chat,
                 member,
                 otherUser,
                 lastMessage,
-                sortTime
+                sortTime,
+                (int) unreadCount
         );
     }
 }
