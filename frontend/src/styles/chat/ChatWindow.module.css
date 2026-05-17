@@ -197,6 +197,95 @@
 	background: var(--bg-dark);
 }
 
+.typingDots {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+}
+
+.typingDots span {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #666;
+	animation: typingBounce 1.4s infinite ease-in-out both;
+}
+
+.typingDots span:nth-child(1) {
+	animation-delay: -0.32s;
+}
+
+.typingDots span:nth-child(2) {
+	animation-delay: -0.16s;
+}
+
+@keyframes typingBounce {
+
+	0%,
+	80%,
+	100% {
+		transform: scale(0);
+		opacity: 0.5;
+	}
+
+	40% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+.typingText {
+	font-size: 13px;
+	color: #666;
+	font-style: italic;
+}
+
+.scrollToBottomBtn {
+  position: absolute;
+  bottom: 100px; /* Above message input */
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-light);
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  box-shadow: var(--shadow-m);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+ 
+.scrollToBottomBtn:hover {
+  background: var(--green-600);
+  transform: scale(1.1);
+}
+ 
+.scrollToBottomBtn:active {
+  transform: scale(0.95);
+}
+
+.loadingOverlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background: var(--bg);
+	gap: var(--space-4);
+	z-index: 2;
+}
+ 
+.loadingOverlay p {
+	color: var(--muted);
+	font-size: var(--text-sm);
+}
+
 /* ── Mobile adjustments ── */
 
 @media (max-width: 768px) {

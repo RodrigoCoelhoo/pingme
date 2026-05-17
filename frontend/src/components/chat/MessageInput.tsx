@@ -6,14 +6,18 @@ import { useTheme } from 'next-themes';
 
 interface MessageInputProps {
 	onSendMessage: (content: string) => void;
+	onTyping?: (isTyping: boolean) => void; // NEW
 	disabled?: boolean;
 }
 
-export default function MessageInput({ onSendMessage, disabled = false }: MessageInputProps) {
+export default function MessageInput({ onSendMessage, disabled = false, onTyping }: MessageInputProps) {
 	const [message, setMessage] = useState('');
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const pickerRef = useRef<HTMLDivElement>(null);
+
+	const typingTimeoutRef = useRef<any>(null);
+	const isTypingRef = useRef(false);
 
 	const { theme } = useTheme();
 
@@ -35,6 +39,16 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
 	}, []);
 
 	const handleSend = () => {
+		if (!message.trim()) return;
+ 
+		if (onTyping && isTypingRef.current) {
+			onTyping(false);
+			isTypingRef.current = false;
+		}
+		if (typingTimeoutRef.current) {
+			clearTimeout(typingTimeoutRef.current);
+		}
+
 		if (message.trim() && !disabled) {
 			onSendMessage(message.trim());
 			setMessage('');
@@ -52,12 +66,41 @@ export default function MessageInput({ onSendMessage, disabled = false }: Messag
 	};
 
 	const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setMessage(e.target.value);
+		const value = e.target.value;
+		setMessage(value);
 
 		// Auto-resize textarea
 		if (textareaRef.current) {
 			textareaRef.current.style.height = 'auto';
 			textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+		}
+
+		if (onTyping && value.trim()) {
+			// Start typing
+			if (!isTypingRef.current) {
+				onTyping(true);
+				isTypingRef.current = true;
+			}
+ 
+			// Clear previous timeout
+			if (typingTimeoutRef.current) {
+				clearTimeout(typingTimeoutRef.current);
+			}
+ 
+			// Stop typing after 2 seconds of inactivity
+			typingTimeoutRef.current = setTimeout(() => {
+				if (onTyping && isTypingRef.current) {
+					onTyping(false);
+					isTypingRef.current = false;
+				}
+			}, 2000);
+		} else if (onTyping && !value.trim() && isTypingRef.current) {
+			// Stop typing immediately if input is cleared
+			onTyping(false);
+			isTypingRef.current = false;
+			if (typingTimeoutRef.current) {
+				clearTimeout(typingTimeoutRef.current);
+			}
 		}
 	};
 

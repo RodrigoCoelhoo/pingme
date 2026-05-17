@@ -7,7 +7,7 @@ import com.pingme.users.User;
 import java.time.Instant;
 
 public record MessageResponse(
-        String id,
+        String messageId,
         String chatId,
         String senderId,
         String senderDisplayName,

@@ -1,14 +1,19 @@
-export interface Message {
+export type MessageType = 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
+
+export interface MessageResponse {
 	messageId: string;
 	chatId: string;
 	senderId: string;
-	senderName: string;
-	senderAvatar?: string;
+	senderDisplayName: string;
+	senderAvatarUrl: string;
 	content: string;
-	timestamp: string;
-	isRead: boolean;
+	type: MessageType;
+	createdAt: string;
+	editedAt: string | null;
+	deleted: boolean;
 }
 
-export interface SendMessageDTO {
+export interface MessageRequest {
 	content: string;
+	type: MessageType;
 }

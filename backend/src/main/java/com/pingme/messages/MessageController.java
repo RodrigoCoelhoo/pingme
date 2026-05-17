@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -48,6 +49,7 @@ public class MessageController {
                 .collect(Collectors.toMap(User::getId, u -> u));
 
         List<MessageResponse> responses = messagePage.getContent().stream()
+                .sorted(Comparator.comparing(Message::getCreatedAt))
                 .map(msg -> MessageResponse.from(msg, userMap.get(msg.getSenderId())))
                 .toList();
 
