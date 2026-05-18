@@ -60,10 +60,10 @@ class WebSocketService {
 				}
 			},
 
-			debug: (str) => {
+			//debug: (str) => {
 				// Uncomment for detailed debugging
 				// console.log('🐛 STOMP Debug:', str);
-			}
+			//}
 		});
 
 		this.client.activate();

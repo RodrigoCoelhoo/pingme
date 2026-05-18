@@ -77,19 +77,10 @@ export default function ChatWindow({
 				setHasMoreMessages(false);
 			} else {
 				setMessages(prev => {
-
-					console.log('📦 ADDING MESSAGES', {
-						previousCount: prev.length,
-						adding: olderMessages.content.length,
-						newCount:
-							prev.length + olderMessages.content.length
-					});
-
 					return [...olderMessages.content, ...prev];
 				});
 
 				setCurrentPage(nextPage);
-
 				setHasMoreMessages(olderMessages.hasNext);
 			}
 		} catch (error) {
@@ -152,9 +143,7 @@ export default function ChatWindow({
 			return updated;
 		});
 
-		const existingTimeout =
-			typingTimeoutsRef.current.get(indicator.userId);
-
+		const existingTimeout =typingTimeoutsRef.current.get(indicator.userId);
 		if (existingTimeout) {
 			clearTimeout(existingTimeout);
 		}
@@ -293,7 +282,6 @@ export default function ChatWindow({
 	};
 
 	const handleTyping = (isTyping: boolean) => {
-		console.log('⌨️ Sending typing:', isTyping);
 		sendTyping(isTyping);
 	};
 
