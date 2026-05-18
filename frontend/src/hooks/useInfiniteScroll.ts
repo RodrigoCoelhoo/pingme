@@ -2,7 +2,8 @@ import {
 	useRef,
 	useEffect,
 	useCallback,
-	useState
+	useState,
+	useLayoutEffect
 } from 'react';
 
 interface UseInfiniteScrollOptions {
@@ -11,6 +12,7 @@ interface UseInfiniteScrollOptions {
 	direction?: 'top' | 'bottom';
 	preserveScrollPosition?: boolean;
 	bottomThreshold?: number;
+	dependency?: any;
 }
 
 export function useInfiniteScroll(
@@ -24,7 +26,8 @@ export function useInfiniteScroll(
 		enabled = true,
 		direction = 'top',
 		preserveScrollPosition = true,
-		bottomThreshold = 100
+		bottomThreshold = 100,
+		dependency
 	} = options;
 
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -32,6 +35,8 @@ export function useInfiniteScroll(
 	const previousScrollHeightRef = useRef(0);
 	const isAtBottomRef = useRef(false);
 	const [isAtBottom, setIsAtBottom] = useState(false);
+
+	const lastFetchTimeRef = useRef(0);
 
 	const checkIfAtBottom = useCallback(() => {
 		const container = containerRef.current;
@@ -68,30 +73,62 @@ export function useInfiniteScroll(
 
 	const handleScroll = useCallback(() => {
 		const container = containerRef.current;
-		if (!container) return;
+
+		if (!container) {
+			return;
+		}
 
 		const atBottom = checkIfAtBottom();
 		isAtBottomRef.current = atBottom;
 		setIsAtBottom(atBottom);
 
-		if (!enabled || isLoading || !hasMore || isFetchingRef.current) return;
+		if (!enabled || isLoading || !hasMore || isFetchingRef.current) {
+			return;
+		}
 
 		const { scrollTop, scrollHeight, clientHeight } = container;
 
 		if (direction === 'top') {
+
 			if (scrollTop <= threshold) {
+
+				const now = Date.now();
+
+				// Prevent instant re-fetch after scroll restoration
+				if (now - lastFetchTimeRef.current < 300) {
+					return;
+				}
+
+				lastFetchTimeRef.current = now;
 				isFetchingRef.current = true;
-				container.scrollTop = threshold + 1;
+
+				// Save height before loading new messages
 				if (preserveScrollPosition) {
 					previousScrollHeightRef.current = scrollHeight;
 				}
-				onLoadMore();
+
+				Promise.resolve(onLoadMore())
+					.finally(() => {
+						isFetchingRef.current = false;
+					});
 			}
+
 		} else {
-			const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+			const distanceFromBottom =scrollHeight - scrollTop - clientHeight;
+			
 			if (distanceFromBottom <= threshold) {
+				const now = Date.now();
+				if (now - lastFetchTimeRef.current < 300) {
+					return;
+				}
+
+				lastFetchTimeRef.current = now;
 				isFetchingRef.current = true;
-				onLoadMore();
+
+				Promise.resolve(onLoadMore())
+					.finally(() => {
+						isFetchingRef.current = false;
+					});
 			}
 		}
 	}, [
@@ -118,28 +155,27 @@ export function useInfiniteScroll(
 		};
 	}, [handleScroll]);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const container = containerRef.current;
-		if (!container) return;
-		if (isLoading) return;
 
-		isFetchingRef.current = false;
-
-		if (direction === 'top' && preserveScrollPosition) {
-			requestAnimationFrame(() => {
-				const newScrollHeight = container.scrollHeight;
-				const heightDifference = newScrollHeight - previousScrollHeightRef.current;
-				if (heightDifference > 0) {
-					container.scrollTop += heightDifference;
-					setTimeout(() => {
-						const atBottom = checkIfAtBottom();
-						isAtBottomRef.current = atBottom;
-						setIsAtBottom(atBottom);
-					}, 0);
-				}
-			});
+		if (!container) {
+			return;
 		}
-	}, [isLoading, direction, preserveScrollPosition, checkIfAtBottom]);
+
+		if (
+			direction === 'top' &&
+			preserveScrollPosition &&
+			previousScrollHeightRef.current > 0
+		) {
+			const oldHeight = previousScrollHeightRef.current;
+			const newHeight = container.scrollHeight;
+			const diff = newHeight - oldHeight;
+
+			container.scrollTop += diff;
+
+			previousScrollHeightRef.current = 0;
+		}
+	}, [dependency]);
 
 	const updateBottomState = useCallback(() => {
 		const atBottom = checkIfAtBottom();

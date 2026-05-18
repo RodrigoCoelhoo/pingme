@@ -1,5 +1,7 @@
 import type { MessageResponse } from '../../services/message/message.types';
 import styles from '../../styles/chat/MessageBubble.module.css';
+import { getColor } from '../../utils/color';
+import Avatar from '../Avatar';
 
 interface MessageBubbleProps {
 	message: MessageResponse;
@@ -16,25 +18,25 @@ export default function MessageBubble({ message, isOwn, showNameAndAvatar }: Mes
 		});
 	};
 
+	const nameColor = getColor(message.senderDisplayName);
+
 	return (
 		<div className={`${styles.messageWrapper} ${isOwn ? styles.own : styles.other}`}>
 			{!isOwn && showNameAndAvatar && (
 				<div className={styles.avatar}>
-					{message.senderAvatarUrl ? (
-						<img src={message.senderAvatarUrl} alt={message.senderDisplayName} />
-					) : (
-						<div className={styles.avatarPlaceholder}>
-							{message.senderDisplayName.charAt(0).toUpperCase()}
-						</div>
-					)}
+					<Avatar
+						name={message?.senderDisplayName || 'User'}
+						src={message.senderAvatarUrl}
+					/>
 				</div>
 			)}
 
 			{!isOwn && !showNameAndAvatar && <div className={styles.avatarSpacer} />}
+			{isOwn && <div className={styles.ownSpacer} />}
 
 			<div className={styles.messageContent}>
 				{showNameAndAvatar && !isOwn && (
-					<span className={styles.senderName}>{message.senderDisplayName}</span>
+					<span className={styles.senderName} style={{ color: nameColor }}>{message.senderDisplayName}</span>
 				)}
 
 				<div className={styles.bubble}>
@@ -44,6 +46,7 @@ export default function MessageBubble({ message, isOwn, showNameAndAvatar }: Mes
 					</div>
 				</div>
 			</div>
+
 		</div>
 	);
 };

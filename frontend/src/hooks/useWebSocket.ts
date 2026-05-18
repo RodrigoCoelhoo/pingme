@@ -1,5 +1,3 @@
-// src/hooks/useWebSocket.ts - FIXED VERSION
-
 import { useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket/websocket.service';
 import type { MessageResponse } from '../services/message/message.types';

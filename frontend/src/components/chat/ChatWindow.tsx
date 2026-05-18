@@ -50,23 +50,23 @@ export default function ChatWindow({
 	const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
 	const messagesEndRef = useRef<HTMLDivElement>(null);
-	const typingTimeoutRef = useRef<any>(null);
+	const typingTimeoutsRef = useRef<Map<string, any>>(new Map());
 	const loadedChatIdRef = useRef<string | null>(null);
 	const messagesSizeRef = useRef(50);
 	const shouldScrollToBottomRef = useRef(false);
 
 	const { user } = useAuth();
 	const currentUserId = user?.id || '';
-	const token = localStorage.getItem('accessToken');
+	const tokenRef = useRef(localStorage.getItem('accessToken'));
 
 	const loadMoreMessages = useCallback(async () => {
-		if (!chat?.chatId || isLoadingMore || !hasMoreMessages) return;
+		if (!chat?.chatId || !hasMoreMessages || isLoadingMore) return;
 
-		console.log(`📥 Loading page ${currentPage + 1}...`);
 		setIsLoadingMore(true);
 
 		try {
 			const nextPage = currentPage + 1;
+
 			const olderMessages = await messageService.getChatMessages(
 				chat.chatId,
 				nextPage,
@@ -76,7 +76,18 @@ export default function ChatWindow({
 			if (olderMessages.content.length === 0) {
 				setHasMoreMessages(false);
 			} else {
-				setMessages(prev => [...olderMessages.content, ...prev]);
+				setMessages(prev => {
+
+					console.log('📦 ADDING MESSAGES', {
+						previousCount: prev.length,
+						adding: olderMessages.content.length,
+						newCount:
+							prev.length + olderMessages.content.length
+					});
+
+					return [...olderMessages.content, ...prev];
+				});
+
 				setCurrentPage(nextPage);
 
 				setHasMoreMessages(olderMessages.hasNext);
@@ -86,9 +97,13 @@ export default function ChatWindow({
 		} finally {
 			setIsLoadingMore(false);
 		}
-	}, [chat?.chatId, currentPage, hasMoreMessages, isLoadingMore]);
+	}, [
+		chat?.chatId,
+		currentPage,
+		hasMoreMessages,
+		isLoadingMore
+	]);
 
-	// Infinite scroll hook
 	const {
 		containerRef,
 		isAtBottom,
@@ -99,7 +114,8 @@ export default function ChatWindow({
 		isLoadingMore,
 		{
 			threshold: 100,
-			direction: 'top'
+			direction: 'top',
+			dependency: messages.length
 		}
 	);
 
@@ -121,44 +137,52 @@ export default function ChatWindow({
 		}
 	}, [isAtBottom, scrollToBottom, messages.length]);
 
-	// WebSocket typing handler
 	const handleTypingReceived = useCallback((indicator: TypingIndicator) => {
 		if (indicator.userId === currentUserId) return;
 
 		setTypingUsers(prev => {
 			const updated = new Set(prev);
+
 			if (indicator.isTyping) {
 				updated.add(indicator.displayName);
 			} else {
 				updated.delete(indicator.displayName);
 			}
+
 			return updated;
 		});
 
+		const existingTimeout =
+			typingTimeoutsRef.current.get(indicator.userId);
+
+		if (existingTimeout) {
+			clearTimeout(existingTimeout);
+		}
+
 		if (indicator.isTyping) {
-			if (typingTimeoutRef.current) {
-				clearTimeout(typingTimeoutRef.current);
-			}
-			typingTimeoutRef.current = setTimeout(() => {
+			const timeout = setTimeout(() => {
 				setTypingUsers(prev => {
 					const updated = new Set(prev);
 					updated.delete(indicator.displayName);
 					return updated;
 				});
+
+				typingTimeoutsRef.current.delete(indicator.userId);
 			}, 3000);
+
+			typingTimeoutsRef.current.set(indicator.userId, timeout);
 		}
 	}, [currentUserId]);
 
 	// Initialize WebSocket
 	const { sendMessage: sendWsMessage, sendTyping } = useWebSocket({
 		chatId: chat?.chatId || null,
-		token,
+		token: tokenRef.current,
 		onMessageReceived: handleMessageReceived,
 		onTypingReceived: handleTypingReceived,
 		enabled: !!chat?.chatId
 	});
 
-	// Load initial messages when chat changes
 	useEffect(() => {
 		if (!chat?.chatId) {
 			loadedChatIdRef.current = null;
@@ -166,11 +190,9 @@ export default function ChatWindow({
 		}
 
 		if (loadedChatIdRef.current === chat.chatId) {
-			console.log('⏭️  Same chat, skipping reload');
 			return;
 		}
 
-		console.log('🔄 Loading messages for chat:', chat.chatId);
 		loadedChatIdRef.current = chat.chatId;
 
 		// Reset state
@@ -178,12 +200,11 @@ export default function ChatWindow({
 		setTypingUsers(new Set());
 		setCurrentPage(0);
 		setHasMoreMessages(true);
-		shouldScrollToBottomRef.current = true; // ✅ Mark that we should scroll after load
+		shouldScrollToBottomRef.current = true;
 
 		loadMessages();
 	}, [chat?.chatId]);
 
-	// ✅ SEPARATE EFFECT: Only scroll to bottom when initial load completes
 	useEffect(() => {
 		if (isLoading || !shouldScrollToBottomRef.current) return;
 
@@ -193,7 +214,7 @@ export default function ChatWindow({
 				shouldScrollToBottomRef.current = false;
 			});
 		}
-	}, [isLoading]); // Only depend on loading state, not messages
+	}, [isLoading]);
 
 	// Mark messages as read
 	useEffect(() => {
@@ -211,7 +232,6 @@ export default function ChatWindow({
 
 		setIsLoading(true);
 		try {
-			console.log('📥 Fetching initial messages...');
 			const msgs = await messageService.getChatMessages(
 				chat.chatId,
 				0,
@@ -273,6 +293,7 @@ export default function ChatWindow({
 	};
 
 	const handleTyping = (isTyping: boolean) => {
+		console.log('⌨️ Sending typing:', isTyping);
 		sendTyping(isTyping);
 	};
 
@@ -281,6 +302,15 @@ export default function ChatWindow({
 		const current = messages[index];
 		const prev = messages[index - 1];
 		return current.senderId !== prev?.senderId;
+	};
+
+	const formatTypingUsers = (): string => {
+		const users = [...typingUsers];
+
+		if (users.length <= 1) return users[0] ?? "";
+		if (users.length === 2) return `${users[0]} e ${users[1]}`;
+
+		return `${users.slice(0, -1).join(", ")} e ${users.at(-1)}`;
 	};
 
 	if (!chat?.chatId) {
@@ -336,32 +366,42 @@ export default function ChatWindow({
 						</div>
 					) : (
 						<>
-							{messages.map((message, index) => (
-								<MessageBubble
-									key={message.messageId}
-									message={message}
-									isOwn={message.senderId === currentUserId}
-									showNameAndAvatar={shouldShowNameAndAvatar(index)}
-								/>
-							))}
+							{messages.map((message, index) => {
+								const hasSenderChanged =
+									index > 0 &&
+									messages[index - 1].senderId !== message.senderId
+
+								return (
+									<div
+										key={message.messageId}
+										className={hasSenderChanged ? `${styles.previousDifferent}` : `${styles.previousOwn}`}
+									>
+										<MessageBubble
+											message={message}
+											isOwn={message.senderId === currentUserId}
+											showNameAndAvatar={shouldShowNameAndAvatar(index)}
+										/>
+									</div>
+								)
+							})}
 							<div ref={messagesEndRef} />
 						</>
 					)}
 				</div>
 
-				{typingUsers.size > 0 && (
-					<div className={styles.typingIndicator}>
-						<div className={styles.typingDots}>
-							<span></span>
-							<span></span>
-							<span></span>
-						</div>
-						<span className={styles.typingText}>
-							{Array.from(typingUsers).join(', ')} {typingUsers.size === 1 ? 'está' : 'estão'} a escrever...
-						</span>
-					</div>
-				)}
 			</div>
+			{typingUsers.size > 0 && (
+				<div className={styles.typingIndicator}>
+					<div className={styles.typingDots}>
+						<span></span>
+						<span></span>
+						<span></span>
+					</div>
+					<span className={styles.typingText}>
+						{formatTypingUsers()} {typingUsers.size === 1 ? 'está' : 'estão'} a escrever...
+					</span>
+				</div>
+			)}
 
 			{!isAtBottom && (
 				<button
@@ -373,12 +413,14 @@ export default function ChatWindow({
 				</button>
 			)}
 
+			
+
 			<MessageInput
 				onSendMessage={handleSendMessage}
 				onTyping={handleTyping}
 			/>
 
-			{/* Debug info - REMOVE IN PRODUCTION */}
+			{/* Debug info*/}
 			{/*import.meta.env.DEV && (
 				<div style={{
 					position: 'fixed',
@@ -391,7 +433,6 @@ export default function ChatWindow({
 					fontSize: '11px',
 					zIndex: 9999
 				}}>
-					<div>WS: {isConnected ? '🟢 Connected' : '🔴 Disconnected'}</div>
 					<div>Messages: {messages.length}</div>
 					<div>Page: {currentPage}</div>
 					<div>Has More: {hasMoreMessages ? 'Yes' : 'No'}</div>
