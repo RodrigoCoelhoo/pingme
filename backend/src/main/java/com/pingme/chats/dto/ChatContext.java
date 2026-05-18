@@ -13,32 +13,36 @@ public record ChatContext(
         ChatMember member,
         User otherUser,
         Message lastMessage,
-        Instant sortTime
+        Instant sortTime,
+        int unreadCount
 ) {
-    public static ChatPreview toPreview(ChatContext ctx) {
-        Chat chat = ctx.chat();
-        ChatMember member = ctx.member();
-        User other = ctx.otherUser();
-        Message msg = ctx.lastMessage();
+    public ChatPreview toPreview() {
+        String chatName = chat.getChatType() == ChatType.PRIVATE && otherUser != null
+                ? otherUser.getDisplayName()
+                : chat.getChatName();
 
-        String name = chat.getChatName();
-        String image = chat.getImageUrl();
+        String chatImageUrl = chat.getChatType() == ChatType.PRIVATE && otherUser != null
+                ? otherUser.getAvatarUrl()
+                : chat.getImageUrl();
 
-        if (chat.getChatType() == ChatType.PRIVATE && other != null) {
-            name = other.getDisplayName();
-            image = other.getAvatarUrl();
-        }
+        String lastMessageContent = lastMessage != null
+                ? lastMessage.getContent()
+                : null;
+
+        Instant lastMessageTimestamp = lastMessage != null
+                ? lastMessage.getCreatedAt()
+                : null;
 
         return new ChatPreview(
                 chat.getId(),
                 chat.getChatType(),
-                name,
-                image,
-                msg != null ? msg.getContent() : null,
-                msg != null ? msg.getCreatedAt() : null,
-                member != null ? member.getRole() : null,
-                member != null && member.isMuted(),
-                0
+                chatName,
+                chatImageUrl,
+                lastMessageContent,
+                lastMessageTimestamp,
+                member.getRole(),
+                member.isMuted(),
+                unreadCount
         );
     }
 }

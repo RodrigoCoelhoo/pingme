@@ -25,4 +25,7 @@ public class Message {
     private Instant editedAt; // nullable
 
     private MessageType type; // TEXT, IMAGE, FILE, etc.
+
+    @Builder.Default
+    private boolean deleted = false;
 }
