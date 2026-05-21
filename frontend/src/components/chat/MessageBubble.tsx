@@ -1,6 +1,7 @@
 import type { MessageResponse } from '../../services/message/message.types';
 import styles from '../../styles/chat/MessageBubble.module.css';
 import { getColor } from '../../utils/color';
+import { formatTime } from '../../utils/time';
 import Avatar from '../Avatar';
 
 interface MessageBubbleProps {
@@ -10,14 +11,6 @@ interface MessageBubbleProps {
 }
 
 export default function MessageBubble({ message, isOwn, showNameAndAvatar }: MessageBubbleProps) {
-	const formatTime = (timestamp: string) => {
-		const date = new Date(timestamp);
-		return date.toLocaleTimeString('pt-PT', {
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	};
-
 	const nameColor = getColor(message.senderDisplayName);
 
 	return (

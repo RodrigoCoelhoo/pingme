@@ -12,6 +12,11 @@ import { useContacts } from '../hooks/useContacts';
 import { useChats } from '../hooks/useChats';
 import { ChatType } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useRef } from 'react';
+import type { MessageResponse } from '../services/message/message.types';
+import type { TypingIndicator } from '../services/websocket/websocket.types';
+import chatService from '../services/chat/chat.service';
 
 export default function Chat() {
 	// UI state - modals, sidebar, tabs, search
@@ -61,7 +66,52 @@ export default function Chat() {
 		updateChat,
 	} = useChats({ searchQuery: activeTab === 'chats' ? searchQuery : '' });
 
-	// Contacts data with pagination - pass search query
+	const token = localStorage.getItem('accessToken');
+	const activeChatTypingRef = useRef<((indicator: TypingIndicator) => void) | null>(null);
+
+	const { sendMessage, sendTyping } = useWebSocket({
+		chatId: activeChat?.chatId ?? null,
+		token,
+		onMessageReceived: async (message) => {
+			const existingChat = chats.find(c => c.chatId === message.chatId);
+
+			if (existingChat) {
+				updateChat(
+					message.chatId,
+					{
+						lastMessage: message.content,
+						lastMessageTimestamp: message.createdAt,
+						unreadCount: message.chatId !== activeChat?.chatId
+							? (existingChat.unreadCount ?? 0) + 1
+							: 0
+					},
+					true
+				);
+			} else {
+				try {
+					const fetchedChat = await chatService.getChatById(message.chatId);
+
+					insertChatSorted({
+						...fetchedChat,
+						lastMessage: message.content,
+						lastMessageTimestamp: message.createdAt,
+						unreadCount: fetchedChat.muted ? 0 : fetchedChat.unreadCount
+					});
+				} catch (error) {
+					console.error('❌ Failed to fetch unknown chat:', error);
+				}
+			}
+
+			activeChatMessageRef.current?.(message);
+		},
+		onTypingReceived: (indicator) => {
+			activeChatTypingRef.current?.(indicator);
+		},
+		enabled: !!token
+	});
+
+	const activeChatMessageRef = useRef<((msg: MessageResponse) => void) | null>(null);
+
 	const {
 		acceptedContacts,
 		isLoadingAccepted,
@@ -82,7 +132,6 @@ export default function Chat() {
 		handleDeleteContact
 	} = useContacts({ searchQuery: activeTab === 'contacts' ? searchQuery : '' });
 
-	// Chat interactions - selecting chats, creating with UI updates
 	const {
 		handleActiveChatChange,
 		handleCreatePrivateChatWithUI,
@@ -96,9 +145,9 @@ export default function Chat() {
 		handleCreatePrivateChat,
 		handleCreateGroupChat,
 		insertChatSorted,
+		updateChat,
 	});
 
-	// Group actions with confirmations
 	const groupActions = useGroupActions({
 		onLeaveGroup: handleLeaveGroup,
 		onDeleteGroup: handleDeleteGroup,
@@ -243,6 +292,10 @@ export default function Chat() {
 			<div className={styles.chatMain}>
 				<ChatWindow
 					chat={activeChat}
+					sendMessage={sendMessage}
+					sendTyping={sendTyping}
+					onRegisterMessageHandler={(fn) => { activeChatMessageRef.current = fn; }}
+					onRegisterTypingHandler={(fn) => { activeChatTypingRef.current = fn; }}
 					setSidebarOpen={setIsSidebarOpen}
 					onLeaveGroup={groupActions.handleLeaveGroup}
 					onDeleteGroup={handleDeleteGroupWithUI}

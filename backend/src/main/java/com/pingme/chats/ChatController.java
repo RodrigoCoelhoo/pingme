@@ -68,6 +68,15 @@ public class ChatController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{chatId}")
+    public ResponseEntity<ChatPreview> getChatById(
+            @AuthenticationPrincipal UserProfile user,
+            @PathVariable String chatId
+    ) {
+        ChatPreview response = chatService.getChatById(user.id(), chatId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{chatId}/members")
     public ResponseEntity<PagedResponse<ChatMemberResponse>> getChatMembers(
             @AuthenticationPrincipal UserProfile user,

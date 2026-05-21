@@ -48,14 +48,23 @@
 .chatInfo {
 	flex: 1;
 	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
 }
 
-.chatHeader {
+.topRow {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	gap: var(--space-2);
-	margin-bottom: var(--space-1);
+}
+
+.bottomRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
 }
 
 .chatName {
@@ -67,24 +76,41 @@
 	text-overflow: ellipsis;
 }
 
-.unreadBadge {
-	background: var(--green-500);
-	color: white;
-	font-size: var(--text-xs);
-	font-weight: var(--font-bold);
-	padding: 2px 6px;
-	border-radius: 10px;
-	min-width: 18px;
-	text-align: center;
-	flex-shrink: 0;
-}
-
 .lastMessage {
+	flex: 1;
 	font-size: var(--text-sm);
 	color: var(--muted);
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+}
+
+.lastMessageTime {
+	font-size: 11px;
+	color: var(--muted);
+	flex-shrink: 0;
+	white-space: nowrap;
+	margin-left: auto;
+}
+
+.unreadBadge {
+	background: var(--green-500);
+	color: white;
+	font-size: 11px;
+	font-weight: var(--font-bold);
+	padding: 2px 6px;
+	border-radius: 999px;
+	min-width: 18px;
+	text-align: center;
+	flex-shrink: 0;
+}
+
+.chatHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-bottom: var(--space-1);
 }
 
 .deleteChatBtn {
@@ -97,13 +123,12 @@
 	transition: all var(--transition-fast);
 	color: var(--muted);
 	border: none;
-	background-color: var(--bg-light);
+	background-color: transparent;
 }
 
 .deleteChatBtn:hover {
 	color: var(--text);
 	transform: scale(1.1);
-	background-color: var(--bg-light);
 }
 
 @media (max-width: 768px) {

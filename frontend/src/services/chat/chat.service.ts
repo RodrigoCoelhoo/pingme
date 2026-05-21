@@ -14,6 +14,11 @@ class ChatService {
 		return response.data;
 	}
 
+	async getChatById(chatId: string): Promise<ChatPreview> {
+		const response = await api.get<ChatPreview>(`/chats/${chatId}`);
+		return response.data;
+	}
+
 	async getOrCreatePrivateChat(targetId: string): Promise<ChatPreview> {
 		const response = await api.post<ChatPreview>(`/chats/private/${targetId}`);
 		return response.data;

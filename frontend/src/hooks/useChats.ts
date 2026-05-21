@@ -78,10 +78,28 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		setChats(prev => prev.filter(c => c.chatId !== chatId));
 	}, []);
 
-	const updateChat = useCallback((chatId: string, updates: Partial<ChatPreview>) => {
-		setChats(prev => prev.map(chat =>
-			chat.chatId === chatId ? { ...chat, ...updates } : chat
-		));
+	const updateChat = useCallback((
+		chatId: string,
+		updates: Partial<ChatPreview>,
+		sort: boolean = false
+	) => {
+		setChats(prev => {
+			const chat = prev.find(c => c.chatId === chatId);
+
+			if (!chat) return prev;
+
+			const updatedChat = { ...chat, ...updates };
+
+			if (!sort) {
+				return prev.map(c =>
+					c.chatId === chatId ? updatedChat : c
+				);
+			}
+
+			const filtered = prev.filter(c => c.chatId !== chatId);
+
+			return [updatedChat, ...filtered];
+		});
 	}, []);
 
 	return {

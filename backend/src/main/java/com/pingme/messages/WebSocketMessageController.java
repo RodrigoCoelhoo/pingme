@@ -1,5 +1,8 @@
 package com.pingme.messages;
 
+import com.pingme.chats.Chat;
+import com.pingme.chats.ChatService;
+import com.pingme.chats.ChatType;
 import com.pingme.chats.members.ChatMemberService;
 import com.pingme.exceptions.ForbiddenException;
 import com.pingme.messages.dto.MessageRequest;
@@ -18,19 +21,22 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.util.List;
+
 @Controller
 @RequiredArgsConstructor
 public class WebSocketMessageController {
 
     private final MessageService messageService;
     private final ChatMemberService chatMemberService;
+    private final ChatService chatService;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * Handle incoming messages from clients
      * Client sends to: /app/chat/{chatId}/send
-     * Server broadcasts to: /topic/chat/{chatId}
+     * Server broadcasts to: /queue/messages/{chatId}
      */
     @MessageMapping("/chat/{chatId}/send")
     public void sendMessage(
@@ -39,12 +45,15 @@ public class WebSocketMessageController {
             SimpMessageHeaderAccessor headerAccessor
     ) {
         UserProfile user = getUserFromSession(headerAccessor);
-        
+
+        Chat chat = null;
         try {
-            chatMemberService.getChatMember(chatId, user.id());
+            chat = chatService.getChat(chatId, user.id());
         } catch (ForbiddenException e) {
             return;
         }
+
+        if(chat == null) return;
 
         Message message = messageService.saveMessage(
                 chatId,
@@ -53,10 +62,21 @@ public class WebSocketMessageController {
                 request.type()
         );
 
+        if(chat.getChatType() == ChatType.PRIVATE) {
+            chatMemberService.activeChatMembersByChat(chatId);
+        }
+
         User sender = userService.getUserById(user.id());
         MessageResponse response = MessageResponse.from(message, sender);
 
-        messagingTemplate.convertAndSend("/topic/chat/" + chatId, response);
+        List<String> memberIds = chatMemberService.getMemberIds(chatId);
+        for (String memberId : memberIds) {
+            messagingTemplate.convertAndSendToUser(
+                    memberId,
+                    "/queue/messages",
+                    response
+            );
+        }
     }
 
     /**

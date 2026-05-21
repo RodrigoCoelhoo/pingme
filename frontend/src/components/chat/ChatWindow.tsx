@@ -4,7 +4,6 @@ import type { MessageResponse } from '../../services/message/message.types';
 import type { ChatPreview } from '../../services/chat/chat.types';
 import { MemberRole } from '../../services/chat/chat.types';
 import messageService from '../../services/message/message.service';
-import { useWebSocket } from '../../hooks/useWebSocket';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { useAuth } from '../../contexts/AuthContext';
 import ChatHeader from './ChatHeader';
@@ -15,6 +14,10 @@ import type { TypingIndicator } from '../../services/websocket/websocket.types';
 
 interface ChatWindowProps {
 	chat: ChatPreview | null;
+	sendMessage: (content: string, type: 'TEXT' | 'IMAGE' | 'FILE') => void;
+	sendTyping: (isTyping: boolean) => void;
+	onRegisterMessageHandler: (fn: (msg: MessageResponse) => void) => void;
+	onRegisterTypingHandler: (fn: (indicator: TypingIndicator) => void) => void;
 	setSidebarOpen: (open: boolean) => void;
 	onLeaveGroup: (chatId: string) => void;
 	onDeleteGroup: (chatId: string) => void;
@@ -30,6 +33,10 @@ interface ChatWindowProps {
 
 export default function ChatWindow({
 	chat,
+	sendMessage: sendWsMessage,
+	sendTyping,
+	onRegisterMessageHandler,
+	onRegisterTypingHandler,
 	setSidebarOpen,
 	onLeaveGroup,
 	onDeleteGroup,
@@ -57,7 +64,6 @@ export default function ChatWindow({
 
 	const { user } = useAuth();
 	const currentUserId = user?.id || '';
-	const tokenRef = useRef(localStorage.getItem('accessToken'));
 
 	const loadMoreMessages = useCallback(async () => {
 		if (!chat?.chatId || !hasMoreMessages || isLoadingMore) return;
@@ -110,68 +116,6 @@ export default function ChatWindow({
 		}
 	);
 
-	const handleMessageReceived = useCallback((wsMessage: MessageResponse) => {
-		setMessages(prev => {
-			const exists = prev.some(
-				msg => msg.messageId === wsMessage.messageId
-			);
-
-			if (exists) return prev;
-
-			return [...prev, wsMessage];
-		});
-
-		if (isAtBottom) {
-			requestAnimationFrame(() => {
-				scrollToBottom();
-			});
-		}
-	}, [isAtBottom, scrollToBottom, messages.length]);
-
-	const handleTypingReceived = useCallback((indicator: TypingIndicator) => {
-		if (indicator.userId === currentUserId) return;
-
-		setTypingUsers(prev => {
-			const updated = new Set(prev);
-
-			if (indicator.isTyping) {
-				updated.add(indicator.displayName);
-			} else {
-				updated.delete(indicator.displayName);
-			}
-
-			return updated;
-		});
-
-		const existingTimeout =typingTimeoutsRef.current.get(indicator.userId);
-		if (existingTimeout) {
-			clearTimeout(existingTimeout);
-		}
-
-		if (indicator.isTyping) {
-			const timeout = setTimeout(() => {
-				setTypingUsers(prev => {
-					const updated = new Set(prev);
-					updated.delete(indicator.displayName);
-					return updated;
-				});
-
-				typingTimeoutsRef.current.delete(indicator.userId);
-			}, 3000);
-
-			typingTimeoutsRef.current.set(indicator.userId, timeout);
-		}
-	}, [currentUserId]);
-
-	// Initialize WebSocket
-	const { sendMessage: sendWsMessage, sendTyping } = useWebSocket({
-		chatId: chat?.chatId || null,
-		token: tokenRef.current,
-		onMessageReceived: handleMessageReceived,
-		onTypingReceived: handleTypingReceived,
-		enabled: !!chat?.chatId
-	});
-
 	useEffect(() => {
 		if (!chat?.chatId) {
 			loadedChatIdRef.current = null;
@@ -191,7 +135,9 @@ export default function ChatWindow({
 		setHasMoreMessages(true);
 		shouldScrollToBottomRef.current = true;
 
-		loadMessages();
+		loadMessages().then((lastMessageId) => {
+			if (lastMessageId) markAsRead(lastMessageId);
+		});
 	}, [chat?.chatId]);
 
 	useEffect(() => {
@@ -205,19 +151,15 @@ export default function ChatWindow({
 		}
 	}, [isLoading]);
 
-	// Mark messages as read
 	useEffect(() => {
 		if (!chat?.chatId || messages.length === 0) return;
 
 		const lastMessage = messages[messages.length - 1];
+		markAsRead(lastMessage.messageId);
+	}, [chat?.chatId, messages.length]);
 
-		if (lastMessage.senderId !== currentUserId) {
-			markAsRead(lastMessage.messageId);
-		}
-	}, [chat?.chatId, messages.length, currentUserId]);
-
-	const loadMessages = async () => {
-		if (!chat?.chatId) return;
+	const loadMessages = async (): Promise<string | null> => {
+		if (!chat?.chatId) return null;
 
 		setIsLoading(true);
 		try {
@@ -229,13 +171,64 @@ export default function ChatWindow({
 			setMessages(msgs.content);
 			setHasMoreMessages(msgs.hasNext)
 
-
+			const last = msgs.content[msgs.content.length - 1];
+			return last?.messageId ?? null;
 		} catch (error) {
 			console.error('❌ Error loading messages:', error);
+			return null;
 		} finally {
 			setIsLoading(false);
 		}
 	};
+
+	useEffect(() => {
+		onRegisterMessageHandler((message: MessageResponse) => {
+			// Só processa mensagens do chat ativo
+			if (message.chatId !== chat?.chatId) return;
+
+			setMessages(prev => {
+				const exists = prev.some(msg => msg.messageId === message.messageId);
+				if (exists) return prev;
+				return [...prev, message];
+			});
+
+			if (isAtBottom) {
+				requestAnimationFrame(() => scrollToBottom());
+			}
+		});
+	}, [chat?.chatId, isAtBottom, scrollToBottom, onRegisterMessageHandler]);
+
+	useEffect(() => {
+		onRegisterTypingHandler((indicator: TypingIndicator) => {
+			if (indicator.userId === currentUserId) return;
+
+			setTypingUsers(prev => {
+				const updated = new Set(prev);
+				if (indicator.isTyping) {
+					updated.add(indicator.displayName);
+				} else {
+					updated.delete(indicator.displayName);
+				}
+				return updated;
+			});
+
+			const existingTimeout = typingTimeoutsRef.current.get(indicator.userId);
+			if (existingTimeout) clearTimeout(existingTimeout);
+
+			if (indicator.isTyping) {
+				const timeout = setTimeout(() => {
+					setTypingUsers(prev => {
+						const updated = new Set(prev);
+						updated.delete(indicator.displayName);
+						return updated;
+					});
+					typingTimeoutsRef.current.delete(indicator.userId);
+				}, 3000);
+
+				typingTimeoutsRef.current.set(indicator.userId, timeout);
+			}
+		});
+	}, [chat?.chatId, currentUserId, onRegisterTypingHandler]);
 
 	const markAsRead = async (lastMessageId: string) => {
 		if (!chat?.chatId) return;
@@ -401,7 +394,7 @@ export default function ChatWindow({
 				</button>
 			)}
 
-			
+
 
 			<MessageInput
 				onSendMessage={handleSendMessage}

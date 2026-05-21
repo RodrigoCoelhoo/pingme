@@ -61,8 +61,8 @@ class WebSocketService {
 			},
 
 			//debug: (str) => {
-				// Uncomment for detailed debugging
-				// console.log('🐛 STOMP Debug:', str);
+			// Uncomment for detailed debugging
+			// console.log('🐛 STOMP Debug:', str);
 			//}
 		});
 
@@ -91,10 +91,9 @@ class WebSocketService {
 	}
 
 	/**
-	 * Subscribe to chat messages
+	 * subscreve /user/queue/messages — recebe mensagens de todos os chats do usuário
 	 */
-	subscribeToChat(
-		chatId: string,
+	subscribeToUserMessages(
 		onMessageReceived: (message: MessageResponse) => void
 	): () => void {
 		if (!this.client || !this.connected) {
@@ -102,35 +101,30 @@ class WebSocketService {
 			return () => { };
 		}
 
-		const destination = `/topic/chat/${chatId}`;
-		const subscriptionKey = `chat_${chatId}`;
-
-		// Unsubscribe existing subscription for this chat
-		const existingSub = this.subscriptions.get(subscriptionKey);
-		if (existingSub) {
-			console.log('🔄 Unsubscribing from existing chat subscription');
-			existingSub.unsubscribe();
+		const subscriptionKey = 'user_messages';
+		const existing = this.subscriptions.get(subscriptionKey);
+		if (existing) {
+			existing.unsubscribe();
 			this.subscriptions.delete(subscriptionKey);
 		}
 
-		console.log(`📡 Subscribing to: ${destination}`);
-
-		const subscription = this.client.subscribe(destination, (message: IMessage) => {
-			try {
-				const payload: MessageResponse = JSON.parse(message.body);
-				console.log('📨 Raw WebSocket message received:', payload.messageId);
-				onMessageReceived(payload);
-			} catch (error) {
-				console.error('❌ Error parsing message:', error);
+		const subscription = this.client.subscribe(
+			'/user/queue/messages',
+			(message: IMessage) => {
+				try {
+					const payload: MessageResponse = JSON.parse(message.body);
+					console.log('📨 Message received:', payload.messageId, 'chat:', payload.chatId);
+					onMessageReceived(payload);
+				} catch (error) {
+					console.error('❌ Error parsing message:', error);
+				}
 			}
-		});
+		);
 
 		this.subscriptions.set(subscriptionKey, subscription);
-		console.log(`✅ Subscribed to chat: ${chatId}`);
+		console.log('✅ Subscribed to user messages');
 
-		// Return unsubscribe function
 		return () => {
-			console.log(`🔕 Unsubscribing from chat: ${chatId}`);
 			const sub = this.subscriptions.get(subscriptionKey);
 			if (sub) {
 				sub.unsubscribe();
