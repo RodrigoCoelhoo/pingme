@@ -16,7 +16,6 @@ export function useChatUI() {
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
 
-	// Reset search when changing tabs
 	useEffect(() => {
 		setSearchQuery('');
 	}, [activeTab]);

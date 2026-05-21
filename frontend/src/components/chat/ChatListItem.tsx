@@ -3,6 +3,7 @@ import { MemberRole, type ChatPreview } from '../../services/chat/chat.types';
 import { X } from 'lucide-react';
 import styles from '../../styles/chat/ChatListItem.module.css';
 import Avatar from '../Avatar';
+import { formatTime } from '../../utils/time';
 
 interface ChatListItemProps {
 	chat: ChatPreview;
@@ -39,16 +40,27 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 			<Avatar name={chat.chatName} src={chat.chatImageUrl} size={isMobile ? 'sm' : 'md'} />
 
 			<div className={styles.chatInfo}>
-				<div className={styles.chatHeader}>
+				<div className={styles.topRow}>
 					<h3 className={styles.chatName}>{chat.chatName}</h3>
-					{chat.unreadCount > 0 && (
-						<span className={styles.unreadBadge}>{chat.unreadCount}</span>
+
+					{chat.lastMessageTimestamp && (
+						<span className={styles.lastMessageTime}>
+							{formatTime(chat.lastMessageTimestamp)}
+						</span>
 					)}
 				</div>
 
-				{chat.lastMessage && (
-					<p className={styles.lastMessage}>{chat.lastMessage}</p>
-				)}
+				<div className={styles.bottomRow}>
+					{chat.lastMessage && (
+						<p className={styles.lastMessage}>{chat.lastMessage}</p>
+					)}
+
+					{chat.unreadCount > 0 && (
+						<span className={styles.unreadBadge}>
+							{chat.unreadCount}
+						</span>
+					)}
+				</div>
 			</div>
 
 			{chat.role != MemberRole.ADMIN && isHovered && onDelete && (

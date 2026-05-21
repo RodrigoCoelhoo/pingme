@@ -46,6 +46,13 @@ public class ChatMemberService {
         return chatMemberRepository.findPagedMembers(chatId, skip, size, safeSearch);
     }
 
+    public List<String> getMemberIds(String chatId) {
+        return getChatMembers(chatId)
+                .stream()
+                .map(ChatMember::getUserId)
+                .toList();
+    }
+
     public long getTotalMembers(String chatId, String search) {
         Long totalCount = chatMemberRepository.countMembersWithSearch(chatId, search);
         return totalCount != null ? totalCount : 0L;
@@ -82,10 +89,6 @@ public class ChatMemberService {
 
     public boolean exists(String chatId, String userId) {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId).isPresent();
-    }
-
-    public List<ChatMember> getOtherMembers(List<String> chatIds, String userId) {
-        return chatMemberRepository.findByChatIdInAndUserIdNot(chatIds, userId);
     }
 
     public void updateRole(String chatId, String currentUserId, @Valid UpdateRole data) {
@@ -211,21 +214,11 @@ public class ChatMemberService {
         return chatMemberRepository.save(chatMember);
     }
 
-    public void transferOwnerShip(String chatId, String currentUserId, String memberId) {
-        if (currentUserId.equals(memberId)) {
-            throw new ForbiddenException("You cannot transfer ownership to yourself");
-        }
+    public void activeChatMembersByChat(String chatId) {
+        List<ChatMember> members = chatMemberRepository
+                .findByChatIdAndMutedFalseAndActiveFalse(chatId);
 
-        ChatMember currentUser = getChatMember(chatId, currentUserId);
-
-        if(currentUser.getRole() != ChatRole.ADMIN) {
-            throw new ForbiddenException("You don't have permission to transfer the ownership of this chat.");
-        }
-
-        ChatMember otherUser = getChatMember(chatId, memberId);
-        otherUser.setRole(ChatRole.ADMIN);
-        currentUser.setRole(ChatRole.MODERATOR);
-
-        chatMemberRepository.saveAll(List.of(currentUser, otherUser));
+        members.forEach(m -> m.setActive(true));
+        chatMemberRepository.saveAll(members);
     }
 }

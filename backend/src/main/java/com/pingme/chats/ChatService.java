@@ -438,4 +438,45 @@ public class ChatService {
                 (int) unreadCount
         );
     }
+
+    public ChatPreview getChatById(String userId, String chatId) {
+        Chat chat = getChat(chatId, userId);
+        ChatMember member = chatMemberService.getChatMember(chatId, userId);
+
+        User otherUser = null;
+        if (chat.getChatType() == ChatType.PRIVATE) {
+            String otherUserId = getOtherUserId(chat, userId);
+            otherUser = userService.getUserById(otherUserId);
+        }
+
+        String lastMessage = null;
+        Instant lastMessageTimestamp = null;
+        if (chat.getLastMessageId() != null) {
+            Message message = messageService.getMessage(chat.getLastMessageId());
+            lastMessage = message.getContent();
+            lastMessageTimestamp = message.getCreatedAt();
+        }
+
+        long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
+
+        String chatName = chat.getChatType() == ChatType.PRIVATE
+                ? otherUser.getDisplayName()
+                : chat.getChatName();
+
+        String chatImage = chat.getChatType() == ChatType.PRIVATE
+                ? otherUser.getAvatarUrl()
+                : chat.getImageUrl();
+
+        return new ChatPreview(
+                chat.getId(),
+                chat.getChatType(),
+                chatName,
+                chatImage,
+                lastMessage,
+                lastMessageTimestamp,
+                member.getRole(),
+                member.isMuted(),
+                (int) unreadCount
+        );
+    }
 }

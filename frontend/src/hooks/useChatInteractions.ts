@@ -10,6 +10,7 @@ interface UseChatInteractionsProps {
 	handleCreatePrivateChat: (userId: string) => Promise<ChatPreview>;
 	handleCreateGroupChat: (memberIds: string[], groupName?: string) => Promise<ChatPreview>;
 	insertChatSorted: (chat: ChatPreview) => void;
+	updateChat: (chatId: string, updates: Partial<ChatPreview>) => void;
 }
 
 export function useChatInteractions({
@@ -21,16 +22,15 @@ export function useChatInteractions({
 	handleCreatePrivateChat,
 	handleCreateGroupChat,
 	insertChatSorted,
+	updateChat,
 }: UseChatInteractionsProps) {
 
-	// Auto-close sidebar when chat is selected on mobile
 	useEffect(() => {
 		if (activeChat && isMobile) {
 			setIsSidebarOpen(false);
 		}
 	}, [activeChat, isMobile, setIsSidebarOpen]);
 
-	// Auto-open sidebar when no chat is selected on mobile
 	useEffect(() => {
 		if (!activeChat && isMobile) {
 			setIsSidebarOpen(true);
@@ -39,6 +39,7 @@ export function useChatInteractions({
 
 	const handleActiveChatChange = (chat: ChatPreview) => {
 		setActiveChat(chat);
+		updateChat(chat.chatId, { unreadCount: 0 });
 		if (isMobile) {
 			setIsSidebarOpen(false);
 		}

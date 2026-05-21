@@ -11,11 +11,11 @@ public interface ChatMemberRepository extends MongoRepository<ChatMember, String
 
     List<ChatMember> findByUserIdAndActiveTrue(String userId);
 
+    List<ChatMember> findByChatIdAndMutedFalseAndActiveFalse(String chatId);
+
     List<ChatMember> findByChatId(String chatId);
 
     Optional<ChatMember> findByChatIdAndUserId(String chatId, String userId);
-
-    List<ChatMember> findByChatIdInAndUserIdNot(List<String> chatIds, String userId);
 
     @Aggregation(pipeline = {
 

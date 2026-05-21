@@ -19,24 +19,21 @@ export function useWebSocket({
 	enabled = true
 }: UseWebSocketProps) {
 	const isInitializedRef = useRef(false);
-	const currentChatIdRef = useRef<string | null>(null);
-	const unsubscribeFnsRef = useRef<(() => void)[]>([]);
+	const currentTypingChatIdRef = useRef<string | null>(null);
+	const unsubscribeTypingRef = useRef<(() => void) | null>(null);
+	const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
 
-	// Use refs for callbacks to avoid stale closures
 	const onMessageReceivedRef = useRef(onMessageReceived);
 	const onTypingReceivedRef = useRef(onTypingReceived);
 
-	// Update refs when callbacks change
 	useEffect(() => {
 		onMessageReceivedRef.current = onMessageReceived;
 		onTypingReceivedRef.current = onTypingReceived;
 	}, [onMessageReceived, onTypingReceived]);
 
-	// Initialize WebSocket connection (once per session)
+	// Conexão + subscrição global de mensagens (uma vez por sessão)
 	useEffect(() => {
 		if (!enabled || !token || isInitializedRef.current) return;
-
-		console.log('🔌 Initializing WebSocket connection...');
 
 		webSocketService.connect({
 			url: import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws',
@@ -44,115 +41,75 @@ export function useWebSocket({
 			onConnect: () => {
 				console.log('✅ WebSocket connected');
 				isInitializedRef.current = true;
+
+				unsubscribeMessagesRef.current = webSocketService.subscribeToUserMessages(
+					(message) => {
+						onMessageReceivedRef.current?.(message);
+					}
+				);
 			},
 			onDisconnect: () => {
 				console.log('❌ WebSocket disconnected');
 				isInitializedRef.current = false;
 			},
-			onError: (error) => {
-				console.error('❌ WebSocket error:', error);
-			}
+			onError: (error) => console.error('❌ WebSocket error:', error)
 		});
 
-		// Cleanup on unmount
 		return () => {
-			console.log('🧹 Cleaning up WebSocket connection');
-			unsubscribeFnsRef.current.forEach(unsub => unsub());
-			unsubscribeFnsRef.current = [];
+			unsubscribeMessagesRef.current?.();
+			unsubscribeTypingRef.current?.();
 			webSocketService.disconnect();
 			isInitializedRef.current = false;
 		};
 	}, [token, enabled]);
 
-	// Subscribe to chat when chatId changes
+	// Typing — subscreve/resubscreve quando muda o chat ativo
 	useEffect(() => {
 		if (!chatId || !enabled) {
-			// Unsubscribe from previous chat
-			unsubscribeFnsRef.current.forEach(unsub => unsub());
-			unsubscribeFnsRef.current = [];
-			currentChatIdRef.current = null;
+			unsubscribeTypingRef.current?.();
+			unsubscribeTypingRef.current = null;
+			currentTypingChatIdRef.current = null;
 			return;
 		}
 
-		// Don't resubscribe if it's the same chat
-		if (currentChatIdRef.current === chatId) {
-			console.log('⏭️  Same chat, skipping resubscription');
-			return;
-		}
+		if (currentTypingChatIdRef.current === chatId) return;
 
-		console.log(`📡 Subscribing to chat: ${chatId}`);
-		currentChatIdRef.current = chatId;
+		unsubscribeTypingRef.current?.();
+		unsubscribeTypingRef.current = null;
+		currentTypingChatIdRef.current = chatId;
 
-		// Unsubscribe from previous chat first
-		unsubscribeFnsRef.current.forEach(unsub => unsub());
-		unsubscribeFnsRef.current = [];
+		const interval = setInterval(() => {
+			if (!webSocketService.isConnected()) return;
+			clearInterval(interval);
 
-		// Wait for connection to be ready
-		const subscribeInterval = setInterval(() => {
-			if (!webSocketService.isConnected()) {
-				console.log('⏳ Waiting for WebSocket connection...');
-				return;
-			}
+			unsubscribeTypingRef.current = webSocketService.subscribeToTyping(
+				chatId,
+				(indicator) => {
+					onTypingReceivedRef.current?.(indicator);
+				}
+			);
 
-			clearInterval(subscribeInterval);
-
-			// Subscribe to messages
-			const unsubMessage = webSocketService.subscribeToChat(chatId, (message) => {
-				console.log('📨 Received message via WebSocket:', message.messageId);
-				onMessageReceivedRef.current?.(message);
-			});
-
-			// Subscribe to typing
-			const unsubTyping = webSocketService.subscribeToTyping(chatId, (indicator) => {
-				console.log('⌨️  Typing indicator:', indicator);
-				onTypingReceivedRef.current?.(indicator);
-			});
-
-			unsubscribeFnsRef.current = [unsubMessage, unsubTyping];
-			console.log('✅ Subscribed to chat:', chatId);
+			console.log('✅ Subscribed to typing:', chatId);
 		}, 100);
 
-		// Cleanup timeout after 5 seconds if connection never established
-		const timeoutId = setTimeout(() => {
-			clearInterval(subscribeInterval);
-			if (!webSocketService.isConnected()) {
-				console.error('❌ Failed to establish WebSocket connection');
-			}
-		}, 5000);
+		const timeout = setTimeout(() => clearInterval(interval), 5000);
 
 		return () => {
-			clearInterval(subscribeInterval);
-			clearTimeout(timeoutId);
-			unsubscribeFnsRef.current.forEach(unsub => unsub());
-			unsubscribeFnsRef.current = [];
+			clearInterval(interval);
+			clearTimeout(timeout);
 		};
 	}, [chatId, enabled]);
 
-	// Send message function
 	const sendMessage = useCallback((content: string, type: 'TEXT' | 'IMAGE' | 'FILE' = 'TEXT') => {
-		if (!chatId) {
-			console.error('❌ No chat selected');
-			return;
-		}
-
-		if (!webSocketService.isConnected()) {
-			console.error('❌ WebSocket not connected');
-			throw new Error('WebSocket not connected');
-		}
-
-		console.log('📤 Sending message via WebSocket...');
+		if (!chatId) throw new Error('No chat selected');
+		if (!webSocketService.isConnected()) throw new Error('WebSocket not connected');
 		webSocketService.sendMessage(chatId, { content, type });
 	}, [chatId]);
 
-	// Send typing indicator function
 	const sendTyping = useCallback((isTyping: boolean) => {
 		if (!chatId || !webSocketService.isConnected()) return;
 		webSocketService.sendTyping(chatId, isTyping);
 	}, [chatId]);
 
-	return {
-		sendMessage,
-		sendTyping,
-		isConnected: isInitializedRef.current
-	};
+	return { sendMessage, sendTyping, isConnected: isInitializedRef.current };
 }
