@@ -32,4 +32,19 @@ public record MessageResponse(
                 message.isDeleted()
         );
     }
+
+    public static MessageResponse system(Message message) {
+        return new MessageResponse(
+                message.getId(),
+                message.getChatId(),
+                null,
+                null,
+                null,
+                message.getContent(),
+                message.getType(),
+                message.getCreatedAt(),
+                null,
+                false
+        );
+    }
 }

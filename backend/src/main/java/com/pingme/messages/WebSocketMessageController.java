@@ -36,7 +36,7 @@ public class WebSocketMessageController {
     /**
      * Handle incoming messages from clients
      * Client sends to: /app/chat/{chatId}/send
-     * Server broadcasts to: /queue/messages/{chatId}
+     * Server sends user-specific messages to: /user/queue/messages
      */
     @MessageMapping("/chat/{chatId}/send")
     public void sendMessage(
@@ -46,7 +46,7 @@ public class WebSocketMessageController {
     ) {
         UserProfile user = getUserFromSession(headerAccessor);
 
-        Chat chat = null;
+        Chat chat;
         try {
             chat = chatService.getChat(chatId, user.id());
         } catch (ForbiddenException e) {
