@@ -63,7 +63,7 @@ public class WebSocketMessageController {
         );
 
         if(chat.getChatType() == ChatType.PRIVATE) {
-            chatMemberService.activeChatMembersByChat(chatId);
+            chatMemberService.activateChatMembersByChat(chatId);
         }
 
         User sender = userService.getUserById(user.id());

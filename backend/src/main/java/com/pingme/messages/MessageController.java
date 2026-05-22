@@ -50,7 +50,11 @@ public class MessageController {
 
         List<MessageResponse> responses = messagePage.getContent().stream()
                 .sorted(Comparator.comparing(Message::getCreatedAt))
-                .map(msg -> MessageResponse.from(msg, userMap.get(msg.getSenderId())))
+                .map(msg ->
+                        msg.getType() == MessageType.SYSTEM
+                                ? MessageResponse.system(msg)
+                                : MessageResponse.from(msg, userMap.get(msg.getSenderId()))
+                )
                 .toList();
 
         return ResponseEntity.ok(new PagedResponse<>(
