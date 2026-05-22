@@ -2,9 +2,9 @@ import { useEffect } from 'react';
 import type { ChatPreview } from '../services/chat/chat.types';
 
 interface UseChatInteractionsProps {
-	activeChat: ChatPreview | null;
+	activeChat: string | null;
 	isMobile: boolean;
-	setActiveChat: (chat: ChatPreview) => void;
+	setActiveChat: (chat: string | null) => void;
 	setIsSidebarOpen: (open: boolean) => void;
 	setActiveTab: (tab: 'chats' | 'contacts') => void;
 	handleCreatePrivateChat: (userId: string) => Promise<ChatPreview>;
@@ -37,9 +37,11 @@ export function useChatInteractions({
 		}
 	}, [activeChat, isMobile, setIsSidebarOpen]);
 
-	const handleActiveChatChange = (chat: ChatPreview) => {
+	const handleActiveChatChange = (chat: string | null) => {
 		setActiveChat(chat);
-		updateChat(chat.chatId, { unreadCount: 0 });
+		if (chat) {
+			updateChat(chat, { unreadCount: 0 });
+		}
 		if (isMobile) {
 			setIsSidebarOpen(false);
 		}

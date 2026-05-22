@@ -2,12 +2,14 @@ import { useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket/websocket.service';
 import type { MessageResponse } from '../services/message/message.types';
 import type { TypingIndicator } from '../services/websocket/websocket.types';
+import type { ChatEvent } from '../services/chat/chat.types';
 
 interface UseWebSocketProps {
 	chatId: string | null;
 	token: string | null;
 	onMessageReceived?: (message: MessageResponse) => void;
 	onTypingReceived?: (indicator: TypingIndicator) => void;
+	onEventReceived?: (event: ChatEvent) => void; 
 	enabled?: boolean;
 }
 
@@ -16,20 +18,24 @@ export function useWebSocket({
 	token,
 	onMessageReceived,
 	onTypingReceived,
+	onEventReceived,
 	enabled = true
 }: UseWebSocketProps) {
 	const isInitializedRef = useRef(false);
 	const currentTypingChatIdRef = useRef<string | null>(null);
 	const unsubscribeTypingRef = useRef<(() => void) | null>(null);
 	const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
+	const unsubscribeEventsRef = useRef<(() => void) | null>(null);
 
+	const onEventReceivedRef = useRef(onEventReceived);
 	const onMessageReceivedRef = useRef(onMessageReceived);
 	const onTypingReceivedRef = useRef(onTypingReceived);
 
 	useEffect(() => {
 		onMessageReceivedRef.current = onMessageReceived;
 		onTypingReceivedRef.current = onTypingReceived;
-	}, [onMessageReceived, onTypingReceived]);
+		onEventReceivedRef.current = onEventReceived;
+	}, [onMessageReceived, onTypingReceived, onEventReceived]);
 
 	// Conexão + subscrição global de mensagens (uma vez por sessão)
 	useEffect(() => {
@@ -47,6 +53,10 @@ export function useWebSocket({
 						onMessageReceivedRef.current?.(message);
 					}
 				);
+
+				unsubscribeEventsRef.current = webSocketService.subscribeToUserEvents(
+					(event) => onEventReceivedRef.current?.(event)
+				);
 			},
 			onDisconnect: () => {
 				console.log('❌ WebSocket disconnected');
@@ -58,6 +68,7 @@ export function useWebSocket({
 		return () => {
 			unsubscribeMessagesRef.current?.();
 			unsubscribeTypingRef.current?.();
+			unsubscribeEventsRef.current?.();
 			webSocketService.disconnect();
 			isInitializedRef.current = false;
 		};

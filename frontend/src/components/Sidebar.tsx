@@ -14,8 +14,8 @@ type Props = {
 
 	// Chats
 	chats: ChatPreview[];
-	activeChat: ChatPreview | null;
-	setActiveChat: (chat: ChatPreview) => void;
+	activeChat: string | null;
+	setActiveChat: (chat: string | null) => void;
 	isLoadingChats: boolean;
 	chatsHasMore: boolean;
 	onLoadMoreChats: () => void;

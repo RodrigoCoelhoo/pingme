@@ -28,7 +28,7 @@ interface ChatWindowProps {
 	onUpdateGroupImage: (chatId: string, file: File) => void;
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => void;
 	onMuteChat: (chatId: string) => void;
-	onSendContactRequest: (userId: string) => void;
+	onSendContactRequest: (memberUsername: string) => void;
 }
 
 export default function ChatWindow({

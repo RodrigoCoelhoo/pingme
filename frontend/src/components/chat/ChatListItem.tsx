@@ -58,7 +58,7 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 
 				<div className={styles.bottomRow}>
 					{chat.lastMessage && (
-						<p className={styles.lastMessage}>{parsedMessage}</p>
+						<div className={styles.lastMessage}>{parsedMessage}</div>
 					)}
 
 					{chat.unreadCount > 0 && (

@@ -5,6 +5,7 @@ import type {
 	MessageResponse,
 } from '../message/message.types'; // Adjust path if needed
 import type { TypingIndicator, WebSocketConfig } from './websocket.types';
+import type { ChatEvent } from '../chat/chat.types';
 
 class WebSocketService {
 	private client: Client | null = null;
@@ -123,6 +124,41 @@ class WebSocketService {
 
 		this.subscriptions.set(subscriptionKey, subscription);
 		console.log('✅ Subscribed to user messages');
+
+		return () => {
+			const sub = this.subscriptions.get(subscriptionKey);
+			if (sub) {
+				sub.unsubscribe();
+				this.subscriptions.delete(subscriptionKey);
+			}
+		};
+	}
+
+	subscribeToUserEvents(
+		onEventReceived: (event: ChatEvent) => void
+	): () => void {
+		if (!this.client || !this.connected) return () => { };
+
+		const subscriptionKey = 'user_events';
+		const existing = this.subscriptions.get(subscriptionKey);
+		if (existing) {
+			existing.unsubscribe();
+			this.subscriptions.delete(subscriptionKey);
+		}
+
+		const subscription = this.client.subscribe(
+			'/user/queue/events',
+			(message: IMessage) => {
+				try {
+					const payload: ChatEvent = JSON.parse(message.body);
+					onEventReceived(payload);
+				} catch (error) {
+					console.error('❌ Error parsing event:', error);
+				}
+			}
+		);
+
+		this.subscriptions.set(subscriptionKey, subscription);
 
 		return () => {
 			const sub = this.subscriptions.get(subscriptionKey);

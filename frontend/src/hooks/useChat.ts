@@ -2,15 +2,16 @@ import { useState } from 'react';
 import chatService from '../services/chat/chat.service';
 import chatMemberService from '../services/chat/chatMember.service';
 import contactService from '../services/contact/contact.service';
-import { MemberRole, type ChatPreview } from '../services/chat/chat.types';
+import { MemberRole } from '../services/chat/chat.types';
+import type { ContactResponse } from '../services/contact/contact.types';
 
 export function useChat() {
-	const [activeChat, setActiveChat] = useState<ChatPreview | null>(null);
+	const [activeChat, setActiveChat] = useState<string | null>(null);
 
 	const handleCreatePrivateChat = async (userId: string) => {
 		try {
 			const chat = await chatService.getOrCreatePrivateChat(userId);
-			setActiveChat(chat);
+			setActiveChat(chat.chatId);
 			return chat;
 		} catch (error) {
 			console.error('Error creating private chat:', error);
@@ -24,7 +25,7 @@ export function useChat() {
 				membersIds: memberIds,
 				chatName: groupName
 			});
-			setActiveChat(chat);
+			setActiveChat(chat.chatId);
 			return chat;
 		} catch (error) {
 			console.error('Error creating group chat:', error);
@@ -36,7 +37,7 @@ export function useChat() {
 		try {
 			await chatMemberService.leaveChat(chatId);
 
-			if (activeChat?.chatId === chatId) {
+			if (activeChat === chatId) {
 				setActiveChat(null);
 			}
 		} catch (error) {
@@ -49,7 +50,7 @@ export function useChat() {
 		try {
 			await chatMemberService.leaveChat(chatId);
 
-			if (activeChat?.chatId === chatId) {
+			if (activeChat === chatId) {
 				setActiveChat(null);
 			}
 		} catch (error) {
@@ -62,7 +63,7 @@ export function useChat() {
 		try {
 			await chatService.deleteChat(chatId);
 
-			if (activeChat?.chatId === chatId) {
+			if (activeChat === chatId) {
 				setActiveChat(null);
 			}
 
@@ -147,9 +148,10 @@ export function useChat() {
 		}
 	};
 
-	const handleSendContactRequest = async (userId: string) => {
+	const handleSendContactRequest = async (memberUsername: string): Promise<ContactResponse> => {
 		try {
-			await contactService.addContactByUsername(userId);
+			const response = await contactService.addContactByUsername(memberUsername);
+			return response;
 		} catch (error) {
 			console.error('Error sending contact request:', error);
 			throw error;

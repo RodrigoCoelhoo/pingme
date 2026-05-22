@@ -4,6 +4,9 @@ import com.pingme.chats.Chat;
 import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatService;
 import com.pingme.chats.ChatType;
+import com.pingme.chats.dto.ChatPreview;
+import com.pingme.chats.events.ChatEvent;
+import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
@@ -141,15 +144,24 @@ public class ChatMemberService {
         chatMemberRepository.save(otherUser);
 
         SystemEventType eventType;
+        ChatRole role;
         if(data.role() == ChatRole.ADMIN) {
             currentUser.setRole(ChatRole.MODERATOR);
             chatMemberRepository.save(currentUser);
+            broadcastEvent(
+                    ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR),
+                    List.of(currentUser.getUserId())
+            );
+
+            role = ChatRole.ADMIN;
             eventType = SystemEventType.OWNERSHIP_TRANSFERRED;
         }
         else if (data.role() == ChatRole.MODERATOR) {
+            role = ChatRole.MODERATOR;
             eventType = SystemEventType.MEMBER_PROMOTED;
         }
         else {
+            role = ChatRole.MEMBER;
             eventType = SystemEventType.MEMBER_DEMOTED;
         }
 
@@ -165,6 +177,11 @@ public class ChatMemberService {
 
         broadcastSystemMessage(chat,
                 SystemMessageContent.of(eventType, usersMap.get(data.userId()).getUsername(), usersMap.get(currentUserId).getUsername())
+        );
+
+        broadcastEvent(
+                ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, role),
+                List.of(otherUser.getUserId())
         );
     }
 
@@ -207,6 +224,11 @@ public class ChatMemberService {
 
         broadcastSystemMessage(chat,
                 SystemMessageContent.of(SystemEventType.MEMBER_KICKED, usersMap.get(memberId).getUsername(), usersMap.get(currentUserId).getUsername())
+        );
+
+        broadcastEvent(
+                ChatEvent.of(ChatEventType.MEMBER_KICKED, chatId),
+                List.of(otherUser.getUserId())
         );
     }
 
@@ -278,6 +300,25 @@ public class ChatMemberService {
             broadcastSystemMessage(chat,
                     SystemMessageContent.of(SystemEventType.MEMBER_ADDED, addedNames, actor.getUsername())
             );
+
+            Message message = messageService.getMessage(chat.getLastMessageId());
+
+            ChatPreview chatPreview = new ChatPreview(
+                    chat.getId(),
+                    chat.getChatType(),
+                    chat.getChatName(),
+                    chat.getImageUrl(),
+                    message.getContent(),
+                    message.getCreatedAt(),
+                    ChatRole.MEMBER,
+                    false,
+                    0
+            );
+
+            broadcastEvent(
+                    ChatEvent.of(ChatEventType.MEMBER_ADDED, chatId, chatPreview),
+                    new ArrayList<>(allAddedIds)
+            );
         }
     }
 
@@ -317,6 +358,16 @@ public class ChatMemberService {
                     memberId,
                     "/queue/messages",
                     response
+            );
+        }
+    }
+
+    private void broadcastEvent(ChatEvent event, List<String> recipientIds) {
+        for (String memberId : recipientIds) {
+            messagingTemplate.convertAndSendToUser(
+                    memberId,
+                    "/queue/events",
+                    event
             );
         }
     }

@@ -6,6 +6,8 @@ import { MemberRole, type ChatMember, type ChatPreview } from '../../services/ch
 import chatService from '../../services/chat/chat.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { createPortal } from 'react-dom';
+import { ContactStatus } from '../../services/contact/contact.types';
 
 interface ChatDetailsModalProps {
 	chat: ChatPreview;
@@ -18,7 +20,7 @@ interface ChatDetailsModalProps {
 	onUpdateGroupName: (name: string) => void;
 	onUpdateGroupImage: (file: File) => void;
 	onPromoteMember: (memberId: string, newRole: MemberRole) => void;
-	onSendContactRequest: (memberId: string) => void;
+	onSendContactRequest: (memberUsername: string) => void;
 }
 
 export default function ChatDetailsModal({
@@ -37,6 +39,7 @@ export default function ChatDetailsModal({
 	const [isEditingName, setIsEditingName] = useState(false);
 	const [newGroupName, setNewGroupName] = useState(chat.chatName);
 	const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+	const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
 	const [showSearch, setShowSearch] = useState(false);
@@ -61,6 +64,7 @@ export default function ChatDetailsModal({
 		const handleClickOutside = (event: MouseEvent) => {
 			if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
 				setOpenDropdownId(null);
+				setDropdownPos(null);
 			}
 		};
 
@@ -69,6 +73,10 @@ export default function ChatDetailsModal({
 			return () => document.removeEventListener('mousedown', handleClickOutside);
 		}
 	}, [openDropdownId]);
+
+	useEffect(() => {
+		updateMemberRole(userId, chat.role);
+	}, [chat.role]);
 
 	useEffect(() => {
 		fetchMembers(0, false);
@@ -346,7 +354,24 @@ export default function ChatDetailsModal({
 										{showContactRequest && (
 											<button
 												className={styles.contactRequestBtn}
-												onClick={() => onSendContactRequest?.(memberId)}
+												onClick={async () => {
+													try {
+														await onSendContactRequest?.(member.username);
+
+														setMembers(prev => prev.map(member => (
+															member.memberId === memberId
+																? {
+																	...member,
+																	status: ContactStatus.PENDING,
+																}
+																: member
+														)
+
+														));
+													} catch (error) {
+														console.error(error)
+													}
+												}}
 												title="Send contact request"
 											>
 												<UserPlus size={16} />
@@ -357,13 +382,34 @@ export default function ChatDetailsModal({
 											<div className={styles.dropdownWrapper} ref={openDropdownId === memberId ? dropdownRef : null}>
 												<button
 													className={styles.moreBtn}
-													onClick={() => setOpenDropdownId(openDropdownId === memberId ? null : memberId)}
+													onClick={(e) => {
+														if (openDropdownId === memberId) {
+															setOpenDropdownId(null);
+															setDropdownPos(null);
+														} else {
+															const rect = (e.currentTarget as HTMLButtonElement).getBoundingClientRect();
+															setDropdownPos({
+																top: rect.bottom + 4,
+																right: window.innerWidth - rect.right,
+															});
+															setOpenDropdownId(memberId);
+														}
+													}}
 												>
 													<MoreVertical size={18} />
 												</button>
 
-												{openDropdownId === memberId && (
-													<div className={styles.dropdown}>
+												{openDropdownId === memberId && dropdownPos && createPortal(
+													<div
+														ref={dropdownRef}
+														className={styles.dropdown}
+														style={{
+															position: 'fixed',
+															top: dropdownPos.top,
+															right: dropdownPos.right,
+															zIndex: 9999,
+														}}
+													>
 														{isAdmin && (
 															<>
 																{member.role === MemberRole.MEMBER && (
@@ -440,7 +486,8 @@ export default function ChatDetailsModal({
 															<UserMinus size={16} />
 															<span>Kick Member</span>
 														</button>
-													</div>
+													</div>,
+													document.body
 												)}
 											</div>
 										)}

@@ -18,7 +18,7 @@ interface ChatHeaderProps {
 	onUpdateGroupImage: (file: File) => void;
 	onPromoteMember: (memberId: string, newRole: MemberRole) => void;
 	onMuteChat: () => void;
-	onSendContactRequest: (userId: string) => void;
+	onSendContactRequest: (memberUsername: string) => void;
 }
 
 export default function ChatHeader({
