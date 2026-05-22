@@ -3,7 +3,7 @@
 	gap: var(--space-2);
 	width: 100%;
 	animation: slideIn 0.2s var(--ease-out);
-	
+
 }
 
 @keyframes slideIn {
@@ -144,6 +144,21 @@
 
 .status.read {
 	color: rgba(255, 255, 255, 1);
+}
+
+.systemMessage {
+	display: flex;
+	justify-content: center;
+	text-align: center;
+	margin: 15px 0;
+	font-size: 0.85rem;
+	color: var(--text);
+	opacity: 0.9;
+}
+
+strong {
+	font-weight: var(--font-bold);
+	color: var(--text);
 }
 
 /* Mobile adjustments */

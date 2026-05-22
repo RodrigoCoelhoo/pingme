@@ -11,6 +11,8 @@ public interface ChatMemberRepository extends MongoRepository<ChatMember, String
 
     List<ChatMember> findByUserIdAndActiveTrue(String userId);
 
+    List<ChatMember> findByChatIdAndActiveTrue(String chatId);
+
     List<ChatMember> findByChatIdAndMutedFalseAndActiveFalse(String chatId);
 
     List<ChatMember> findByChatId(String chatId);

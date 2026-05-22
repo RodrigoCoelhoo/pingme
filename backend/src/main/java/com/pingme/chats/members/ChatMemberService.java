@@ -3,19 +3,30 @@ package com.pingme.chats.members;
 import com.pingme.chats.Chat;
 import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatService;
+import com.pingme.chats.ChatType;
+import com.pingme.chats.dto.ChatPreview;
+import com.pingme.chats.events.ChatEvent;
+import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
 import com.pingme.exceptions.BadRequestException;
 import com.pingme.exceptions.ForbiddenException;
 import com.pingme.exceptions.ResourceNotFound;
+import com.pingme.messages.Message;
+import com.pingme.messages.MessageService;
+import com.pingme.messages.dto.MessageResponse;
+import com.pingme.messages.system.SystemEventType;
+import com.pingme.messages.system.SystemMessageContent;
+import com.pingme.users.User;
+import com.pingme.users.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,6 +36,11 @@ public class ChatMemberService {
     private final ChatMemberRepository chatMemberRepository;
     private final ContactService contactService;
     private final ChatRepository chatRepository;
+    private final MessageService messageService;
+    private final UserService userService;
+    private final SimpMessagingTemplate messagingTemplate;
+
+
 
     public ChatMember getChatMember(String chatId, String userId) {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId)
@@ -36,7 +52,16 @@ public class ChatMemberService {
     }
 
     public List<ChatMember> getChatMembers(String chatId) {
-        return chatMemberRepository.findByChatId(chatId);
+        Optional<Chat> c = chatRepository.findById(chatId);
+
+        if(c.isEmpty()) throw new ResourceNotFound("Chat not found");
+        Chat chat = c.get();
+
+        if(chat.getChatType() == ChatType.PRIVATE) {
+            return chatMemberRepository.findByChatId(chatId);
+        }
+
+        return chatMemberRepository.findByChatIdAndActiveTrue(chatId);
     }
 
     public List<ChatMember> getChatMembers(String chatId, int page, int size, String search) {
@@ -67,15 +92,28 @@ public class ChatMemberService {
 
     public void leaveChat(String chatId, String userId) {
         ChatMember member = getChatMember(chatId, userId);
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResourceNotFound("Chat not found"));
 
-        if(member.getRole() == ChatRole.ADMIN) {
-            throw new ForbiddenException("You can't leave a group while you're ADMIN");
+        if(chat.getChatType() == ChatType.PRIVATE) {
+            if(member.isActive()) {
+                member.setActive(false);
+                chatMemberRepository.save(member);
+            }
         }
+        else {
+            if(member.getRole() == ChatRole.ADMIN) {
+                throw new ForbiddenException("You can't leave a group while you're ADMIN");
+            }
 
-        if(member.isActive()) {
-            member.setRole(ChatRole.MEMBER);
-            member.setActive(false);
-            chatMemberRepository.save(member);
+            if(member.isActive()) {
+                member.setRole(ChatRole.MEMBER);
+                member.setActive(false);
+                chatMemberRepository.save(member);
+
+                User user = userService.getUserById(userId);
+                broadcastSystemMessage(chat, SystemMessageContent.of(SystemEventType.MEMBER_LEFT, user.getUsername()));
+            }
         }
     }
 
@@ -97,19 +135,54 @@ public class ChatMemberService {
         }
 
         ChatMember currentUser = getChatMember(chatId, currentUserId);
-        ChatMember otherUser = getChatMember(chatId, data.userId());
-
-        if(otherUser.getRole() == ChatRole.ADMIN || currentUser.getRole() != ChatRole.ADMIN) {
+        if(currentUser.getRole() != ChatRole.ADMIN) {
             throw new ForbiddenException("Only admins can modify other person's role");
         }
 
+        ChatMember otherUser = getChatMember(chatId, data.userId());
         otherUser.setRole(data.role());
         chatMemberRepository.save(otherUser);
 
+        SystemEventType eventType;
+        ChatRole role;
         if(data.role() == ChatRole.ADMIN) {
             currentUser.setRole(ChatRole.MODERATOR);
             chatMemberRepository.save(currentUser);
+            broadcastEvent(
+                    ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR),
+                    List.of(currentUser.getUserId())
+            );
+
+            role = ChatRole.ADMIN;
+            eventType = SystemEventType.OWNERSHIP_TRANSFERRED;
         }
+        else if (data.role() == ChatRole.MODERATOR) {
+            role = ChatRole.MODERATOR;
+            eventType = SystemEventType.MEMBER_PROMOTED;
+        }
+        else {
+            role = ChatRole.MEMBER;
+            eventType = SystemEventType.MEMBER_DEMOTED;
+        }
+
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResourceNotFound("Chat not found"));
+
+        List<User> users = userService.getUsersByIds(
+                new HashSet<>(List.of(currentUserId, data.userId()))
+        );
+
+        Map<String, User> usersMap = users.stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        broadcastSystemMessage(chat,
+                SystemMessageContent.of(eventType, usersMap.get(data.userId()).getUsername(), usersMap.get(currentUserId).getUsername())
+        );
+
+        broadcastEvent(
+                ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, role),
+                List.of(otherUser.getUserId())
+        );
     }
 
     public void kickMember(String chatId, String currentUserId, String memberId) {
@@ -138,13 +211,28 @@ public class ChatMemberService {
         otherUser.setRole(ChatRole.MEMBER);
         otherUser.setActive(false);
         chatMemberRepository.save(otherUser);
+
+        Chat chat = chatRepository.findById(chatId)
+                .orElseThrow(() -> new ResourceNotFound("Chat not found"));
+
+        List<User> users = userService.getUsersByIds(
+                new HashSet<>(List.of(currentUserId, memberId))
+        );
+
+        Map<String, User> usersMap = users.stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        broadcastSystemMessage(chat,
+                SystemMessageContent.of(SystemEventType.MEMBER_KICKED, usersMap.get(memberId).getUsername(), usersMap.get(currentUserId).getUsername())
+        );
+
+        broadcastEvent(
+                ChatEvent.of(ChatEventType.MEMBER_KICKED, chatId),
+                List.of(otherUser.getUserId())
+        );
     }
 
     public void addMembers(String chatId, String currentUserId, List<String> memberIds) {
-        if (memberIds == null || memberIds.isEmpty()) {
-            throw new BadRequestException("Members to add is empty");
-        }
-
         boolean isMember = chatMemberRepository.findByChatIdAndUserId(chatId, currentUserId).isPresent();
 
         if (!isMember) {
@@ -197,6 +285,41 @@ public class ChatMemberService {
                 .toList();
 
         chatMemberRepository.saveAll(newChatMembers);
+
+        Set<String> allAddedIds = new HashSet<>();
+        allAddedIds.addAll(reactivatedIds);
+        allAddedIds.addAll(finalNewMembers);
+
+        if (!allAddedIds.isEmpty()) {
+            List<String> addedNames = userService.getUsersByIds(allAddedIds)
+                    .stream()
+                    .map(User::getUsername)
+                    .toList();
+
+            User actor = userService.getUserById(currentUserId);
+            broadcastSystemMessage(chat,
+                    SystemMessageContent.of(SystemEventType.MEMBER_ADDED, addedNames, actor.getUsername())
+            );
+
+            Message message = messageService.getMessage(chat.getLastMessageId());
+
+            ChatPreview chatPreview = new ChatPreview(
+                    chat.getId(),
+                    chat.getChatType(),
+                    chat.getChatName(),
+                    chat.getImageUrl(),
+                    message.getContent(),
+                    message.getCreatedAt(),
+                    ChatRole.MEMBER,
+                    false,
+                    0
+            );
+
+            broadcastEvent(
+                    ChatEvent.of(ChatEventType.MEMBER_ADDED, chatId, chatPreview),
+                    new ArrayList<>(allAddedIds)
+            );
+        }
     }
 
     public void muteChat(String chatId, String currentUserId) {
@@ -214,11 +337,38 @@ public class ChatMemberService {
         return chatMemberRepository.save(chatMember);
     }
 
-    public void activeChatMembersByChat(String chatId) {
+    public void activateChatMembersByChat(String chatId) {
         List<ChatMember> members = chatMemberRepository
                 .findByChatIdAndMutedFalseAndActiveFalse(chatId);
 
         members.forEach(m -> m.setActive(true));
         chatMemberRepository.saveAll(members);
+    }
+
+    private void broadcastSystemMessage(Chat chat, SystemMessageContent content) {
+        Message message = messageService.saveSystemMessage(chat.getId(), content);
+        chat.setLastMessageId(message.getId());
+        chatRepository.save(chat);
+
+        MessageResponse response = MessageResponse.system(message);
+
+        List<String> memberIds = getMemberIds(chat.getId());
+        for (String memberId : memberIds) {
+            messagingTemplate.convertAndSendToUser(
+                    memberId,
+                    "/queue/messages",
+                    response
+            );
+        }
+    }
+
+    private void broadcastEvent(ChatEvent event, List<String> recipientIds) {
+        for (String memberId : recipientIds) {
+            messagingTemplate.convertAndSendToUser(
+                    memberId,
+                    "/queue/events",
+                    event
+            );
+        }
     }
 }

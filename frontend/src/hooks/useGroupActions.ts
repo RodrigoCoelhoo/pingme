@@ -1,4 +1,5 @@
 import { MemberRole, type ChatPreview } from '../services/chat/chat.types';
+import type { ContactResponse } from '../services/contact/contact.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useConfirmation } from './useConfirmation';
 
@@ -13,7 +14,7 @@ interface UseGroupActionsProps {
 	onUpdateGroupImage: (chatId: string, file: File) => Promise<void>;
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => Promise<void>;
 	onMuteChat: (chatId: string) => Promise<void>;
-	onSendContactRequest: (userId: string) => Promise<void>;
+	onSendContactRequest: (memberUsername: string) => Promise<ContactResponse>;
 }
 
 export function useGroupActions({
@@ -139,11 +140,13 @@ export function useGroupActions({
 		}
 	};
 
-	const handleSendContactRequest = async (userId: string) => {
+	const handleSendContactRequest = async (username: string) : Promise<ContactResponse> => {
 		try {
-			await onSendContactRequest(userId);
+			const response = await onSendContactRequest(username);
+			return response;
 		} catch (error) {
 			showError('Erro ao enviar pedido de contacto.');
+			throw error;
 		}
 	};
 

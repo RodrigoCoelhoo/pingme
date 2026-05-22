@@ -10,7 +10,7 @@ import { useGroupActions } from '../hooks/useGroupActions';
 import { useChatInteractions } from '../hooks/useChatInteractions';
 import { useContacts } from '../hooks/useContacts';
 import { useChats } from '../hooks/useChats';
-import { ChatType } from '../services/chat/chat.types';
+import { ChatEventType, ChatType, MemberRole, type ChatPreview } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useRef } from 'react';
@@ -70,7 +70,7 @@ export default function Chat() {
 	const activeChatTypingRef = useRef<((indicator: TypingIndicator) => void) | null>(null);
 
 	const { sendMessage, sendTyping } = useWebSocket({
-		chatId: activeChat?.chatId ?? null,
+		chatId: activeChat ?? null,
 		token,
 		onMessageReceived: async (message) => {
 			const existingChat = chats.find(c => c.chatId === message.chatId);
@@ -81,7 +81,7 @@ export default function Chat() {
 					{
 						lastMessage: message.content,
 						lastMessageTimestamp: message.createdAt,
-						unreadCount: message.chatId !== activeChat?.chatId
+						unreadCount: message.chatId !== activeChat
 							? (existingChat.unreadCount ?? 0) + 1
 							: 0
 					},
@@ -107,6 +107,30 @@ export default function Chat() {
 		onTypingReceived: (indicator) => {
 			activeChatTypingRef.current?.(indicator);
 		},
+		onEventReceived: (event) => {
+			switch (event.type) {
+				case ChatEventType.MEMBER_KICKED:
+					removeChat(event.chatId);
+					if (activeChat === event.chatId) {
+						setActiveChat(null);
+					}
+					break;
+
+				case ChatEventType.MEMBER_ROLE_UPDATED:
+					const chatToUpdate = chats.find(c => c.chatId === event.chatId);
+					if (chatToUpdate) {
+						updateChat(event.chatId, { role: event.payload as MemberRole });
+					}
+					break;
+
+				case ChatEventType.MEMBER_ADDED:
+					const exists = chats.find(c => c.chatId === event.chatId);
+					if (!exists) {
+						insertChatSorted(event.payload as ChatPreview);
+					}
+					break;
+			}
+		},
 		enabled: !!token
 	});
 
@@ -129,7 +153,8 @@ export default function Chat() {
 		handleRejectContact,
 		handleCancelRequest,
 		handleAddContact,
-		handleDeleteContact
+		handleDeleteContact,
+		addSentPendingContact
 	} = useContacts({ searchQuery: activeTab === 'contacts' ? searchQuery : '' });
 
 	const {
@@ -138,8 +163,8 @@ export default function Chat() {
 		handleCreateGroupChatWithUI,
 	} = useChatInteractions({
 		activeChat,
-		isMobile,
 		setActiveChat,
+		isMobile,
 		setIsSidebarOpen,
 		setActiveTab,
 		handleCreatePrivateChat,
@@ -243,7 +268,7 @@ export default function Chat() {
 			await groupActions.handleDeleteGroup(chatId);
 			removeChat(chatId);
 
-			if (activeChat?.chatId === chatId) {
+			if (activeChat === chatId) {
 				setActiveChat(null);
 			}
 
@@ -252,6 +277,19 @@ export default function Chat() {
 			showError('Erro ao eliminar grupo. Tenta novamente.');
 		}
 	};
+
+	const handleSendContactRequestWithUI = async (username: string) => {
+		try {
+			const newContact = await groupActions.handleSendContactRequest(username);
+			addSentPendingContact(newContact);
+
+			showSuccess('Pedido enviado com sucesso!');
+		} catch (error) {
+			// already handled
+		}
+	};
+
+	const activeChatPreview = chats.find(c => c.chatId === activeChat) ?? null;
 
 	return (
 		<div className={styles.chatPage}>
@@ -291,7 +329,7 @@ export default function Chat() {
 
 			<div className={styles.chatMain}>
 				<ChatWindow
-					chat={activeChat}
+					chat={activeChatPreview}
 					sendMessage={sendMessage}
 					sendTyping={sendTyping}
 					onRegisterMessageHandler={(fn) => { activeChatMessageRef.current = fn; }}
@@ -306,7 +344,7 @@ export default function Chat() {
 					onUpdateGroupImage={groupActions.handleUpdateGroupImage}
 					onPromoteMember={groupActions.handlePromoteMember}
 					onMuteChat={groupActions.handleMuteChat}
-					onSendContactRequest={groupActions.handleSendContactRequest}
+					onSendContactRequest={handleSendContactRequestWithUI}
 				/>
 			</div>
 

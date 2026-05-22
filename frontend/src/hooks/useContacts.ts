@@ -198,6 +198,10 @@ export function useContacts({ searchQuery = '' }: UseContactsProps = {}) {
 		}
 	}
 
+	const addSentPendingContact = (contact: ContactResponse) => {
+		setSentPending(prev => [contact, ...prev]);
+	};
+
 	return {
 		// Accepted contacts
 		acceptedContacts,
@@ -222,6 +226,7 @@ export function useContacts({ searchQuery = '' }: UseContactsProps = {}) {
 		handleRejectContact,
 		handleCancelRequest,
 		handleAddContact,
-		handleDeleteContact
+		handleDeleteContact,
+		addSentPendingContact,
 	};
 }

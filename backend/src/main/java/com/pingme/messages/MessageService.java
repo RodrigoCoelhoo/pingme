@@ -1,13 +1,14 @@
 package com.pingme.messages;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pingme.chats.Chat;
 import com.pingme.chats.ChatRepository;
-import com.pingme.chats.ChatService;
 import com.pingme.chats.members.ChatMemberRepository;
-import com.pingme.chats.members.ChatMemberService;
 import com.pingme.exceptions.BadRequestException;
 import com.pingme.exceptions.ForbiddenException;
 import com.pingme.exceptions.ResourceNotFound;
+import com.pingme.messages.system.SystemMessageContent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatMemberRepository chatMemberRepository;
     private final ChatRepository chatRepository;
+    private final ObjectMapper objectMapper;
 
     public Message getMessage(String messageId) {
         return messageRepository.findById(messageId)
@@ -109,5 +111,23 @@ public class MessageService {
         }
 
         return messageRepository.countUnreadMessages(chatId, lastReadMessageId);
+    }
+
+    public Message saveSystemMessage(String chatId, SystemMessageContent content) {
+        try {
+            String json = objectMapper.writeValueAsString(content);
+
+            Message message = Message.builder()
+                    .chatId(chatId)
+                    .senderId(null)
+                    .content(json)
+                    .type(MessageType.SYSTEM)
+                    .createdAt(Instant.now())
+                    .build();
+
+            return messageRepository.save(message);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Failed to serialize system message", e);
+        }
     }
 }

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { MemberRole, type ChatPreview } from '../../services/chat/chat.types';
 import { X } from 'lucide-react';
 import styles from '../../styles/chat/ChatListItem.module.css';
 import Avatar from '../Avatar';
 import { formatTime } from '../../utils/time';
+import { parseSystemMessage } from '../../utils/systemMessages';
 
 interface ChatListItemProps {
 	chat: ChatPreview;
@@ -21,6 +22,11 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
 	}, []);
+
+	const parsedMessage = useMemo(() => {
+		if (!chat.lastMessage) return '';
+		return parseSystemMessage(chat.lastMessage);
+	}, [chat.lastMessage]);
 
 	const handleDelete = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -52,7 +58,7 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 
 				<div className={styles.bottomRow}>
 					{chat.lastMessage && (
-						<p className={styles.lastMessage}>{chat.lastMessage}</p>
+						<div className={styles.lastMessage}>{parsedMessage}</div>
 					)}
 
 					{chat.unreadCount > 0 && (

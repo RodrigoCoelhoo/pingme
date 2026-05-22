@@ -2,6 +2,7 @@ package com.pingme.chats.members;
 
 import com.pingme.chats.members.dto.AddMembers;
 import com.pingme.chats.members.dto.UpdateRole;
+import com.pingme.exceptions.BadRequestException;
 import com.pingme.users.dto.UserProfile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

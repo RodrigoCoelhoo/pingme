@@ -36,3 +36,15 @@ export interface ChatMember {
 	role: MemberRole;
 	status: ContactStatus;
 }
+
+export interface ChatEvent {
+	type: ChatEventType;
+	chatId: string;
+	payload: any;
+}
+
+export enum ChatEventType {
+	MEMBER_KICKED = 'MEMBER_KICKED',
+    MEMBER_ROLE_UPDATED = 'MEMBER_ROLE_UPDATED',
+    MEMBER_ADDED = 'MEMBER_ADDED'
+}
