@@ -17,6 +17,7 @@ import { useRef } from 'react';
 import type { MessageResponse } from '../services/message/message.types';
 import type { TypingIndicator } from '../services/websocket/websocket.types';
 import chatService from '../services/chat/chat.service';
+import { playNotificationSound } from '../utils/notification';
 
 export default function Chat() {
 	// UI state - modals, sidebar, tabs, search
@@ -64,6 +65,7 @@ export default function Chat() {
 		insertChatSorted,
 		removeChat,
 		updateChat,
+		toggleMuteChat
 	} = useChats({ searchQuery: activeTab === 'chats' ? searchQuery : '' });
 
 	const token = localStorage.getItem('accessToken');
@@ -102,6 +104,7 @@ export default function Chat() {
 				}
 			}
 
+			playNotificationSound();
 			activeChatMessageRef.current?.(message);
 		},
 		onTypingReceived: (indicator) => {
@@ -184,6 +187,7 @@ export default function Chat() {
 		onUpdateGroupImage: handleUpdateGroupImage,
 		onPromoteMember: handlePromoteMember,
 		onMuteChat: handleMuteChat,
+		onToggleMuteChat: toggleMuteChat,
 		onSendContactRequest: handleSendContactRequest,
 	});
 
