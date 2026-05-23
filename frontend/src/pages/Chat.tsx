@@ -77,15 +77,20 @@ export default function Chat() {
 		onMessageReceived: async (message) => {
 			const existingChat = chats.find(c => c.chatId === message.chatId);
 
+			const isActiveChat = message.chatId === activeChat;
+			const isMuted = existingChat?.muted ?? false;
+
 			if (existingChat) {
 				updateChat(
 					message.chatId,
 					{
 						lastMessage: message.content,
 						lastMessageTimestamp: message.createdAt,
-						unreadCount: message.chatId !== activeChat
-							? (existingChat.unreadCount ?? 0) + 1
-							: 0
+						unreadCount: isActiveChat
+							? 0
+							: isMuted
+								? 0
+								: (existingChat.unreadCount ?? 0) + 1
 					},
 					true
 				);
@@ -104,7 +109,14 @@ export default function Chat() {
 				}
 			}
 
-			playNotificationSound();
+			// 🔇 sound rules
+			const shouldPlaySound =
+				!isMuted && !isActiveChat;
+
+			if (shouldPlaySound) {
+				playNotificationSound();
+			}
+
 			activeChatMessageRef.current?.(message);
 		},
 		onTypingReceived: (indicator) => {

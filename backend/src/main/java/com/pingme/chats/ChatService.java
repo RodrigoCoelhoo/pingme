@@ -427,7 +427,7 @@ public class ChatService {
                 ? lastMessage.getCreatedAt()
                 : chat.getCreatedAt();
 
-        long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
+        long unreadCount = member.isMuted() ? 0 :  messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
 
         return new ChatContext(
                 chat,
