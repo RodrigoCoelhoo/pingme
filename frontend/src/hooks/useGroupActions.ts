@@ -14,6 +14,7 @@ interface UseGroupActionsProps {
 	onUpdateGroupImage: (chatId: string, file: File) => Promise<void>;
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => Promise<void>;
 	onMuteChat: (chatId: string) => Promise<void>;
+	onToggleMuteChat: (chatId: string) => void;
 	onSendContactRequest: (memberUsername: string) => Promise<ContactResponse>;
 }
 
@@ -28,6 +29,7 @@ export function useGroupActions({
 	onUpdateGroupImage,
 	onPromoteMember,
 	onMuteChat,
+	onToggleMuteChat,
 	onSendContactRequest,
 }: UseGroupActionsProps) {
 	const confirmation = useConfirmation();
@@ -135,6 +137,7 @@ export function useGroupActions({
 	const handleMuteChat = async (chatId: string) => {
 		try {
 			await onMuteChat(chatId);
+			onToggleMuteChat(chatId);
 		} catch (error) {
 			showError('Erro ao silenciar o chat. Tenta novamente.');
 		}

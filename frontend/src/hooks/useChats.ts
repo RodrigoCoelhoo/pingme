@@ -74,6 +74,16 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		});
 	}, []);
 
+	const toggleMuteChat = (chatId: string) => {
+		setChats(prev =>
+			prev.map(chat =>
+				chat.chatId === chatId
+					? { ...chat, muted: !chat.muted }
+					: chat
+			)
+		);
+	};
+
 	const removeChat = useCallback((chatId: string) => {
 		setChats(prev => prev.filter(c => c.chatId !== chatId));
 	}, []);
@@ -110,5 +120,6 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		insertChatSorted,
 		removeChat,
 		updateChat,
+		toggleMuteChat
 	};
 }
