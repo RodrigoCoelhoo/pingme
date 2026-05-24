@@ -3,7 +3,9 @@ package com.pingme.chats;
 import com.pingme.chats.dto.ChatDTO;
 import com.pingme.chats.dto.ChatMemberResponse;
 import com.pingme.chats.dto.ChatPreview;
+import com.pingme.chats.dto.UpdateChatRequest;
 import com.pingme.chats.members.ChatMemberService;
+import com.pingme.users.dto.UpdateUserRequest;
 import com.pingme.users.dto.UserProfile;
 import com.pingme.shared.utils.PagedResponse;
 import jakarta.validation.Valid;
@@ -14,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("api/chats")
@@ -68,7 +73,7 @@ public class ChatController {
             @AuthenticationPrincipal UserProfile user,
             @PathVariable String chatId
     ) {
-        ChatPreview response = chatService.getChatById(user.id(), chatId);
+        ChatPreview response = chatService.getChatPreviewById(user.id(), chatId);
         return ResponseEntity.ok(response);
     }
 
@@ -90,5 +95,16 @@ public class ChatController {
     ) {
         chatService.deleteChat(user.id(), chatId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{chatId}")
+    public ResponseEntity<ChatPreview> updateChat(
+            @PathVariable String chatId,
+            @AuthenticationPrincipal UserProfile userProfile,
+            @RequestPart(value = "data", required = false) @Valid UpdateChatRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile file
+    ) throws IOException {
+        ChatPreview response = chatService.updateChat(userProfile.id(), chatId, request, file);
+        return ResponseEntity.ok(response);
     }
 }

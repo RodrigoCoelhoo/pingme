@@ -18,5 +18,6 @@ public interface MessageRepository extends MongoRepository<Message, String> {
 
     List<Message> findByIdIn(List<String> ids);
 
+    List<Message> findByChatId(String chatId);
     Page<Message> findByChatId(String chatId, Pageable pageable);
 }

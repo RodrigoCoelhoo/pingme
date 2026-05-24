@@ -49,8 +49,7 @@ export default function Chat() {
 		handleTransferOwnership,
 		handleKickMember,
 		handleAddMembers,
-		handleUpdateGroupName,
-		handleUpdateGroupImage,
+		handleUpdateChat,
 		handlePromoteMember,
 		handleMuteChat,
 		handleSendContactRequest,
@@ -195,8 +194,7 @@ export default function Chat() {
 		onUpdateChat: updateChat,
 		onKickMember: handleKickMember,
 		onAddMembers: handleAddMembers,
-		onUpdateGroupName: handleUpdateGroupName,
-		onUpdateGroupImage: handleUpdateGroupImage,
+		onUpdateChatDetails: handleUpdateChat,
 		onPromoteMember: handlePromoteMember,
 		onMuteChat: handleMuteChat,
 		onToggleMuteChat: toggleMuteChat,
@@ -356,8 +354,7 @@ export default function Chat() {
 					onTransferOwnership={groupActions.handleTransferOwnership}
 					onKickMember={groupActions.handleKickMember}
 					onAddMembers={groupActions.handleAddMembers}
-					onUpdateGroupName={groupActions.handleUpdateGroupName}
-					onUpdateGroupImage={groupActions.handleUpdateGroupImage}
+					onUpdateChat={groupActions.handleUpdateChat}
 					onPromoteMember={groupActions.handlePromoteMember}
 					onMuteChat={groupActions.handleMuteChat}
 					onSendContactRequest={handleSendContactRequestWithUI}

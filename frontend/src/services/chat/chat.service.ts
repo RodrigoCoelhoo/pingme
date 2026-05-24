@@ -1,6 +1,6 @@
 import api from '../api';
 import type { PagedResponse } from '../api.types';
-import type { ChatDTO, ChatMember, ChatPreview } from './chat.types';
+import type { ChatDTO, ChatMember, ChatPreview, UpdateChatRequest } from './chat.types';
 
 class ChatService {
 	async getMyChats(page: number, size: number, search: string): Promise<PagedResponse<ChatPreview>> {
@@ -43,6 +43,38 @@ class ChatService {
 	async deleteChat(chatId: string): Promise<void> {
 		await api.delete<void>(`/chats/${chatId}`)
 	}
+
+	async updateChat(chatId: string, data?: UpdateChatRequest, file?: File): Promise<ChatPreview> {
+		const formData = new FormData();
+
+		if (data) {
+			formData.append(
+				'data',
+				new Blob(
+					[JSON.stringify(data)],
+					{
+						type: 'application/json'
+					}
+				)
+			);
+		}
+
+		if (file) {
+			formData.append('file', file);
+		}
+
+		const response = await api.patch<ChatPreview>(
+			`/chats/${chatId}`,
+			formData,
+			{
+				headers: {
+					'Content-Type': 'multipart/form-data'
+				}
+			}
+		);
+
+		return response.data;
+	};
 }
 
 export default new ChatService();

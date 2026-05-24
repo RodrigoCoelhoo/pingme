@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, Loader, ArrowDown } from 'lucide-react';
 import type { MessageResponse } from '../../services/message/message.types';
-import type { ChatPreview } from '../../services/chat/chat.types';
+import type { ChatPreview, UpdateChatRequest } from '../../services/chat/chat.types';
 import { MemberRole } from '../../services/chat/chat.types';
 import messageService from '../../services/message/message.service';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -24,8 +24,7 @@ interface ChatWindowProps {
 	onTransferOwnership: (chatId: string, memberId: string) => void;
 	onKickMember: (chatId: string, memberId: string) => void;
 	onAddMembers: (chatId: string, memberIds: string[]) => void;
-	onUpdateGroupName: (chatId: string, name: string) => void;
-	onUpdateGroupImage: (chatId: string, file: File) => void;
+	onUpdateChat: (chatId: string, data?: UpdateChatRequest, file?: File) => Promise<ChatPreview>;
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => void;
 	onMuteChat: (chatId: string) => void;
 	onSendContactRequest: (memberUsername: string) => void;
@@ -43,11 +42,10 @@ export default function ChatWindow({
 	onTransferOwnership,
 	onKickMember,
 	onAddMembers,
-	onUpdateGroupName,
-	onUpdateGroupImage,
 	onPromoteMember,
 	onMuteChat,
-	onSendContactRequest
+	onSendContactRequest,
+	onUpdateChat
 }: ChatWindowProps) {
 	const [messages, setMessages] = useState<MessageResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -316,8 +314,7 @@ export default function ChatWindow({
 				onTransferOwnership={(memberId) => onTransferOwnership(chat.chatId, memberId)}
 				onKickMember={(memberId) => onKickMember(chat.chatId, memberId)}
 				onAddMembers={onAddMembers}
-				onUpdateGroupName={(name) => onUpdateGroupName(chat.chatId, name)}
-				onUpdateGroupImage={(file) => onUpdateGroupImage(chat.chatId, file)}
+				onUpdateChat={(data, file) => onUpdateChat(chat.chatId, data, file)}
 				onPromoteMember={(memberId, newRole) => onPromoteMember(chat.chatId, memberId, newRole)}
 				onMuteChat={() => onMuteChat(chat.chatId)}
 				onSendContactRequest={onSendContactRequest}

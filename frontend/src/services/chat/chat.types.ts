@@ -48,3 +48,7 @@ export enum ChatEventType {
     MEMBER_ROLE_UPDATED = 'MEMBER_ROLE_UPDATED',
     MEMBER_ADDED = 'MEMBER_ADDED'
 }
+
+export interface UpdateChatRequest {
+	chatName?: string;
+}

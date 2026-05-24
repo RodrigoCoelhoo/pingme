@@ -70,6 +70,10 @@ public class MessageService {
         return messageRepository.findByChatId(chatId, pageable);
     }
 
+    public List<Message> getMessagesByChatId(String chatId) {
+        return messageRepository.findByChatId(chatId);
+    }
+
     public Message editMessage(String messageId, String userId, String newContent) {
         Message message = getMessage(messageId);
 
@@ -129,5 +133,9 @@ public class MessageService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize system message", e);
         }
+    }
+
+    public void deleteAll(List<Message> messages) {
+        messageRepository.deleteAll(messages);
     }
 }
