@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useMemo } from 'react';
 import authService from '../services/auth/auth.service';
 import api from '../services/api';
-import type { UserProfile } from '../services/auth/auth.types';
+import type { UserProfile } from '../services/user/user.types';
 
 interface AuthContextType {
 	user: UserProfile | null;
@@ -16,6 +16,7 @@ interface AuthContextType {
 	) => Promise<void>;
 	signOut: () => void;
 	refreshUser: () => Promise<void>;
+	updateUser: (user: UserProfile) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,6 +102,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		await fetchUserProfile();
 	};
 
+	const updateUser = (updatedUser: UserProfile) => {
+		setUser(updatedUser);
+	};
+
 	const value: AuthContextType = useMemo(() => ({
 		user,
 		isAuthenticated: !!user,
@@ -109,6 +114,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		signUp,
 		signOut,
 		refreshUser,
+		updateUser
 	}), [user, isLoading]);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

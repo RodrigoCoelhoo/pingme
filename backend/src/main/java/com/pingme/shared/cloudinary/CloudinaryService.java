@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import com.cloudinary.Transformation;
 
 import java.io.IOException;
 import java.util.Map;
@@ -55,18 +56,22 @@ public class CloudinaryService {
         }
     }
 
-    public CloudinaryUploadResult uploadProfilePicture(MultipartFile file) throws IOException {
+    public CloudinaryUploadResult uploadProfilePicture(
+            MultipartFile file
+    ) throws IOException {
+
         Map<?, ?> result = cloudinary.uploader().upload(
                 file.getBytes(),
                 ObjectUtils.asMap(
-                        "folder",        "profile_pictures",
+                        "folder", "profile_pictures",
                         "unique_filename", true,
-                        "transformation", ObjectUtils.asMap(
-                                "width",   300,
-                                "height",  300,
-                                "crop",    "fill",  // recorta imagem para quadrado
-                                "gravity", "face"   // centra na cara automaticamente
-                        )
+
+                        "transformation",
+                        new Transformation<>()
+                                .width(300)
+                                .height(300)
+                                .crop("fill")
+                                .gravity("face")
                 )
         );
 
