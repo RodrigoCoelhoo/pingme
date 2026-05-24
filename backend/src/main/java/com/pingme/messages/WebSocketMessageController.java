@@ -4,7 +4,7 @@ import com.pingme.chats.Chat;
 import com.pingme.chats.ChatService;
 import com.pingme.chats.ChatType;
 import com.pingme.chats.members.ChatMemberService;
-import com.pingme.exceptions.ForbiddenException;
+import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.messages.dto.MessageRequest;
 import com.pingme.messages.dto.MessageResponse;
 import com.pingme.messages.dto.TypingIndicator;

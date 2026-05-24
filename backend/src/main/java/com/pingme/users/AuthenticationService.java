@@ -1,6 +1,6 @@
 package com.pingme.users;
 
-import com.pingme.exceptions.InvalidTokenException;
+import com.pingme.shared.exceptions.InvalidTokenException;
 import com.pingme.security.TokenService;
 import com.pingme.security.dto.AuthResponse;
 import jakarta.servlet.http.HttpServletResponse;

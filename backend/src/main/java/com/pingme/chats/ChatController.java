@@ -2,12 +2,10 @@ package com.pingme.chats;
 
 import com.pingme.chats.dto.ChatDTO;
 import com.pingme.chats.dto.ChatMemberResponse;
-import com.pingme.chats.dto.ChatMembers;
 import com.pingme.chats.dto.ChatPreview;
 import com.pingme.chats.members.ChatMemberService;
-import com.pingme.chats.members.ChatRole;
 import com.pingme.users.dto.UserProfile;
-import com.pingme.utils.PagedResponse;
+import com.pingme.shared.utils.PagedResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -16,9 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("api/chats")

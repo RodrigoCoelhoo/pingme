@@ -1,4 +1,4 @@
-package com.pingme.exceptions;
+package com.pingme.shared.exceptions;
 
 public class BadRequestException extends RuntimeException {
     public BadRequestException(String message) {

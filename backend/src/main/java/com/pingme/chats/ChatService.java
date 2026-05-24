@@ -10,14 +10,13 @@ import com.pingme.chats.members.ChatRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
 import com.pingme.contacts.ContactStatus;
-import com.pingme.exceptions.BadRequestException;
-import com.pingme.exceptions.ForbiddenException;
+import com.pingme.shared.exceptions.BadRequestException;
+import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.messages.Message;
 import com.pingme.messages.MessageService;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
-import com.pingme.utils.PagedResponse;
-import jakarta.validation.constraints.Min;
+import com.pingme.shared.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -5,7 +5,7 @@ import com.pingme.messages.dto.MessageResponse;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import com.pingme.users.dto.UserProfile;
-import com.pingme.utils.PagedResponse;
+import com.pingme.shared.utils.PagedResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;

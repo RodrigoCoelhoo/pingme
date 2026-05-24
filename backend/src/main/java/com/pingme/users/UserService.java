@@ -1,7 +1,7 @@
 package com.pingme.users;
 
-import com.pingme.exceptions.ResourceAlreadyExistsException;
-import com.pingme.exceptions.ResourceNotFound;
+import com.pingme.shared.exceptions.ResourceAlreadyExistsException;
+import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.users.dto.CreateUserRequest;
 import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;

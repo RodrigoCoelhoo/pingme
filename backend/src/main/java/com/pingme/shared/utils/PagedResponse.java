@@ -1,4 +1,4 @@
-package com.pingme.utils;
+package com.pingme.shared.utils;
 
 import java.util.List;
 
