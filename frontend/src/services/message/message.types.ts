@@ -11,6 +11,10 @@ export interface MessageResponse {
 	createdAt: string;
 	editedAt: string | null;
 	deleted: boolean;
+
+    pending?: boolean;      
+    failed?: boolean;       
+    localId?: string;       // Temp ID for optimistic UI updates
 }
 
 export interface MessageRequest {

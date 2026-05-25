@@ -2,29 +2,31 @@ import { useState } from 'react';
 import type { MessageResponse } from '../../services/message/message.types';
 import styles from '../../styles/chat/MessageBubble.module.css';
 import { getColor } from '../../utils/color';
-import { parseSystemMessage } from '../../utils/systemMessages.tsx';
 import { formatTime } from '../../utils/time';
 import Avatar from '../Avatar';
 import { createPortal } from 'react-dom';
-import { Download, X } from 'lucide-react';
+import { AlertCircle, Download, X } from 'lucide-react';
+import { parseMessage } from '../../utils/messagesParser';
 
 interface MessageBubbleProps {
 	message: MessageResponse;
 	isOwn: boolean;
 	showNameAndAvatar: boolean;
+	onRemoveFailed?: (messageId: string) => void;
 }
 
 export default function MessageBubble({
 	message,
 	isOwn,
-	showNameAndAvatar
+	showNameAndAvatar,
+	onRemoveFailed
 }: MessageBubbleProps) {
 	const [showImageModal, setShowImageModal] = useState(false);
 
 	if (message.type === 'SYSTEM') {
 		return (
 			<div className={styles.systemMessage}>
-				{parseSystemMessage(message.content)}
+				{parseMessage(message.content)}
 			</div>
 		);
 	}
@@ -77,52 +79,99 @@ export default function MessageBubble({
 						</span>
 					)}
 
-					<div className={styles.bubble}>
-						{message.type === 'TEXT' && (
+					{message.type === 'TEXT' && (
+						<div className={styles.bubble}>
+
 							<p className={styles.text}>{message.content}</p>
-						)}
 
-						{message.type === 'IMAGE' && (
-							<div className={styles.imageContainer}>
-								<img
-									src={message.content}
-									alt="Sent image"
-									className={styles.image}
-									loading="lazy"
-									onClick={() => setShowImageModal(true)}
-								/>
+							<div className={styles.metadata}>
+								<span className={styles.time}>
+									{formatTime(message.createdAt)}
+								</span>
 							</div>
-						)}
-
-						{message.type === 'FILE' && (
-							<a
-								href={message.content}
-								target="_blank"
-								rel="noopener noreferrer"
-								className={styles.fileContainer}
-							>
-								<div className={styles.fileIcon}>📎</div>
-
-								<div className={styles.fileInfo}>
-									<span className={styles.fileName}>
-										{decodeURIComponent(
-											new URL(message.content).searchParams.get('target_filename') || 'file'
-										)}
-									</span>
-
-									<span className={styles.fileAction}>
-										Download
-									</span>
-								</div>
-							</a>
-						)}
-
-						<div className={styles.metadata}>
-							<span className={styles.time}>
-								{formatTime(message.createdAt)}
-							</span>
 						</div>
-					</div>
+					)}
+
+
+					{message.type === 'IMAGE' && (
+						<div className={styles.imageWrapper}>
+							<img
+								src={message.content}
+								alt="imagem"
+								className={`${styles.messageImage} ${message.pending || message.failed ? styles.dimmed : ''}`}
+								loading="lazy"
+								onClick={() => setShowImageModal(true)}
+							/>
+							<div className={styles.metadata}>
+								<span className={styles.time}>
+									{formatTime(message.createdAt)}
+								</span>
+							</div>
+							{message.pending && (
+								<div className={styles.progressBarWrapper}>
+									<div className={styles.progressBar} />
+								</div>
+							)}
+							{message.failed && (
+								<div className={`${styles.imageOverlay} ${styles.failedOverlay}`}>
+									<AlertCircle size={20} />
+									<span>Falhou</span>
+									<button
+										className={styles.removeBtn}
+										onClick={() => onRemoveFailed?.(message.messageId)}
+										title="Remover"
+									>
+										<X size={14} />
+									</button>
+								</div>
+							)}
+						</div>
+					)}
+
+					{message.type === 'FILE' && (
+						<a
+							href={message.pending ? undefined : message.content}
+							target="_blank"
+							rel="noopener noreferrer"
+							className={styles.fileWrapper}
+						>
+							<Download size={20} className={styles.fileIcon} />
+							<span className={styles.fileName}>
+								{message.pending
+									? message.content
+									: decodeURIComponent(
+										(new URL(message.content).pathname.split('/').pop() || 'file')
+											.replace(/_[^_.]+(?=\.[^.]+$)/, '')
+									)
+								}
+							</span>
+							<div className={styles.metadata}>
+								<span className={styles.time}>
+									{formatTime(message.createdAt)}
+								</span>
+							</div>
+
+							{message.pending && (
+								<div className={styles.progressBarWrapper}>
+									<div className={styles.progressBar} />
+								</div>
+							)}
+
+							{message.failed && (
+								<div className={styles.fileFailed}>
+									<AlertCircle size={14} />
+									<span>Falhou</span>
+									<button
+										className={styles.removeBtn}
+										onClick={() => onRemoveFailed?.(message.messageId)}
+										title="Remover"
+									>
+										<X size={12} />
+									</button>
+								</div>
+							)}
+						</a>
+					)}
 				</div>
 			</div>
 

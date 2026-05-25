@@ -11,6 +11,7 @@ import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import styles from '../../styles/chat/ChatWindow.module.css';
 import type { TypingIndicator } from '../../services/websocket/websocket.types';
+import { showError } from '../../utils/toast';
 
 interface ChatWindowProps {
 	chat: ChatPreview | null;
@@ -181,18 +182,35 @@ export default function ChatWindow({
 
 	useEffect(() => {
 		onRegisterMessageHandler((message: MessageResponse) => {
-			// Só processa mensagens do chat ativo
 			if (message.chatId !== chat?.chatId) return;
 
 			setMessages(prev => {
-				const exists = prev.some(msg => msg.messageId === message.messageId);
-				if (exists) return prev;
+				// Se já existe (por messageId), ignora
+				if (prev.some(m => m.messageId === message.messageId)) return prev;
+
+				// Se é uma mensagem de ficheiro do próprio user, substitui a primeira pending
+				const isOwnFile =
+					message.senderId === currentUserId &&
+					(message.type === 'IMAGE' || message.type === 'FILE');
+
+				if (isOwnFile) {
+					const firstPendingIndex = prev.findIndex(m => m.pending);
+					if (firstPendingIndex !== -1) {
+						// Revoga o object URL para libertar memória
+						const pending = prev[firstPendingIndex];
+						if (pending.content?.startsWith('blob:')) {
+							URL.revokeObjectURL(pending.content);
+						}
+						const updated = [...prev];
+						updated[firstPendingIndex] = message;
+						return updated;
+					}
+				}
+
 				return [...prev, message];
 			});
 
-			if (isAtBottom) {
-				requestAnimationFrame(() => scrollToBottom());
-			}
+			if (isAtBottom) requestAnimationFrame(() => scrollToBottom());
 		});
 	}, [chat?.chatId, isAtBottom, scrollToBottom, onRegisterMessageHandler]);
 
@@ -266,11 +284,52 @@ export default function ChatWindow({
 
 		// Ficheiros via REST batch
 		if (files && files.length > 0) {
+			const validFiles = files.filter(file => file.size > 0);
+
+			const emptyFiles = files.filter(file => file.size === 0);
+
+			if (emptyFiles.length > 0) {
+				showError('Não é possível enviar ficheiros vazios');
+			}
+
+			if (validFiles.length === 0) {
+				return;
+			}
+
+			const pendingMessages: MessageResponse[] = validFiles.map(file => ({
+				messageId: `pending-${file.name}-${Date.now()}-${Math.random()}`,
+				chatId: chat.chatId,
+				senderId: currentUserId,
+				senderDisplayName: user?.displayName ?? '',
+				senderAvatarUrl: user?.avatarUrl ?? '',
+				content: file.type.startsWith('image/')
+					? URL.createObjectURL(file)
+					: file.name,
+				type: file.type.startsWith('image/') ? 'IMAGE' : 'FILE',
+				createdAt: new Date().toISOString(),
+				editedAt: null,
+				deleted: false,
+				pending: true,
+				localId: file.name,
+			}));
+
+			// Adiciona imediatamente à lista
+			setMessages(prev => [...prev, ...pendingMessages]);
+			requestAnimationFrame(() => scrollToBottom());
+
 			try {
-				await messageService.sendFileMessages(chat.chatId, files);
-				// Não precisas de fazer nada — o broadcast WS trata disso
+				await messageService.sendFileMessages(chat.chatId, validFiles);
+				// As mensagens reais chegam via WebSocket e substituem as pending
 			} catch (error) {
 				console.error('❌ File upload failed:', error);
+				// Marca como falhadas
+				setMessages(prev =>
+					prev.map(m =>
+						m.pending && pendingMessages.some(p => p.messageId === m.messageId)
+							? { ...m, pending: false, failed: true }
+							: m
+					)
+				);
 			}
 		}
 
@@ -296,6 +355,10 @@ export default function ChatWindow({
 
 		return `${users.slice(0, -1).join(", ")} e ${users.at(-1)}`;
 	};
+
+	const handleRemoveFailedMessage = useCallback((messageId: string) => {
+		setMessages(prev => prev.filter(m => m.messageId !== messageId));
+	}, []);
 
 	if (!chat?.chatId) {
 		return (
@@ -363,6 +426,7 @@ export default function ChatWindow({
 											message={message}
 											isOwn={message.senderId === currentUserId}
 											showNameAndAvatar={shouldShowNameAndAvatar(index)}
+											onRemoveFailed={handleRemoveFailedMessage}
 										/>
 									</div>
 								)

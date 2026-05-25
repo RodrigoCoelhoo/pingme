@@ -1,6 +1,7 @@
+import { FileText, ImageIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export function parseSystemMessage(content: string): ReactNode {
+export function parseMessage(content: string): ReactNode {
 	try {
 		const data = JSON.parse(content);
 
@@ -65,6 +66,59 @@ export function parseSystemMessage(content: string): ReactNode {
 				return 'Mensagem de sistema';
 		}
 	} catch {
+		const isCloudinary = content.includes('res.cloudinary.com');
+
+		if (isCloudinary) {
+			const isImage = content.includes('/image/upload/');
+			const isFile = content.includes('/raw/upload/');
+
+			if (isImage) {
+				return (
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '4px'
+						}}
+					>
+						<ImageIcon size={16} />
+						<span>Imagem</span>
+					</div>
+				);
+			}
+
+			if (isFile) {
+				return (
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: '4px',
+							minWidth: 0
+						}}
+					>
+						<FileText
+							size={16}
+							style={{ flexShrink: 0 }}
+						/>
+
+						<span
+							style={{
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap'
+							}}
+						>
+							{decodeURIComponent(
+								(new URL(content).pathname.split('/').pop() || 'file')
+									.replace(/_[^_.]+(?=\.[^.]+$)/, '')
+							)}
+						</span>
+					</div>
+				);
+			}
+		}
+
 		return content;
 	}
 }

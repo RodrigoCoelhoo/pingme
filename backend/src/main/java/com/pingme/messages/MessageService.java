@@ -177,6 +177,9 @@ public class MessageService {
         }
 
         List<Message> savedMessages = messageRepository.saveAll(messagesToSave);
+        chat.setLastMessageId(savedMessages.getLast().getId());
+        chatRepository.save(chat);
+
         List<MessageResponse> responses = savedMessages.stream().map(m -> MessageResponse.from(m, user)).toList();
 
         List<String> membersIds = getChatMembersIds(chat);
