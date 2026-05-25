@@ -9,6 +9,7 @@ import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
+import com.pingme.messages.MessageBroadcaster;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.messages.Message;
@@ -20,7 +21,6 @@ import com.pingme.users.User;
 import com.pingme.users.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -36,9 +36,7 @@ public class ChatMemberService {
     private final ChatRepository chatRepository;
     private final MessageService messageService;
     private final UserService userService;
-    private final SimpMessagingTemplate messagingTemplate;
-
-
+    private final MessageBroadcaster messageBroadcaster;
 
     public ChatMember getChatMember(String chatId, String userId) {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId)
@@ -146,9 +144,9 @@ public class ChatMemberService {
         if(data.role() == ChatRole.ADMIN) {
             currentUser.setRole(ChatRole.MODERATOR);
             chatMemberRepository.save(currentUser);
-            broadcastEvent(
-                    ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR),
-                    List.of(currentUser.getUserId())
+            messageBroadcaster.broadcastEvent(
+                    List.of(currentUser.getUserId()),
+                    ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR)
             );
 
             role = ChatRole.ADMIN;
@@ -177,9 +175,9 @@ public class ChatMemberService {
                 SystemMessageContent.of(eventType, usersMap.get(data.userId()).getUsername(), usersMap.get(currentUserId).getUsername())
         );
 
-        broadcastEvent(
-                ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, role),
-                List.of(otherUser.getUserId())
+        messageBroadcaster.broadcastEvent(
+                List.of(otherUser.getUserId()),
+                ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, role)
         );
     }
 
@@ -224,9 +222,9 @@ public class ChatMemberService {
                 SystemMessageContent.of(SystemEventType.MEMBER_KICKED, usersMap.get(memberId).getUsername(), usersMap.get(currentUserId).getUsername())
         );
 
-        broadcastEvent(
-                ChatEvent.of(ChatEventType.MEMBER_KICKED, chatId),
-                List.of(otherUser.getUserId())
+        messageBroadcaster.broadcastEvent(
+                List.of(otherUser.getUserId()),
+                ChatEvent.of(ChatEventType.MEMBER_KICKED, chatId)
         );
     }
 
@@ -313,9 +311,9 @@ public class ChatMemberService {
                     0
             );
 
-            broadcastEvent(
-                    ChatEvent.of(ChatEventType.MEMBER_ADDED, chatId, chatPreview),
-                    new ArrayList<>(allAddedIds)
+            messageBroadcaster.broadcastEvent(
+                    new ArrayList<>(allAddedIds),
+                    ChatEvent.of(ChatEventType.MEMBER_ADDED, chatId, chatPreview)
             );
         }
     }
@@ -351,22 +349,6 @@ public class ChatMemberService {
         MessageResponse response = MessageResponse.system(message);
 
         List<String> memberIds = getMemberIds(chat.getId());
-        for (String memberId : memberIds) {
-            messagingTemplate.convertAndSendToUser(
-                    memberId,
-                    "/queue/messages",
-                    response
-            );
-        }
-    }
-
-    private void broadcastEvent(ChatEvent event, List<String> recipientIds) {
-        for (String memberId : recipientIds) {
-            messagingTemplate.convertAndSendToUser(
-                    memberId,
-                    "/queue/events",
-                    event
-            );
-        }
+        messageBroadcaster.broadcastMessage(memberIds, response);
     }
 }

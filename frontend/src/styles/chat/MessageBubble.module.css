@@ -156,6 +156,161 @@
 	opacity: 0.9;
 }
 
+.imageContainer {
+	max-width: 320px;
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+.image {
+	width: 100%;
+	height: auto;
+	display: block;
+	object-fit: cover;
+	cursor: pointer;
+	border-radius: 16px;
+	transition: opacity 0.2s ease;
+}
+
+.fileContainer {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	text-decoration: none;
+	color: inherit;
+	min-width: 220px;
+	max-width: 320px;
+	padding: 12px;
+	border-radius: 14px;
+	background-color: var(--bg);
+	transition: background 0.2s ease;
+}
+
+.fileContainer:hover {
+	background-color: var(--bg-dark);
+}
+
+.fileIcon {
+	font-size: 24px;
+	flex-shrink: 0;
+}
+
+.fileInfo {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.fileName {
+	font-weight: 500;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.fileAction {
+	font-size: 12px;
+	opacity: 0.7;
+	margin-top: 2px;
+}
+
+.image {
+	cursor: pointer;
+	max-width: 300px;
+	max-height: 300px;
+	border-radius: 12px;
+	object-fit: cover;
+}
+
+.imageModalOverlay {
+	position: fixed;
+	inset: 0;
+
+	width: 100vw;
+	height: 100vh;
+
+	background: rgba(0, 0, 0, 0.9);
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	z-index: 999999;
+
+	padding: 24px;
+}
+
+.imageModalContent {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+
+	animation: modalIn 0.2s ease;
+}
+
+@keyframes modalIn {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.imageModalContent {
+	position: relative;
+	display: inline-flex;
+}
+
+.imageModalActions {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+
+	display: flex;
+	gap: 10px;
+
+	z-index: 2;
+}
+
+.modalButton {
+	width: 42px;
+	height: 42px;
+
+	border: none;
+	border-radius: 999px;
+
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(8px);
+
+	color: white;
+	font-size: 18px;
+
+	cursor: pointer;
+
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	transition: all 0.2s ease;
+}
+
+.modalButton:hover {
+	background: rgba(0, 0, 0, 0.8);
+	transform: scale(1.05);
+}
+
+.imageModal {
+	max-width: 95vw;
+	max-height: 95vh;
+	object-fit: contain;
+	border-radius: 12px;
+}
+
 strong {
 	font-weight: var(--font-bold);
 	color: var(--text);

@@ -238,38 +238,43 @@ export default function ChatWindow({
 		}
 	};
 
-	const handleSendMessage = async (content: string) => {
-		if (!chat?.chatId || !content.trim()) return;
+	const handleSendMessage = async (content: string, files?: File[]) => {
+		if (!chat?.chatId) return;
+		if (!content.trim() && (!files || files.length === 0)) return;
 
-		const trimmedContent = content.trim();
+		const trimmed = content.trim();
 
-		try {
-			sendWsMessage(trimmedContent, 'TEXT');
-
-			requestAnimationFrame(() => {
-				scrollToBottom();
-			});
-		} catch (error) {
-			console.error('❌ WebSocket send failed:', error);
+		// Texto via WebSocket (como estava)
+		if (trimmed) {
 			try {
-				const newMessage = await messageService.sendMessage(chat.chatId, {
-					content: trimmedContent,
-					type: 'TEXT'
-				});
-
-				setMessages(prev => {
-					const exists = prev.some(msg => msg.messageId === newMessage.messageId);
-					if (exists) return prev;
-					return [...prev, newMessage];
-				});
-
-				requestAnimationFrame(() => {
-					scrollToBottom();
-				});
-			} catch (restError) {
-				console.error('❌ REST API also failed:', restError);
+				sendWsMessage(trimmed, 'TEXT');
+			} catch (wsError) {
+				console.error('❌ WebSocket failed, fallback REST:', wsError);
+				try {
+					const msg = await messageService.sendMessage(chat.chatId, {
+						content: trimmed,
+						type: 'TEXT'
+					});
+					setMessages(prev =>
+						prev.some(m => m.messageId === msg.messageId) ? prev : [...prev, msg]
+					);
+				} catch (restError) {
+					console.error('❌ REST also failed:', restError);
+				}
 			}
 		}
+
+		// Ficheiros via REST batch
+		if (files && files.length > 0) {
+			try {
+				await messageService.sendFileMessages(chat.chatId, files);
+				// Não precisas de fazer nada — o broadcast WS trata disso
+			} catch (error) {
+				console.error('❌ File upload failed:', error);
+			}
+		}
+
+		requestAnimationFrame(() => scrollToBottom());
 	};
 
 	const handleTyping = (isTyping: boolean) => {

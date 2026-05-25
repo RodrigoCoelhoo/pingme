@@ -20,6 +20,7 @@ public class Message {
 
     private String senderId;
     private String content;
+    private String mediaPublicId;
 
     private Instant createdAt;
     private Instant editedAt; // nullable

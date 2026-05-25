@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.cloudinary.Transformation;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -82,15 +83,32 @@ public class CloudinaryService {
     }
 
     public CloudinaryUploadResult uploadFile(MultipartFile file, String folder) throws IOException {
+
+        String originalFilename = file.getOriginalFilename();
+
+        String extension = "";
+
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        File tempFile = File.createTempFile("upload-", extension);
+
+        file.transferTo(tempFile);
+
         Map<?, ?> result = cloudinary.uploader().upload(
-                file.getBytes(),
+                tempFile,
                 ObjectUtils.asMap(
-                        "folder",           folder,
-                        "unique_filename",  true,
-                        "overwrite",        false,
-                        "resource_type",    "raw"   // "raw" para PDFs, ZIPs, etc.
+                        "folder", folder,
+                        "resource_type", "raw",
+                        "use_filename", true,
+                        "filename_override", originalFilename,
+                        "unique_filename", true,
+                        "overwrite", false
                 )
         );
+
+        tempFile.delete();
 
         return new CloudinaryUploadResult(
                 (String) result.get("public_id"),

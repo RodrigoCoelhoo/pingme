@@ -10,11 +10,14 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -75,5 +78,23 @@ public class MessageController {
     ) {
         chatMemberService.markAsRead(chatId, user.id(), lastMessageId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/files", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<MessageResponse>> sendFilesMessages(
+            @AuthenticationPrincipal UserProfile userProfile,
+            @PathVariable String chatId,
+            @RequestPart("files") List<MultipartFile> files
+    ) throws IOException {
+        chatMemberService.getChatMember(chatId, userProfile.id());
+
+        List<MessageResponse> responses =
+                messageService.sendFileMessages(
+                        chatId,
+                        userProfile.id(),
+                        files
+                );
+
+        return ResponseEntity.ok(responses);
     }
 }
