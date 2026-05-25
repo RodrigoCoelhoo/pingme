@@ -2,11 +2,13 @@ package com.pingme.contacts;
 
 import com.pingme.contacts.dto.ContactDTO;
 import com.pingme.contacts.dto.ContactResponse;
-import com.pingme.exceptions.*;
+import com.pingme.shared.exceptions.ContactConflictException;
+import com.pingme.shared.exceptions.ForbiddenException;
+import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import com.pingme.users.dto.UserProfile;
-import com.pingme.utils.PagedResponse;
+import com.pingme.shared.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

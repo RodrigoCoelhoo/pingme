@@ -25,5 +25,9 @@ export const urlRules = (t: any): Rule[] => [
 ];
 
 export const displayNameRules = (t: any): Rule[] => [
-	(v) => (v.length >= 1 && v.length <= 100) || t("input.displayNameLength"),
+	(v) => (v.length >= 1 && v.length <= 50) || t("input.displayNameLength"),
+];
+
+export const messageRules = (t: any): Rule[] => [
+	(v) => (v.length >= 1 && v.length <= 1024) || "1024 chars exceeded" || t("input.messageLength"),
 ];

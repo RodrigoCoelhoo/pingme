@@ -1,4 +1,4 @@
-import { MemberRole, type ChatPreview } from '../services/chat/chat.types';
+import { MemberRole, type ChatPreview, type UpdateChatRequest } from '../services/chat/chat.types';
 import type { ContactResponse } from '../services/contact/contact.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useConfirmation } from './useConfirmation';
@@ -10,8 +10,7 @@ interface UseGroupActionsProps {
 	onUpdateChat: (chatId: string, updates: Partial<ChatPreview>) => void;
 	onKickMember: (chatId: string, memberId: string) => Promise<void>;
 	onAddMembers: (chatId: string, memberIds: string[]) => Promise<void>;
-	onUpdateGroupName: (chatId: string, newName: string) => Promise<void>;
-	onUpdateGroupImage: (chatId: string, file: File) => Promise<void>;
+	onUpdateChatDetails: (chatId: string, data?: UpdateChatRequest, file?: File) => Promise<ChatPreview>;
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => Promise<void>;
 	onMuteChat: (chatId: string) => Promise<void>;
 	onToggleMuteChat: (chatId: string) => void;
@@ -25,8 +24,7 @@ export function useGroupActions({
 	onUpdateChat,
 	onKickMember,
 	onAddMembers,
-	onUpdateGroupName,
-	onUpdateGroupImage,
+	onUpdateChatDetails,
 	onPromoteMember,
 	onMuteChat,
 	onToggleMuteChat,
@@ -110,19 +108,16 @@ export function useGroupActions({
 		}
 	};
 
-	const handleUpdateGroupName = async (chatId: string, newName: string) => {
+	const handleUpdateChat = async (chatId: string, data?: UpdateChatRequest, file?: File) => {
 		try {
-			await onUpdateGroupName(chatId, newName);
-		} catch (error) {
-			showError('Erro ao atualizar o nome. Tenta novamente.');
-		}
-	};
+			const updatedChat = await onUpdateChatDetails(chatId, data, file);
 
-	const handleUpdateGroupImage = async (chatId: string, file: File) => {
-		try {
-			await onUpdateGroupImage(chatId, file);
+			onUpdateChat(chatId, updatedChat);
+
+			return updatedChat;
 		} catch (error) {
-			showError('Erro ao atualizar a imagem. Tenta novamente.');
+			showError('Erro ao atualizar o grupo. Tenta novamente.');
+			throw error;
 		}
 	};
 
@@ -143,7 +138,7 @@ export function useGroupActions({
 		}
 	};
 
-	const handleSendContactRequest = async (username: string) : Promise<ContactResponse> => {
+	const handleSendContactRequest = async (username: string): Promise<ContactResponse> => {
 		try {
 			const response = await onSendContactRequest(username);
 			return response;
@@ -160,8 +155,7 @@ export function useGroupActions({
 		handleTransferOwnership,
 		handleKickMember,
 		handleAddMembers,
-		handleUpdateGroupName,
-		handleUpdateGroupImage,
+		handleUpdateChat,
 		handlePromoteMember,
 		handleMuteChat,
 		handleSendContactRequest,

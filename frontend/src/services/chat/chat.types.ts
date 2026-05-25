@@ -46,5 +46,10 @@ export interface ChatEvent {
 export enum ChatEventType {
 	MEMBER_KICKED = 'MEMBER_KICKED',
     MEMBER_ROLE_UPDATED = 'MEMBER_ROLE_UPDATED',
-    MEMBER_ADDED = 'MEMBER_ADDED'
+    MEMBER_ADDED = 'MEMBER_ADDED',
+	DETAILS_UPDATED = 'DETAILS_UPDATED',
+}
+
+export interface UpdateChatRequest {
+	chatName?: string;
 }

@@ -49,8 +49,7 @@ export default function Chat() {
 		handleTransferOwnership,
 		handleKickMember,
 		handleAddMembers,
-		handleUpdateGroupName,
-		handleUpdateGroupImage,
+		handleUpdateChat,
 		handlePromoteMember,
 		handleMuteChat,
 		handleSendContactRequest,
@@ -123,6 +122,8 @@ export default function Chat() {
 			activeChatTypingRef.current?.(indicator);
 		},
 		onEventReceived: (event) => {
+			const exists = chats.find(c => c.chatId === event.chatId);
+			
 			switch (event.type) {
 				case ChatEventType.MEMBER_KICKED:
 					removeChat(event.chatId);
@@ -132,16 +133,20 @@ export default function Chat() {
 					break;
 
 				case ChatEventType.MEMBER_ROLE_UPDATED:
-					const chatToUpdate = chats.find(c => c.chatId === event.chatId);
-					if (chatToUpdate) {
+					if (exists) {
 						updateChat(event.chatId, { role: event.payload as MemberRole });
 					}
 					break;
 
 				case ChatEventType.MEMBER_ADDED:
-					const exists = chats.find(c => c.chatId === event.chatId);
 					if (!exists) {
 						insertChatSorted(event.payload as ChatPreview);
+					}
+					break;
+
+				case ChatEventType.DETAILS_UPDATED:
+					if (exists) {
+						updateChat(event.chatId, event.payload as Partial<ChatPreview>);
 					}
 					break;
 			}
@@ -195,8 +200,7 @@ export default function Chat() {
 		onUpdateChat: updateChat,
 		onKickMember: handleKickMember,
 		onAddMembers: handleAddMembers,
-		onUpdateGroupName: handleUpdateGroupName,
-		onUpdateGroupImage: handleUpdateGroupImage,
+		onUpdateChatDetails: handleUpdateChat,
 		onPromoteMember: handlePromoteMember,
 		onMuteChat: handleMuteChat,
 		onToggleMuteChat: toggleMuteChat,
@@ -356,8 +360,7 @@ export default function Chat() {
 					onTransferOwnership={groupActions.handleTransferOwnership}
 					onKickMember={groupActions.handleKickMember}
 					onAddMembers={groupActions.handleAddMembers}
-					onUpdateGroupName={groupActions.handleUpdateGroupName}
-					onUpdateGroupImage={groupActions.handleUpdateGroupImage}
+					onUpdateChat={groupActions.handleUpdateChat}
 					onPromoteMember={groupActions.handlePromoteMember}
 					onMuteChat={groupActions.handleMuteChat}
 					onSendContactRequest={handleSendContactRequestWithUI}

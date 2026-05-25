@@ -1,26 +1,31 @@
 package com.pingme.chats;
 
 import com.mongodb.DuplicateKeyException;
-import com.pingme.chats.dto.ChatContext;
-import com.pingme.chats.dto.ChatMemberResponse;
-import com.pingme.chats.dto.ChatPreview;
+import com.pingme.chats.dto.*;
+import com.pingme.chats.events.ChatEvent;
+import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.ChatMember;
+import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.chats.members.ChatMemberService;
 import com.pingme.chats.members.ChatRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
 import com.pingme.contacts.ContactStatus;
-import com.pingme.exceptions.BadRequestException;
-import com.pingme.exceptions.ForbiddenException;
+import com.pingme.messages.MessageBroadcaster;
+import com.pingme.shared.cloudinary.CloudinaryService;
+import com.pingme.shared.cloudinary.CloudinaryUploadResult;
+import com.pingme.shared.exceptions.BadRequestException;
+import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.messages.Message;
 import com.pingme.messages.MessageService;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
-import com.pingme.utils.PagedResponse;
-import jakarta.validation.constraints.Min;
+import com.pingme.shared.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
@@ -36,6 +41,9 @@ public class ChatService {
     private final MessageService messageService;
     private final UserService userService;
     private final ChatMemberService chatMemberService;
+    private final CloudinaryService cloudinaryService;
+    private final MessageBroadcaster messageBroadcaster;
+    private final ChatMemberRepository chatMemberRepository;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
         Chat chat = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId))
@@ -274,6 +282,10 @@ public class ChatService {
         Chat chat = getChat(chatId, userId);
         List<ChatMember> members = chatMemberService.getChatMembers(chatId);
         chatMemberService.deleteAll(members);
+
+        List<Message> messages = messageService.getMessagesByChatId(chatId);
+        messageService.deleteAll(messages);
+
         chatRepository.delete(chat);
     }
 
@@ -439,9 +451,13 @@ public class ChatService {
         );
     }
 
-    public ChatPreview getChatById(String userId, String chatId) {
+    public ChatPreview getChatPreviewById(String userId, String chatId) {
         Chat chat = getChat(chatId, userId);
-        ChatMember member = chatMemberService.getChatMember(chatId, userId);
+        return getChatPreviewById(chat, userId);
+    }
+
+    public ChatPreview getChatPreviewById(Chat chat, String userId) {
+        ChatMember member = chatMemberService.getChatMember(chat.getId(), userId);
 
         User otherUser = null;
         if (chat.getChatType() == ChatType.PRIVATE) {
@@ -478,5 +494,52 @@ public class ChatService {
                 member.isMuted(),
                 (int) unreadCount
         );
+    }
+
+    public ChatPreview updateChat(String userId, String chatId, UpdateChatRequest request, MultipartFile file) throws IOException {
+        ChatMember currentUser = chatMemberService.getChatMember(chatId, userId);
+
+        if(currentUser.getRole() != ChatRole.ADMIN) {
+            throw new ForbiddenException("You don't have enough permissions");
+        }
+
+        Chat chat = getChat(chatId, userId);
+
+        if (request != null && request.chatName() != null) {
+            chat.setChatName(request.chatName());
+        }
+
+        if (file != null && !file.isEmpty()) {
+
+            if (chat.getImagePublicId() != null) {
+                cloudinaryService.deleteImage(chat.getImagePublicId());
+            }
+
+            CloudinaryUploadResult result = cloudinaryService.uploadProfilePicture(file);
+            chat.setImageUrl(result.secureUrl());
+            chat.setImagePublicId(result.publicId());
+        }
+
+        Chat saved = chatRepository.save(chat);
+        messageBroadcaster.broadcastEvent(
+                getChatMembersIds(saved),
+                ChatEvent.of(ChatEventType.DETAILS_UPDATED, saved.getId(), new UpdateChatResponse(saved.getChatName(), saved.getImageUrl()))
+        );
+
+        return getChatPreviewById(saved, userId);
+    }
+
+    private List<String> getChatMembersIds(Chat chat) {
+        return getChatMembers(chat).stream()
+                .map(ChatMember::getUserId)
+                .toList();
+    }
+
+    private List<ChatMember> getChatMembers(Chat chat) {
+        if(chat.getChatType() == ChatType.PRIVATE) {
+            return chatMemberRepository.findByChatId(chat.getId());
+        }
+
+        return chatMemberRepository.findByChatIdAndActiveTrue(chat.getId());
     }
 }

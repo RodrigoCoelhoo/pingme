@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, Loader, ArrowDown } from 'lucide-react';
 import type { MessageResponse } from '../../services/message/message.types';
-import type { ChatPreview } from '../../services/chat/chat.types';
+import type { ChatPreview, UpdateChatRequest } from '../../services/chat/chat.types';
 import { MemberRole } from '../../services/chat/chat.types';
 import messageService from '../../services/message/message.service';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -11,6 +11,7 @@ import MessageBubble from './MessageBubble';
 import MessageInput from './MessageInput';
 import styles from '../../styles/chat/ChatWindow.module.css';
 import type { TypingIndicator } from '../../services/websocket/websocket.types';
+import { showError } from '../../utils/toast';
 
 interface ChatWindowProps {
 	chat: ChatPreview | null;
@@ -24,8 +25,7 @@ interface ChatWindowProps {
 	onTransferOwnership: (chatId: string, memberId: string) => void;
 	onKickMember: (chatId: string, memberId: string) => void;
 	onAddMembers: (chatId: string, memberIds: string[]) => void;
-	onUpdateGroupName: (chatId: string, name: string) => void;
-	onUpdateGroupImage: (chatId: string, file: File) => void;
+	onUpdateChat: (chatId: string, data?: UpdateChatRequest, file?: File) => Promise<ChatPreview>;
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => void;
 	onMuteChat: (chatId: string) => void;
 	onSendContactRequest: (memberUsername: string) => void;
@@ -43,11 +43,10 @@ export default function ChatWindow({
 	onTransferOwnership,
 	onKickMember,
 	onAddMembers,
-	onUpdateGroupName,
-	onUpdateGroupImage,
 	onPromoteMember,
 	onMuteChat,
-	onSendContactRequest
+	onSendContactRequest,
+	onUpdateChat
 }: ChatWindowProps) {
 	const [messages, setMessages] = useState<MessageResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -183,18 +182,35 @@ export default function ChatWindow({
 
 	useEffect(() => {
 		onRegisterMessageHandler((message: MessageResponse) => {
-			// Só processa mensagens do chat ativo
 			if (message.chatId !== chat?.chatId) return;
 
 			setMessages(prev => {
-				const exists = prev.some(msg => msg.messageId === message.messageId);
-				if (exists) return prev;
+				// Se já existe (por messageId), ignora
+				if (prev.some(m => m.messageId === message.messageId)) return prev;
+
+				// Se é uma mensagem de ficheiro do próprio user, substitui a primeira pending
+				const isOwnFile =
+					message.senderId === currentUserId &&
+					(message.type === 'IMAGE' || message.type === 'FILE');
+
+				if (isOwnFile) {
+					const firstPendingIndex = prev.findIndex(m => m.pending);
+					if (firstPendingIndex !== -1) {
+						// Revoga o object URL para libertar memória
+						const pending = prev[firstPendingIndex];
+						if (pending.content?.startsWith('blob:')) {
+							URL.revokeObjectURL(pending.content);
+						}
+						const updated = [...prev];
+						updated[firstPendingIndex] = message;
+						return updated;
+					}
+				}
+
 				return [...prev, message];
 			});
 
-			if (isAtBottom) {
-				requestAnimationFrame(() => scrollToBottom());
-			}
+			if (isAtBottom) requestAnimationFrame(() => scrollToBottom());
 		});
 	}, [chat?.chatId, isAtBottom, scrollToBottom, onRegisterMessageHandler]);
 
@@ -240,38 +256,84 @@ export default function ChatWindow({
 		}
 	};
 
-	const handleSendMessage = async (content: string) => {
-		if (!chat?.chatId || !content.trim()) return;
+	const handleSendMessage = async (content: string, files?: File[]) => {
+		if (!chat?.chatId) return;
+		if (!content.trim() && (!files || files.length === 0)) return;
 
-		const trimmedContent = content.trim();
+		const trimmed = content.trim();
 
-		try {
-			sendWsMessage(trimmedContent, 'TEXT');
-
-			requestAnimationFrame(() => {
-				scrollToBottom();
-			});
-		} catch (error) {
-			console.error('❌ WebSocket send failed:', error);
+		// Texto via WebSocket (como estava)
+		if (trimmed) {
 			try {
-				const newMessage = await messageService.sendMessage(chat.chatId, {
-					content: trimmedContent,
-					type: 'TEXT'
-				});
-
-				setMessages(prev => {
-					const exists = prev.some(msg => msg.messageId === newMessage.messageId);
-					if (exists) return prev;
-					return [...prev, newMessage];
-				});
-
-				requestAnimationFrame(() => {
-					scrollToBottom();
-				});
-			} catch (restError) {
-				console.error('❌ REST API also failed:', restError);
+				sendWsMessage(trimmed, 'TEXT');
+			} catch (wsError) {
+				console.error('❌ WebSocket failed, fallback REST:', wsError);
+				try {
+					const msg = await messageService.sendMessage(chat.chatId, {
+						content: trimmed,
+						type: 'TEXT'
+					});
+					setMessages(prev =>
+						prev.some(m => m.messageId === msg.messageId) ? prev : [...prev, msg]
+					);
+				} catch (restError) {
+					console.error('❌ REST also failed:', restError);
+				}
 			}
 		}
+
+		// Ficheiros via REST batch
+		if (files && files.length > 0) {
+			const validFiles = files.filter(file => file.size > 0);
+
+			const emptyFiles = files.filter(file => file.size === 0);
+
+			if (emptyFiles.length > 0) {
+				showError('Não é possível enviar ficheiros vazios');
+			}
+
+			if (validFiles.length === 0) {
+				return;
+			}
+
+			const pendingMessages: MessageResponse[] = validFiles.map(file => ({
+				messageId: `pending-${file.name}-${Date.now()}-${Math.random()}`,
+				chatId: chat.chatId,
+				senderId: currentUserId,
+				senderDisplayName: user?.displayName ?? '',
+				senderAvatarUrl: user?.avatarUrl ?? '',
+				content: file.type.startsWith('image/')
+					? URL.createObjectURL(file)
+					: file.name,
+				type: file.type.startsWith('image/') ? 'IMAGE' : 'FILE',
+				createdAt: new Date().toISOString(),
+				editedAt: null,
+				deleted: false,
+				pending: true,
+				localId: file.name,
+			}));
+
+			// Adiciona imediatamente à lista
+			setMessages(prev => [...prev, ...pendingMessages]);
+			requestAnimationFrame(() => scrollToBottom());
+
+			try {
+				await messageService.sendFileMessages(chat.chatId, validFiles);
+				// As mensagens reais chegam via WebSocket e substituem as pending
+			} catch (error) {
+				console.error('❌ File upload failed:', error);
+				// Marca como falhadas
+				setMessages(prev =>
+					prev.map(m =>
+						m.pending && pendingMessages.some(p => p.messageId === m.messageId)
+							? { ...m, pending: false, failed: true }
+							: m
+					)
+				);
+			}
+		}
+
+		requestAnimationFrame(() => scrollToBottom());
 	};
 
 	const handleTyping = (isTyping: boolean) => {
@@ -293,6 +355,10 @@ export default function ChatWindow({
 
 		return `${users.slice(0, -1).join(", ")} e ${users.at(-1)}`;
 	};
+
+	const handleRemoveFailedMessage = useCallback((messageId: string) => {
+		setMessages(prev => prev.filter(m => m.messageId !== messageId));
+	}, []);
 
 	if (!chat?.chatId) {
 		return (
@@ -316,8 +382,7 @@ export default function ChatWindow({
 				onTransferOwnership={(memberId) => onTransferOwnership(chat.chatId, memberId)}
 				onKickMember={(memberId) => onKickMember(chat.chatId, memberId)}
 				onAddMembers={onAddMembers}
-				onUpdateGroupName={(name) => onUpdateGroupName(chat.chatId, name)}
-				onUpdateGroupImage={(file) => onUpdateGroupImage(chat.chatId, file)}
+				onUpdateChat={(data, file) => onUpdateChat(chat.chatId, data, file)}
 				onPromoteMember={(memberId, newRole) => onPromoteMember(chat.chatId, memberId, newRole)}
 				onMuteChat={() => onMuteChat(chat.chatId)}
 				onSendContactRequest={onSendContactRequest}
@@ -361,6 +426,7 @@ export default function ChatWindow({
 											message={message}
 											isOwn={message.senderId === currentUserId}
 											showNameAndAvatar={shouldShowNameAndAvatar(index)}
+											onRemoveFailed={handleRemoveFailedMessage}
 										/>
 									</div>
 								)

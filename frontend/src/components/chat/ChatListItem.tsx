@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import styles from '../../styles/chat/ChatListItem.module.css';
 import Avatar from '../Avatar';
 import { formatTime } from '../../utils/time';
-import { parseSystemMessage } from '../../utils/systemMessages';
+import { parseMessage } from '../../utils/messagesParser';
 
 interface ChatListItemProps {
 	chat: ChatPreview;
@@ -25,7 +25,7 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 
 	const parsedMessage = useMemo(() => {
 		if (!chat.lastMessage) return '';
-		return parseSystemMessage(chat.lastMessage);
+		return parseMessage(chat.lastMessage);
 	}, [chat.lastMessage]);
 
 	const handleDelete = (e: React.MouseEvent) => {

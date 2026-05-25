@@ -34,6 +34,7 @@ public class User {
     private String displayName;
 
     private String avatarUrl;
+    private String avatarPublicId;
 
     @Builder.Default
     private AuthProvider provider = AuthProvider.LOCAL;

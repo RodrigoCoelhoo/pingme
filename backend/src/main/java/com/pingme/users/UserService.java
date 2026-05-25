@@ -1,13 +1,20 @@
 package com.pingme.users;
 
-import com.pingme.exceptions.ResourceAlreadyExistsException;
-import com.pingme.exceptions.ResourceNotFound;
+import com.pingme.shared.cloudinary.CloudinaryService;
+import com.pingme.shared.cloudinary.CloudinaryUploadResult;
+import com.pingme.shared.exceptions.ForbiddenException;
+import com.pingme.shared.exceptions.ResourceAlreadyExistsException;
+import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.users.dto.CreateUserRequest;
+import com.pingme.users.dto.UpdateUserRequest;
 import com.pingme.users.dto.UserProfile;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +25,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CloudinaryService cloudinaryService;
 
     public UserProfile createUser(CreateUserRequest request) {
 
@@ -77,5 +85,33 @@ public class UserService {
             return List.of();
         }
         return userRepository.findAllById(userIds);
+    }
+
+    public UserProfile updateUser(String userId, UpdateUserRequest request, MultipartFile file) throws IOException {
+        User user = getUserById(userId);
+
+        if (request != null && request.displayName() != null) {
+            user.setDisplayName(request.displayName());
+        }
+
+        if (file != null && !file.isEmpty()) {
+
+            if (user.getAvatarPublicId() != null) {
+                cloudinaryService.deleteImage(user.getAvatarPublicId());
+            }
+
+            CloudinaryUploadResult result = cloudinaryService.uploadProfilePicture(file);
+            user.setAvatarUrl(result.secureUrl());
+            user.setAvatarPublicId(result.publicId());
+        }
+
+        User saved = userRepository.save(user);
+        return new UserProfile(
+                saved.getId(),
+                saved.getEmail(),
+                saved.getUsername(),
+                saved.getDisplayName(),
+                saved.getAvatarUrl()
+        );
     }
 }

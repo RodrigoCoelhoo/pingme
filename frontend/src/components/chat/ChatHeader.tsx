@@ -1,5 +1,5 @@
 import { ArrowLeft, Search, Bell, BellOff } from 'lucide-react';
-import { ChatType, type ChatPreview, MemberRole } from '../../services/chat/chat.types';
+import { ChatType, type ChatPreview, MemberRole, type UpdateChatRequest } from '../../services/chat/chat.types';
 import styles from '../../styles/chat/ChatHeader.module.css';
 import { useEffect, useState } from 'react';
 import Avatar from '../Avatar';
@@ -14,8 +14,7 @@ interface ChatHeaderProps {
 	onTransferOwnership: (memberId: string) => void;
 	onKickMember: (memberId: string) => void;
 	onAddMembers: (chatId: string, memberIds: string[]) => void;
-	onUpdateGroupName: (name: string) => void;
-	onUpdateGroupImage: (file: File) => void;
+	onUpdateChat: (updates?: UpdateChatRequest, file?: File) => Promise<ChatPreview>;
 	onPromoteMember: (memberId: string, newRole: MemberRole) => void;
 	onMuteChat: () => void;
 	onSendContactRequest: (memberUsername: string) => void;
@@ -29,8 +28,7 @@ export default function ChatHeader({
 	onTransferOwnership,
 	onKickMember,
 	onAddMembers,
-	onUpdateGroupName,
-	onUpdateGroupImage,
+	onUpdateChat,
 	onPromoteMember,
 	onMuteChat,
 	onSendContactRequest
@@ -39,7 +37,7 @@ export default function ChatHeader({
 
 	const [showGroupDetails, setShowGroupDetails] = useState<boolean>(false);
 	const [showAddMembers, setShowAddMembers] = useState<boolean>(false);
-	
+
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -108,8 +106,7 @@ export default function ChatHeader({
 					onDeleteGroup={handleDeleteGroup}
 					onTransferOwnership={onTransferOwnership}
 					onKickMember={onKickMember}
-					onUpdateGroupName={onUpdateGroupName}
-					onUpdateGroupImage={onUpdateGroupImage}
+					onUpdateChat={onUpdateChat}
 					onPromoteMember={onPromoteMember}
 					onSendContactRequest={onSendContactRequest}
 					onAddMembers={handleOpenAddMembers}
@@ -117,7 +114,7 @@ export default function ChatHeader({
 			)}
 
 			{showAddMembers && (
-				<AddMembersModal 
+				<AddMembersModal
 					chat={chat}
 					isOpen={showAddMembers}
 					onAddMembers={handleAddMembersClick}

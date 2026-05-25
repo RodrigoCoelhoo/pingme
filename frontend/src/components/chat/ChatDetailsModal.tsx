@@ -2,7 +2,7 @@ import { X, Crown, Shield, UserPlus, UserMinus, LogOut, Trash2, Camera, Edit2, U
 import { useState, useRef, useEffect } from 'react';
 import Avatar from '../Avatar';
 import styles from '../../styles/chat/ChatDetailsModal.module.css';
-import { MemberRole, type ChatMember, type ChatPreview } from '../../services/chat/chat.types';
+import { MemberRole, type ChatMember, type ChatPreview, type UpdateChatRequest } from '../../services/chat/chat.types';
 import chatService from '../../services/chat/chat.service';
 import { useAuth } from '../../contexts/AuthContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -17,8 +17,7 @@ interface ChatDetailsModalProps {
 	onAddMembers: () => void;
 	onTransferOwnership: (memberId: string) => void;
 	onKickMember: (memberId: string) => void;
-	onUpdateGroupName: (name: string) => void;
-	onUpdateGroupImage: (file: File) => void;
+	onUpdateChat: (updates?: UpdateChatRequest, file?: File) => Promise<ChatPreview>;
 	onPromoteMember: (memberId: string, newRole: MemberRole) => void;
 	onSendContactRequest: (memberUsername: string) => void;
 }
@@ -31,8 +30,7 @@ export default function ChatDetailsModal({
 	onTransferOwnership,
 	onKickMember,
 	onAddMembers,
-	onUpdateGroupName,
-	onUpdateGroupImage,
+	onUpdateChat,
 	onPromoteMember,
 	onSendContactRequest
 }: ChatDetailsModalProps) {
@@ -125,17 +123,38 @@ export default function ChatDetailsModal({
 		}
 	);
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleImageChange = async (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
 		const file = e.target.files?.[0];
-		if (file && onUpdateGroupImage) {
-			onUpdateGroupImage(file);
+
+		if (!file) return;
+
+		try {
+			const updatedChat = await onUpdateChat(undefined, file);
+
+			chat.chatImageUrl = updatedChat.chatImageUrl;
+		} catch (error) {
+			console.error(error);
 		}
 	};
 
-	const handleSaveName = () => {
-		if (newGroupName.trim() && newGroupName !== chat.chatName && onUpdateGroupName) {
-			onUpdateGroupName(newGroupName.trim());
+	const handleSaveName = async () => {
+		if (
+			newGroupName.trim() &&
+			newGroupName !== chat.chatName
+		) {
+			try {
+				const updatedChat = await onUpdateChat({
+					chatName: newGroupName.trim()
+				});
+
+				chat.chatName = updatedChat.chatName;
+			} catch (error) {
+				console.error(error);
+			}
 		}
+
 		setIsEditingName(false);
 	};
 

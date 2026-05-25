@@ -28,7 +28,9 @@ public class Chat {
     private String id;
 
     private String chatName;
+
     private String imageUrl;
+    private String imagePublicId;
 
     private ChatType chatType; // PRIVATE or GROUP
     private String privateChatKey;

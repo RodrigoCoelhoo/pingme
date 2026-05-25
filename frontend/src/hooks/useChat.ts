@@ -2,7 +2,7 @@ import { useState } from 'react';
 import chatService from '../services/chat/chat.service';
 import chatMemberService from '../services/chat/chatMember.service';
 import contactService from '../services/contact/contact.service';
-import { MemberRole } from '../services/chat/chat.types';
+import { MemberRole, type UpdateChatRequest } from '../services/chat/chat.types';
 import type { ContactResponse } from '../services/contact/contact.types';
 
 export function useChat() {
@@ -103,26 +103,11 @@ export function useChat() {
 		}
 	};
 
-	const handleUpdateGroupName = async (chatId: string, newName: string) => {
+	const handleUpdateChat = async (chatId: string, data?: UpdateChatRequest, file?: File) => {
 		try {
-			console.log(chatId, newName);
-			// Implement when API is ready
-			// await chatService.updateChatName(chatId, newName);
+			return await chatService.updateChat(chatId, data, file);
 		} catch (error) {
-			console.error('Error updating group name:', error);
-			throw error;
-		}
-	};
-
-	const handleUpdateGroupImage = async (chatId: string, file: File) => {
-		try {
-			console.log(chatId);
-			const formData = new FormData();
-			formData.append('image', file);
-			// Implement when API is ready
-			// await chatService.updateChatImage(chatId, formData);
-		} catch (error) {
-			console.error('Error updating group image:', error);
+			console.error('Error updating chat:', error);
 			throw error;
 		}
 	};
@@ -171,8 +156,7 @@ export function useChat() {
 		handleTransferOwnership,
 		handleKickMember,
 		handleAddMembers,
-		handleUpdateGroupName,
-		handleUpdateGroupImage,
+		handleUpdateChat,
 		handlePromoteMember,
 		handleMuteChat,
 		handleSendContactRequest,

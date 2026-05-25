@@ -6,9 +6,10 @@ import styles from '../styles/UserMenu.module.css';
 import { EllipsisVertical, User, Languages, Palette, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useTranslation } from 'react-i18next';
+import { userService } from '../services/user/user.service';
 
 export default function UserMenu() {
-	const { user, signOut } = useAuth();
+	const { user, signOut, updateUser } = useAuth();
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,9 +37,25 @@ export default function UserMenu() {
 		};
 	}, [isDropdownOpen]);
 
-	const handleUpdateProfile = (displayName: string, avatarFile?: File) => {
-		// Implementar lógica de atualização do perfil
-		console.log('Updating profile:', { displayName, avatarFile });
+	const handleUpdateProfile = async (
+		displayName: string,
+		avatarFile?: File
+	) => {
+
+		try {
+
+			const updatedUser = await userService.updateUser(
+				{
+					displayName
+				},
+				avatarFile
+			);
+
+			updateUser(updatedUser);
+
+		} catch (error) {
+			console.error("Failed to update profile", error);
+		}
 	};
 
 	const handleChangeLanguage = () => {

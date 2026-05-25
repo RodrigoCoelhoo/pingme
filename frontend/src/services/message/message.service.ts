@@ -23,16 +23,28 @@ class MessageService {
 			params: { lastMessageId }
 		});
 	}
-	
+
 	async editMessage(chatId: string, messageId: string, newContent: string): Promise<MessageResponse> {
 		const response = await api.patch<MessageResponse>(`/chats/${chatId}/messages/${messageId}`, {
 			content: newContent
 		});
 		return response.data;
 	}
-	
+
 	async deleteMessage(chatId: string, messageId: string): Promise<void> {
 		await api.delete(`/chats/${chatId}/messages/${messageId}`);
+	}
+
+	async sendFileMessages(chatId: string, files: File[]): Promise<MessageResponse[]> {
+		const formData = new FormData();
+		files.forEach(file => formData.append('files', file));
+
+		const response = await api.post<MessageResponse[]>(
+			`/chats/${chatId}/messages/files`,
+			formData,
+			{ headers: { 'Content-Type': 'multipart/form-data' } }
+		);
+		return response.data;
 	}
 }
 
