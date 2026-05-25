@@ -45,12 +45,12 @@ export function useInfiniteScroll(
 		}
 
 		const { scrollHeight, scrollTop, clientHeight } = container;
-		const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-
+		
 		if (scrollHeight <= clientHeight) {
-			return false;
+			return true;
 		}
 
+		const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 		return distanceFromBottom <= bottomThreshold;
 	}, [bottomThreshold]);
 

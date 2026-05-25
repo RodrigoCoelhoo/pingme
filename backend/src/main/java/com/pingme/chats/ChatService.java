@@ -1,16 +1,17 @@
 package com.pingme.chats;
 
 import com.mongodb.DuplicateKeyException;
-import com.pingme.chats.dto.ChatContext;
-import com.pingme.chats.dto.ChatMemberResponse;
-import com.pingme.chats.dto.ChatPreview;
-import com.pingme.chats.dto.UpdateChatRequest;
+import com.pingme.chats.dto.*;
+import com.pingme.chats.events.ChatEvent;
+import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.ChatMember;
+import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.chats.members.ChatMemberService;
 import com.pingme.chats.members.ChatRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
 import com.pingme.contacts.ContactStatus;
+import com.pingme.messages.MessageBroadcaster;
 import com.pingme.shared.cloudinary.CloudinaryService;
 import com.pingme.shared.cloudinary.CloudinaryUploadResult;
 import com.pingme.shared.exceptions.BadRequestException;
@@ -41,6 +42,8 @@ public class ChatService {
     private final UserService userService;
     private final ChatMemberService chatMemberService;
     private final CloudinaryService cloudinaryService;
+    private final MessageBroadcaster messageBroadcaster;
+    private final ChatMemberRepository chatMemberRepository;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
         Chat chat = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId))
@@ -518,6 +521,25 @@ public class ChatService {
         }
 
         Chat saved = chatRepository.save(chat);
+        messageBroadcaster.broadcastEvent(
+                getChatMembersIds(saved),
+                ChatEvent.of(ChatEventType.DETAILS_UPDATED, saved.getId(), new UpdateChatResponse(saved.getChatName(), saved.getImageUrl()))
+        );
+
         return getChatPreviewById(saved, userId);
+    }
+
+    private List<String> getChatMembersIds(Chat chat) {
+        return getChatMembers(chat).stream()
+                .map(ChatMember::getUserId)
+                .toList();
+    }
+
+    private List<ChatMember> getChatMembers(Chat chat) {
+        if(chat.getChatType() == ChatType.PRIVATE) {
+            return chatMemberRepository.findByChatId(chat.getId());
+        }
+
+        return chatMemberRepository.findByChatIdAndActiveTrue(chat.getId());
     }
 }
