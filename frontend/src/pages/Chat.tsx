@@ -143,6 +143,7 @@ export default function Chat() {
 
 			switch (event.type) {
 				case ChatEventType.MEMBER_KICKED:
+				case ChatEventType.CHAT_DELETED:
 					removeChat(event.chatId);
 					if (activeChat === event.chatId) {
 						setActiveChat(null);
@@ -156,6 +157,7 @@ export default function Chat() {
 					break;
 
 				case ChatEventType.MEMBER_ADDED:
+				case ChatEventType.CHAT_CREATED:
 					if (!exists) {
 						insertChatSorted(event.payload as ChatPreview);
 					}

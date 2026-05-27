@@ -60,21 +60,21 @@ export default function ContactsList({
 		onLoadMoreAccepted,
 		acceptedHasMore,
 		isLoadingAccepted,
-		{ enabled: activeTab === 'accepted' }
+		{ enabled: activeTab === 'accepted', direction: 'bottom' }
 	);
 
 	const { containerRef: receivedRef } = useInfiniteScroll(
 		onLoadMoreReceivedPending,
 		receivedPendingHasMore,
 		isLoadingReceivedPending,
-		{ enabled: activeTab === 'received' }
+		{ enabled: activeTab === 'received', direction: 'bottom' }
 	);
 
 	const { containerRef: sentRef } = useInfiniteScroll(
 		onLoadMoreSentPending,
 		sentPendingHasMore,
 		isLoadingSentPending,
-		{ enabled: activeTab === 'sent' }
+		{ enabled: activeTab === 'sent', direction: 'bottom' }
 	);
 
 	const renderTabContent = () => {

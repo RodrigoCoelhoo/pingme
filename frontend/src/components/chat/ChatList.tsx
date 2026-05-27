@@ -22,7 +22,7 @@ export default function ChatList({
 	hasMore,
 	onLoadMore
 }: ChatListProps) {
-	const { containerRef } = useInfiniteScroll(onLoadMore, hasMore, isLoading);
+	const { containerRef } = useInfiniteScroll(onLoadMore, hasMore, isLoading, {direction: 'bottom'});
 
 	if (chats.length === 0 && !isLoading) {
 		return (

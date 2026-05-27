@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { ChatPreview } from '../services/chat/chat.types';
 import chatService from '../services/chat/chat.service';
 
-const CHATS_PAGE_SIZE = 20;
+const CHATS_PAGE_SIZE = 10;
 
 interface UseChatsProps {
 	searchQuery?: string;
