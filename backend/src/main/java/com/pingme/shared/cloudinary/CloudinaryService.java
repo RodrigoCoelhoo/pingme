@@ -115,4 +115,22 @@ public class CloudinaryService {
                 (String) result.get("secure_url")
         );
     }
+
+    public void deleteFile(String publicId) throws IOException {
+
+        if (publicId == null || publicId.isBlank()) {
+            throw new IllegalArgumentException("publicId can't be null.");
+        }
+
+        Map<?, ?> result = cloudinary.uploader().destroy(
+                publicId,
+                ObjectUtils.asMap("resource_type", "raw")
+        );
+
+        String status = (String) result.get("result");
+
+        if (!"ok".equals(status)) {
+            throw new RuntimeException("Erro ao apagar ficheiro: " + status);
+        }
+    }
 }

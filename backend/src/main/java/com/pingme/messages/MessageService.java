@@ -28,6 +28,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -80,32 +81,60 @@ public class MessageService {
         return messageRepository.findByChatId(chatId);
     }
 
-    public Message editMessage(String messageId, String userId, String newContent) {
+    public Message editMessage(String messageId, String currentUserId, String newContent) {
         Message message = getMessage(messageId);
 
-        if (!message.getSenderId().equals(userId)) {
-            throw new ForbiddenException("You can only edit your own messages");
+        if(!message.getSenderId().equals(currentUserId)) {
+            throw new ForbiddenException("Cannot edit messages of other users");
         }
 
         if (message.isDeleted()) {
             throw new BadRequestException("Cannot edit a deleted message");
         }
 
-        message.setContent(newContent);
+        if(message.getType() != MessageType.TEXT) {
+            throw new BadRequestException("Only text messages can be edited");
+        }
+
+        if(newContent.trim().isEmpty()) {
+            throw new BadRequestException("Message content can't be null");
+        }
+
+        message.setContent(newContent.trim());
         message.setEditedAt(Instant.now());
 
         return messageRepository.save(message);
     }
 
-    public Message deleteMessage(String messageId, String userId) {
+    public Message deleteMessage(String chatId, String messageId, String currentUserId) {
         Message message = getMessage(messageId);
-
-        if (!message.getSenderId().equals(userId)) {
-            throw new ForbiddenException("You can only delete your own messages");
-        }
 
         if (message.isDeleted()) {
             throw new BadRequestException("Message is already deleted");
+        }
+
+        List<ChatMember> members = chatMemberRepository.findAllByChatIdAndUserIdIn(chatId, List.of(message.getSenderId(), currentUserId));
+        if(members.size() != 2) {
+            throw new ForbiddenException("Both users must be members of the chat");
+        }
+
+        ChatMember currentUserMembership = members.get(0).getUserId().equals(currentUserId) ? members.get(0) : members.get(1);
+        ChatMember otherUserMembership = members.get(0).getUserId().equals(message.getSenderId()) ? members.get(0) : members.get(1);
+
+        boolean isOwnMessage = message.getSenderId().equals(currentUserId);
+        if (!isOwnMessage && currentUserMembership.getRole().compareTo(otherUserMembership.getRole()) >= 0) {
+            throw new ForbiddenException("You don't have permission to delete this message");
+        }
+
+        try {
+            if (message.getType() == MessageType.IMAGE) {
+                cloudinaryService.deleteImage(message.getMediaPublicId());
+            }
+            else if(message.getType() == MessageType.FILE) {
+                cloudinaryService.deleteFile(message.getMediaPublicId());
+            }
+        } catch (IOException exception) {
+            //
         }
 
         message.setDeleted(true);

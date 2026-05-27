@@ -193,7 +193,7 @@ public class ChatService {
 
         chatMemberService.saveAll(chatMembers);
 
-        return new ChatPreview(
+        ChatPreview chatPreview = new ChatPreview(
                 chat.getId(),
                 chat.getChatType(),
                 chat.getChatName(),
@@ -206,6 +206,13 @@ public class ChatService {
                 null,
                 null
         );
+
+        websocketBroadcaster.broadcastEvent(
+                chatMembers.stream().map(ChatMember::getUserId).toList(),
+                ChatEvent.of(ChatEventType.CHAT_CREATED, chat.getId(), chatPreview)
+        );
+
+        return chatPreview;
     }
 
     private Chat createChat(Chat chat) {
@@ -295,6 +302,11 @@ public class ChatService {
         messageService.deleteAll(messages);
 
         chatRepository.delete(chat);
+
+        websocketBroadcaster.broadcastEvent(
+                members.stream().map(ChatMember::getUserId).toList(),
+                ChatEvent.of(ChatEventType.CHAT_DELETED, chat.getId())
+        );
     }
 
     public PagedResponse<ChatPreview> getUserChats(
