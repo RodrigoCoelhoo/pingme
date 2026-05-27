@@ -15,6 +15,7 @@ import { showError } from '../../utils/toast';
 
 interface ChatWindowProps {
 	chat: ChatPreview | null;
+	isUserOnline: (userId: string) => boolean;
 	sendMessage: (content: string, type: 'TEXT' | 'IMAGE' | 'FILE') => void;
 	sendTyping: (isTyping: boolean) => void;
 	onRegisterMessageHandler: (fn: (msg: MessageResponse) => void) => void;
@@ -33,6 +34,7 @@ interface ChatWindowProps {
 
 export default function ChatWindow({
 	chat,
+	isUserOnline,
 	sendMessage: sendWsMessage,
 	sendTyping,
 	onRegisterMessageHandler,
@@ -376,6 +378,7 @@ export default function ChatWindow({
 		<div className={styles.chatWindow}>
 			<ChatHeader
 				chat={chat}
+				isUserOnline={isUserOnline}
 				setSidebarOpen={setSidebarOpen}
 				onLeaveGroup={() => onLeaveGroup(chat.chatId)}
 				onDeleteGroup={() => onDeleteGroup(chat.chatId)}

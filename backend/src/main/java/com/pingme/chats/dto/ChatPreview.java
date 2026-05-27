@@ -4,6 +4,7 @@ import com.pingme.chats.ChatType;
 import com.pingme.chats.members.ChatRole;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 public record ChatPreview(
 
@@ -19,5 +20,8 @@ public record ChatPreview(
         ChatRole role,
         boolean muted,
 
-        int unreadCount
+        int unreadCount,
+
+        String otherUserId,
+        Instant otherUserLastSeenAt
 ) {}

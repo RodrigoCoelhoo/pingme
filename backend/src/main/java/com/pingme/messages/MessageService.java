@@ -8,6 +8,7 @@ import com.pingme.chats.ChatType;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.messages.dto.MessageResponse;
+import com.pingme.shared.WebsocketBroadcaster;
 import com.pingme.shared.cloudinary.CloudinaryService;
 import com.pingme.shared.cloudinary.CloudinaryUploadResult;
 import com.pingme.shared.exceptions.BadRequestException;
@@ -39,7 +40,7 @@ public class MessageService {
     private final ObjectMapper objectMapper;
     private final CloudinaryService cloudinaryService;
     private final UserService userService;
-    private final MessageBroadcaster messageBroadcaster;
+    private final WebsocketBroadcaster websocketBroadcaster;
 
     public Message getMessage(String messageId) {
         return messageRepository.findById(messageId)
@@ -183,7 +184,7 @@ public class MessageService {
         List<MessageResponse> responses = savedMessages.stream().map(m -> MessageResponse.from(m, user)).toList();
 
         List<String> membersIds = getChatMembersIds(chat);
-        responses.forEach(response -> messageBroadcaster.broadcastMessage(membersIds, response));
+        responses.forEach(response -> websocketBroadcaster.broadcastMessage(membersIds, response));
 
         return responses;
     }

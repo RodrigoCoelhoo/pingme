@@ -7,6 +7,7 @@ import com.pingme.messages.Message;
 import com.pingme.users.User;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 public record ChatContext(
         Chat chat,
@@ -16,14 +17,20 @@ public record ChatContext(
         Instant sortTime,
         int unreadCount
 ) {
-    public ChatPreview toPreview() {
-        String chatName = chat.getChatType() == ChatType.PRIVATE && otherUser != null
-                ? otherUser.getDisplayName()
-                : chat.getChatName();
+    public ChatPreview toPreview(boolean online) {
+        String chatName = chat.getChatName();
+        String chatImageUrl = chat.getImageUrl();
+        String otherUserId = null;
+        Instant otherUserLastSeenAt = null;
 
-        String chatImageUrl = chat.getChatType() == ChatType.PRIVATE && otherUser != null
-                ? otherUser.getAvatarUrl()
-                : chat.getImageUrl();
+        if(chat.getChatType() == ChatType.PRIVATE && otherUser != null) {
+            chatName = otherUser.getDisplayName();
+            chatImageUrl = otherUser.getAvatarUrl();
+            otherUserId = otherUser.getId();
+            if(!online) {
+                otherUserLastSeenAt = otherUser.getLastSeenAt();
+            }
+        }
 
         String lastMessageContent = lastMessage != null
                 ? lastMessage.getContent()
@@ -42,7 +49,9 @@ public record ChatContext(
                 lastMessageTimestamp,
                 member.getRole(),
                 member.isMuted(),
-                unreadCount
+                unreadCount,
+                otherUserId,
+                otherUserLastSeenAt
         );
     }
 }

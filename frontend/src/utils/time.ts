@@ -36,3 +36,45 @@ export function formatTime(dateString: string): string {
 
 	return `${formattedDate} ${time}`;
 }
+
+export function formatLastSeen(dateString: string | null | undefined): string {
+	if (!dateString) {
+		return 'Offline';
+	}
+
+	const date = new Date(dateString);
+	const now = new Date();
+
+	const diffMs = now.getTime() - date.getTime();
+
+	const minutes = Math.floor(diffMs / (1000 * 60));
+	const hours = Math.floor(diffMs / (1000 * 60 * 60));
+	const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+	const weeks = Math.floor(days / 7);
+
+	if (minutes < 1) {
+		return 'Visto pela última vez agora mesmo';
+	}
+
+	if (minutes < 60) {
+		return `Visto pela última vez há ${minutes} min`;
+	}
+
+	if (hours < 24) {
+		return `Visto pela última vez há ${hours}h`;
+	}
+
+	if (days === 1) {
+		return 'Visto pela última vez ontem';
+	}
+
+	if (days < 7) {
+		return `Visto pela última vez há ${days} dias`;
+	}
+
+	if (weeks < 5) {
+		return `Visto pela última vez há ${weeks} semana${weeks > 1 ? 's' : ''}`;
+	}
+
+	return `Visto pela última vez em ${date.toLocaleDateString('pt-PT')}`;
+}

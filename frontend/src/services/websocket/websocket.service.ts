@@ -4,7 +4,7 @@ import type {
 	MessageRequest,
 	MessageResponse,
 } from '../message/message.types'; // Adjust path if needed
-import type { TypingIndicator, WebSocketConfig } from './websocket.types';
+import type { PresenceEvent, TypingIndicator, WebSocketConfig } from './websocket.types';
 import type { ChatEvent } from '../chat/chat.types';
 
 class WebSocketService {
@@ -212,6 +212,27 @@ class WebSocketService {
 				this.subscriptions.delete(subscriptionKey);
 			}
 		};
+	}
+
+	subscribeToPresence(
+		callback: (event: PresenceEvent) => void
+	): () => void {
+
+		if (!this.client) {
+			throw new Error('WebSocket not connected');
+		}
+
+		const subscription = this.client.subscribe(
+			'/user/queue/presence',
+			(message) => {
+				const event: PresenceEvent =
+					JSON.parse(message.body);
+
+				callback(event);
+			}
+		);
+
+		return () => subscription.unsubscribe();
 	}
 
 	/**

@@ -10,6 +10,8 @@ export interface ChatPreview {
 	role: MemberRole;
 	muted: boolean;
 	unreadCount: number;
+	otherUserId?: string; // Only for private chats
+	otherUserLastSeenAt?: string | null; // Only for private chats
 }
 
 export interface ChatDTO {

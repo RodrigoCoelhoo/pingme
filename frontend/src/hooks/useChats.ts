@@ -112,6 +112,26 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		});
 	}, []);
 
+	const updateChatsByUserId = useCallback((
+		userId: string,
+		updates: Partial<ChatPreview>
+	) => {
+		setChats(prev =>
+			prev.map(chat => {
+
+				if (chat.otherUserId !== userId) {
+					return chat;
+				}
+
+				return {
+					...chat,
+					...updates
+				};
+			})
+		);
+
+	}, []);
+
 	return {
 		chats,
 		isLoading,
@@ -120,6 +140,7 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		insertChatSorted,
 		removeChat,
 		updateChat,
-		toggleMuteChat
+		toggleMuteChat,
+		updateChatsByUserId
 	};
 }

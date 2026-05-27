@@ -11,13 +11,14 @@ import com.pingme.chats.members.ChatRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
 import com.pingme.contacts.ContactStatus;
-import com.pingme.messages.MessageBroadcaster;
+import com.pingme.shared.WebsocketBroadcaster;
 import com.pingme.shared.cloudinary.CloudinaryService;
 import com.pingme.shared.cloudinary.CloudinaryUploadResult;
 import com.pingme.shared.exceptions.BadRequestException;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.messages.Message;
 import com.pingme.messages.MessageService;
+import com.pingme.shared.presence.PresenceTracker;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import com.pingme.shared.utils.PagedResponse;
@@ -42,8 +43,9 @@ public class ChatService {
     private final UserService userService;
     private final ChatMemberService chatMemberService;
     private final CloudinaryService cloudinaryService;
-    private final MessageBroadcaster messageBroadcaster;
+    private final WebsocketBroadcaster websocketBroadcaster;
     private final ChatMemberRepository chatMemberRepository;
+    private final PresenceTracker presenceTracker;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
         Chat chat = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId))
@@ -81,7 +83,11 @@ public class ChatService {
                 lastMessageTimestamp,
                 member.getRole(),
                 member.isMuted(),
-                (int) unreadCount
+                (int) unreadCount,
+                otherUser.getId(),
+                presenceTracker.isUserOnline(otherUser.getId())
+                        ? null
+                        : otherUser.getLastSeenAt()
         );
     }
 
@@ -196,7 +202,9 @@ public class ChatService {
                 null,
                 ChatRole.ADMIN,
                 false,
-                0
+                0,
+                null,
+                null
         );
     }
 
@@ -342,7 +350,10 @@ public class ChatService {
         List<ChatContext> pageItems = contexts.subList(fromIndex, toIndex);
 
         List<ChatPreview> previews = pageItems.stream()
-                .map(ChatContext::toPreview)
+                .map(context -> {
+                    boolean online = context.otherUser() != null && presenceTracker.isUserOnline(context.otherUser().getId());
+                    return context.toPreview(online);
+                })
                 .toList();
 
         return new PagedResponse<>(
@@ -475,13 +486,20 @@ public class ChatService {
 
         long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
 
-        String chatName = chat.getChatType() == ChatType.PRIVATE
-                ? otherUser.getDisplayName()
-                : chat.getChatName();
+        String chatName = chat.getChatName();
+        String chatImage = chat.getImageUrl();
+        String otherUserId = null;
+        Instant otherUserLastSeenAt = null;
 
-        String chatImage = chat.getChatType() == ChatType.PRIVATE
-                ? otherUser.getAvatarUrl()
-                : chat.getImageUrl();
+        if(chat.getChatType() == ChatType.PRIVATE && otherUser != null) {
+            chatName = otherUser.getDisplayName();
+            chatImage = otherUser.getAvatarUrl();
+            otherUserId = otherUser.getId();
+            if(!presenceTracker.isUserOnline(otherUserId)) {
+                otherUserLastSeenAt = otherUser.getLastSeenAt();
+            }
+        }
+
 
         return new ChatPreview(
                 chat.getId(),
@@ -492,7 +510,9 @@ public class ChatService {
                 lastMessageTimestamp,
                 member.getRole(),
                 member.isMuted(),
-                (int) unreadCount
+                (int) unreadCount,
+                otherUserId,
+                otherUserLastSeenAt
         );
     }
 
@@ -521,7 +541,7 @@ public class ChatService {
         }
 
         Chat saved = chatRepository.save(chat);
-        messageBroadcaster.broadcastEvent(
+        websocketBroadcaster.broadcastEvent(
                 getChatMembersIds(saved),
                 ChatEvent.of(ChatEventType.DETAILS_UPDATED, saved.getId(), new UpdateChatResponse(saved.getChatName(), saved.getImageUrl()))
         );

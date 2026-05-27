@@ -13,13 +13,29 @@ import { useChats } from '../hooks/useChats';
 import { ChatEventType, ChatType, MemberRole, type ChatPreview } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MessageResponse } from '../services/message/message.types';
 import type { TypingIndicator } from '../services/websocket/websocket.types';
 import chatService from '../services/chat/chat.service';
 import { playNotificationSound } from '../utils/notification';
+import contactService from '../services/contact/contact.service';
 
 export default function Chat() {
+	const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+	useEffect(() => {
+		const loadOnlineUsers = async () => {
+			try {
+				const users = await contactService.getOnlineContacts();
+				setOnlineUsers(new Set(users));
+			} catch (err) {
+				console.error(err);
+			}
+		};
+
+		loadOnlineUsers();
+	}, []);
+
 	// UI state - modals, sidebar, tabs, search
 	const {
 		activeTab,
@@ -64,7 +80,8 @@ export default function Chat() {
 		insertChatSorted,
 		removeChat,
 		updateChat,
-		toggleMuteChat
+		toggleMuteChat,
+		updateChatsByUserId
 	} = useChats({ searchQuery: activeTab === 'chats' ? searchQuery : '' });
 
 	const token = localStorage.getItem('accessToken');
@@ -123,7 +140,7 @@ export default function Chat() {
 		},
 		onEventReceived: (event) => {
 			const exists = chats.find(c => c.chatId === event.chatId);
-			
+
 			switch (event.type) {
 				case ChatEventType.MEMBER_KICKED:
 					removeChat(event.chatId);
@@ -150,6 +167,32 @@ export default function Chat() {
 					}
 					break;
 			}
+		},
+		onPresenceReceived: (event) => {
+
+			if (event.status === 'ONLINE') {
+
+				setOnlineUsers(prev => {
+					const next = new Set(prev);
+					next.add(event.userId);
+					return next;
+				});
+
+				return;
+			}
+
+			setOnlineUsers(prev => {
+				const next = new Set(prev);
+				next.delete(event.userId);
+				return next;
+			});
+
+			updateChatsByUserId(
+				event.userId,
+				{
+					otherUserLastSeenAt: event.lastSeenAt
+				}
+			);
 		},
 		enabled: !!token
 	});
@@ -350,6 +393,7 @@ export default function Chat() {
 			<div className={styles.chatMain}>
 				<ChatWindow
 					chat={activeChatPreview}
+					isUserOnline={(userId: string) => onlineUsers.has(userId)}
 					sendMessage={sendMessage}
 					sendTyping={sendTyping}
 					onRegisterMessageHandler={(fn) => { activeChatMessageRef.current = fn; }}
