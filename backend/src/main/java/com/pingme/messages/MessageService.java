@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pingme.chats.Chat;
 import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatType;
+import com.pingme.chats.events.ChatEvent;
+import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.messages.dto.MessageResponse;
@@ -81,7 +83,8 @@ public class MessageService {
         return messageRepository.findByChatId(chatId);
     }
 
-    public Message editMessage(String messageId, String currentUserId, String newContent) {
+    public MessageResponse editMessage(String chatId, String messageId, String currentUserId, String newContent) {
+        Chat chat = getChat(chatId, currentUserId);
         Message message = getMessage(messageId);
 
         if(!message.getSenderId().equals(currentUserId)) {
@@ -102,11 +105,22 @@ public class MessageService {
 
         message.setContent(newContent.trim());
         message.setEditedAt(Instant.now());
+        Message saved = messageRepository.save(message);
 
-        return messageRepository.save(message);
+        User currentUser = userService.getUserById(currentUserId);
+        MessageResponse response = MessageResponse.from(saved, currentUser);
+
+        List<ChatMember> members = getChatMembers(chat);
+        websocketBroadcaster.broadcastEvent(
+                members.stream().map(ChatMember::getUserId).toList(),
+                ChatEvent.of(ChatEventType.MESSAGE_EDITED, chat.getId(), response)
+        );
+
+        return response;
     }
 
-    public Message deleteMessage(String chatId, String messageId, String currentUserId) {
+    public void deleteMessage(String chatId, String messageId, String currentUserId) {
+        Chat chat = getChat(chatId, currentUserId);
         Message message = getMessage(messageId);
 
         if (message.isDeleted()) {
@@ -133,6 +147,7 @@ public class MessageService {
             else if(message.getType() == MessageType.FILE) {
                 cloudinaryService.deleteFile(message.getMediaPublicId());
             }
+            message.setMediaPublicId(null);
         } catch (IOException exception) {
             //
         }
@@ -140,7 +155,14 @@ public class MessageService {
         message.setDeleted(true);
         message.setContent("");
 
-        return messageRepository.save(message);
+        Message saved = messageRepository.save(message);
+
+        members = getChatMembers(chat);
+        User user = userService.getUserById(saved.getSenderId());
+        websocketBroadcaster.broadcastEvent(
+                members.stream().map(ChatMember::getUserId).toList(),
+                ChatEvent.of(ChatEventType.MESSAGE_DELETED, chat.getId(), MessageResponse.from(saved, user))
+        );
     }
 
     public long getUnreadCount(String chatId, String lastReadMessageId) {

@@ -6,5 +6,7 @@ public enum ChatEventType {
     MEMBER_ADDED,
     DETAILS_UPDATED,
     CHAT_CREATED,
-    CHAT_DELETED
+    CHAT_DELETED,
+    MESSAGE_DELETED,
+    MESSAGE_EDITED
 }
