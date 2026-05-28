@@ -13,11 +13,16 @@ public record ChatPreview(
         String chatName,
         String chatImageUrl,
 
+        String lastMessageId,
         String lastMessage,
         Instant lastMessageTimestamp,
+        Boolean lastMessageDeleted,
 
         ChatRole role,
         boolean muted,
 
-        int unreadCount
+        int unreadCount,
+
+        String otherUserId,
+        Instant otherUserLastSeenAt
 ) {}

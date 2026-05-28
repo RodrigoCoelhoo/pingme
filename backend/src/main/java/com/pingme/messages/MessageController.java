@@ -1,11 +1,13 @@
 package com.pingme.messages;
 
 import com.pingme.chats.members.ChatMemberService;
+import com.pingme.messages.dto.MessageRequest;
 import com.pingme.messages.dto.MessageResponse;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import com.pingme.users.dto.UserProfile;
 import com.pingme.shared.utils.PagedResponse;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -96,5 +98,26 @@ public class MessageController {
                 );
 
         return ResponseEntity.ok(responses);
+    }
+
+    @PatchMapping("/{messageId}")
+    public ResponseEntity<MessageResponse> editMessage(
+            @AuthenticationPrincipal UserProfile user,
+            @PathVariable String chatId,
+            @PathVariable String messageId,
+            @RequestBody @Valid MessageRequest request
+            ) {
+        MessageResponse response = messageService.editMessage(chatId, messageId, user.id(), request.content());
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> deleteMessage(
+            @AuthenticationPrincipal UserProfile user,
+            @PathVariable String chatId,
+            @PathVariable String messageId
+    ) {
+        messageService.deleteMessage(chatId, messageId, user.id());
+        return ResponseEntity.noContent().build();
     }
 }

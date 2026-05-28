@@ -5,9 +5,11 @@ import { useEffect, useState } from 'react';
 import Avatar from '../Avatar';
 import ChatDetailsModal from './ChatDetailsModal';
 import AddMembersModal from './AddMembersModal';
+import { formatLastSeen } from '../../utils/time';
 
 interface ChatHeaderProps {
 	chat: ChatPreview;
+	isUserOnline: (userId: string) => boolean;
 	setSidebarOpen: (open: boolean) => void;
 	onLeaveGroup: () => void;
 	onDeleteGroup: () => void;
@@ -22,6 +24,7 @@ interface ChatHeaderProps {
 
 export default function ChatHeader({
 	chat,
+	isUserOnline,
 	setSidebarOpen,
 	onLeaveGroup,
 	onDeleteGroup,
@@ -65,6 +68,11 @@ export default function ChatHeader({
 		setShowAddMembers(true);
 	}
 
+	const online =
+		chat?.otherUserId
+			? isUserOnline(chat.otherUserId)
+			: false;
+
 	return (
 		<div className={styles.header}>
 			<div>
@@ -84,7 +92,7 @@ export default function ChatHeader({
 					{chat.chatType === ChatType.GROUP ? (
 						<p className={styles.status}>Ver detalhes do grupo</p>
 					) : (
-						<p className={styles.status}>Online</p>
+						<p className={styles.status}>{online ? 'Online' : `${formatLastSeen(chat.otherUserLastSeenAt)}`}</p>
 					)}
 				</div>
 			</button>

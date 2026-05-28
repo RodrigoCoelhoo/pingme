@@ -9,7 +9,7 @@ import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
-import com.pingme.messages.MessageBroadcaster;
+import com.pingme.shared.WebsocketBroadcaster;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.messages.Message;
@@ -36,7 +36,7 @@ public class ChatMemberService {
     private final ChatRepository chatRepository;
     private final MessageService messageService;
     private final UserService userService;
-    private final MessageBroadcaster messageBroadcaster;
+    private final WebsocketBroadcaster websocketBroadcaster;
 
     public ChatMember getChatMember(String chatId, String userId) {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId)
@@ -144,7 +144,7 @@ public class ChatMemberService {
         if(data.role() == ChatRole.ADMIN) {
             currentUser.setRole(ChatRole.MODERATOR);
             chatMemberRepository.save(currentUser);
-            messageBroadcaster.broadcastEvent(
+            websocketBroadcaster.broadcastEvent(
                     List.of(currentUser.getUserId()),
                     ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR)
             );
@@ -175,7 +175,7 @@ public class ChatMemberService {
                 SystemMessageContent.of(eventType, usersMap.get(data.userId()).getUsername(), usersMap.get(currentUserId).getUsername())
         );
 
-        messageBroadcaster.broadcastEvent(
+        websocketBroadcaster.broadcastEvent(
                 List.of(otherUser.getUserId()),
                 ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, role)
         );
@@ -222,7 +222,7 @@ public class ChatMemberService {
                 SystemMessageContent.of(SystemEventType.MEMBER_KICKED, usersMap.get(memberId).getUsername(), usersMap.get(currentUserId).getUsername())
         );
 
-        messageBroadcaster.broadcastEvent(
+        websocketBroadcaster.broadcastEvent(
                 List.of(otherUser.getUserId()),
                 ChatEvent.of(ChatEventType.MEMBER_KICKED, chatId)
         );
@@ -304,14 +304,18 @@ public class ChatMemberService {
                     chat.getChatType(),
                     chat.getChatName(),
                     chat.getImageUrl(),
+                    message.getId(),
                     message.getContent(),
                     message.getCreatedAt(),
+                    message.isDeleted(),
                     ChatRole.MEMBER,
                     false,
-                    0
+                    0,
+                    null,
+                    null
             );
 
-            messageBroadcaster.broadcastEvent(
+            websocketBroadcaster.broadcastEvent(
                     new ArrayList<>(allAddedIds),
                     ChatEvent.of(ChatEventType.MEMBER_ADDED, chatId, chatPreview)
             );
@@ -349,6 +353,6 @@ public class ChatMemberService {
         MessageResponse response = MessageResponse.system(message);
 
         List<String> memberIds = getMemberIds(chat.getId());
-        messageBroadcaster.broadcastMessage(memberIds, response);
+        websocketBroadcaster.broadcastMessage(memberIds, response);
     }
 }

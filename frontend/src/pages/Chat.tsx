@@ -13,13 +13,29 @@ import { useChats } from '../hooks/useChats';
 import { ChatEventType, ChatType, MemberRole, type ChatPreview } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useWebSocket } from '../hooks/useWebSocket';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { MessageResponse } from '../services/message/message.types';
 import type { TypingIndicator } from '../services/websocket/websocket.types';
 import chatService from '../services/chat/chat.service';
 import { playNotificationSound } from '../utils/notification';
+import contactService from '../services/contact/contact.service';
 
 export default function Chat() {
+	const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+	useEffect(() => {
+		const loadOnlineUsers = async () => {
+			try {
+				const users = await contactService.getOnlineContacts();
+				setOnlineUsers(new Set(users));
+			} catch (err) {
+				console.error(err);
+			}
+		};
+
+		loadOnlineUsers();
+	}, []);
+
 	// UI state - modals, sidebar, tabs, search
 	const {
 		activeTab,
@@ -64,11 +80,14 @@ export default function Chat() {
 		insertChatSorted,
 		removeChat,
 		updateChat,
-		toggleMuteChat
+		toggleMuteChat,
+		updateChatsByUserId
 	} = useChats({ searchQuery: activeTab === 'chats' ? searchQuery : '' });
 
 	const token = localStorage.getItem('accessToken');
 	const activeChatTypingRef = useRef<((indicator: TypingIndicator) => void) | null>(null);
+	const activeChatEditRef = useRef<((messageId: string, content: string, editedAt: string) => void) | null>(null);
+	const activeChatDeleteRef = useRef<((messageId: string) => void) | null>(null);
 
 	const { sendMessage, sendTyping } = useWebSocket({
 		chatId: activeChat ?? null,
@@ -85,6 +104,8 @@ export default function Chat() {
 					{
 						lastMessage: message.content,
 						lastMessageTimestamp: message.createdAt,
+						lastMessageId: message.messageId,
+						lastMessageDeleted: message.deleted,
 						unreadCount: isActiveChat
 							? 0
 							: isMuted
@@ -101,6 +122,8 @@ export default function Chat() {
 						...fetchedChat,
 						lastMessage: message.content,
 						lastMessageTimestamp: message.createdAt,
+						lastMessageId: message.messageId,
+						lastMessageDeleted: message.deleted,
 						unreadCount: fetchedChat.muted ? 0 : fetchedChat.unreadCount
 					});
 				} catch (error) {
@@ -123,7 +146,7 @@ export default function Chat() {
 		},
 		onEventReceived: (event) => {
 			const exists = chats.find(c => c.chatId === event.chatId);
-			
+
 			switch (event.type) {
 				case ChatEventType.MEMBER_KICKED:
 					removeChat(event.chatId);
@@ -149,7 +172,58 @@ export default function Chat() {
 						updateChat(event.chatId, event.payload as Partial<ChatPreview>);
 					}
 					break;
+				case ChatEventType.MESSAGE_EDITED:
+					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
+						updateChat(event.chatId, {
+							lastMessageId: event.payload.messageId,
+							lastMessage: event.payload.content,
+							lastMessageTimestamp: event.payload.editedAt
+						}, false);
+					}
+
+					if (event.chatId !== activeChat) break;
+					activeChatEditRef.current?.(event.payload.messageId, event.payload.content, event.payload.editedAt);
+					break;
+
+				case ChatEventType.MESSAGE_DELETED:
+					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
+						updateChat(event.chatId, {
+							lastMessageId: event.payload.messageId,
+							lastMessage: event.payload.content,
+							lastMessageDeleted: event.payload.deleted
+						}, false);
+					}
+
+					if (event.chatId !== activeChat) break;
+					activeChatDeleteRef.current?.(event.payload.messageId);
+					break;
 			}
+		},
+		onPresenceReceived: (event) => {
+
+			if (event.status === 'ONLINE') {
+
+				setOnlineUsers(prev => {
+					const next = new Set(prev);
+					next.add(event.userId);
+					return next;
+				});
+
+				return;
+			}
+
+			setOnlineUsers(prev => {
+				const next = new Set(prev);
+				next.delete(event.userId);
+				return next;
+			});
+
+			updateChatsByUserId(
+				event.userId,
+				{
+					otherUserLastSeenAt: event.lastSeenAt
+				}
+			);
 		},
 		enabled: !!token
 	});
@@ -350,6 +424,7 @@ export default function Chat() {
 			<div className={styles.chatMain}>
 				<ChatWindow
 					chat={activeChatPreview}
+					isUserOnline={(userId: string) => onlineUsers.has(userId)}
 					sendMessage={sendMessage}
 					sendTyping={sendTyping}
 					onRegisterMessageHandler={(fn) => { activeChatMessageRef.current = fn; }}
@@ -364,6 +439,8 @@ export default function Chat() {
 					onPromoteMember={groupActions.handlePromoteMember}
 					onMuteChat={groupActions.handleMuteChat}
 					onSendContactRequest={handleSendContactRequestWithUI}
+					onRegisterEditHandler={(fn) => { activeChatEditRef.current = fn; }}
+					onRegisterDeleteHandler={(fn) => { activeChatDeleteRef.current = fn; }}
 				/>
 			</div>
 

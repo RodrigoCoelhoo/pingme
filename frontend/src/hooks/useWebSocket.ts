@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket/websocket.service';
 import type { MessageResponse } from '../services/message/message.types';
-import type { TypingIndicator } from '../services/websocket/websocket.types';
+import type { PresenceEvent, TypingIndicator } from '../services/websocket/websocket.types';
 import type { ChatEvent } from '../services/chat/chat.types';
 
 interface UseWebSocketProps {
@@ -9,7 +9,8 @@ interface UseWebSocketProps {
 	token: string | null;
 	onMessageReceived?: (message: MessageResponse) => void;
 	onTypingReceived?: (indicator: TypingIndicator) => void;
-	onEventReceived?: (event: ChatEvent) => void; 
+	onEventReceived?: (event: ChatEvent) => void;
+	onPresenceReceived?: (event: PresenceEvent) => void;
 	enabled?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function useWebSocket({
 	onMessageReceived,
 	onTypingReceived,
 	onEventReceived,
+	onPresenceReceived,
 	enabled = true
 }: UseWebSocketProps) {
 	const isInitializedRef = useRef(false);
@@ -26,16 +28,19 @@ export function useWebSocket({
 	const unsubscribeTypingRef = useRef<(() => void) | null>(null);
 	const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
 	const unsubscribeEventsRef = useRef<(() => void) | null>(null);
+	const unsubscribePresenceRef = useRef<(() => void) | null>(null);
 
 	const onEventReceivedRef = useRef(onEventReceived);
 	const onMessageReceivedRef = useRef(onMessageReceived);
 	const onTypingReceivedRef = useRef(onTypingReceived);
+	const onPresenceReceivedRef = useRef(onPresenceReceived);
 
 	useEffect(() => {
 		onMessageReceivedRef.current = onMessageReceived;
 		onTypingReceivedRef.current = onTypingReceived;
 		onEventReceivedRef.current = onEventReceived;
-	}, [onMessageReceived, onTypingReceived, onEventReceived]);
+		onPresenceReceivedRef.current = onPresenceReceived;
+	}, [onMessageReceived, onTypingReceived, onEventReceived, onPresenceReceived]);
 
 	// Conexão + subscrição global de mensagens (uma vez por sessão)
 	useEffect(() => {
@@ -57,6 +62,10 @@ export function useWebSocket({
 				unsubscribeEventsRef.current = webSocketService.subscribeToUserEvents(
 					(event) => onEventReceivedRef.current?.(event)
 				);
+
+				unsubscribePresenceRef.current = webSocketService.subscribeToPresence(
+					(event) => onPresenceReceivedRef.current?.(event)
+				);
 			},
 			onDisconnect: () => {
 				console.log('❌ WebSocket disconnected');
@@ -69,6 +78,7 @@ export function useWebSocket({
 			unsubscribeMessagesRef.current?.();
 			unsubscribeTypingRef.current?.();
 			unsubscribeEventsRef.current?.();
+			unsubscribePresenceRef.current?.();
 			webSocketService.disconnect();
 			isInitializedRef.current = false;
 		};

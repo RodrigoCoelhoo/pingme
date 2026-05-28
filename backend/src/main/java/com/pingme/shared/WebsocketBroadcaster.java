@@ -1,7 +1,8 @@
-package com.pingme.messages;
+package com.pingme.shared;
 
 import com.pingme.chats.events.ChatEvent;
 import com.pingme.messages.dto.MessageResponse;
+import com.pingme.shared.presence.PresenceEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -10,7 +11,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class MessageBroadcaster {
+public class WebsocketBroadcaster {
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -23,6 +24,12 @@ public class MessageBroadcaster {
     public void broadcastEvent(List<String> recipientIds, ChatEvent event) {
         for (String memberId : recipientIds) {
             messagingTemplate.convertAndSendToUser(memberId, "/queue/events", event);
+        }
+    }
+
+    public void broadcastPresence(List<String> recipientIds, PresenceEvent event) {
+        for (String memberId : recipientIds) {
+            messagingTemplate.convertAndSendToUser(memberId, "/queue/presence", event);
         }
     }
 }

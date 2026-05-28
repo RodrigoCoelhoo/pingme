@@ -24,9 +24,11 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 	}, []);
 
 	const parsedMessage = useMemo(() => {
+		if (chat.lastMessageDeleted) return 'Message deleted';
 		if (!chat.lastMessage) return '';
+
 		return parseMessage(chat.lastMessage);
-	}, [chat.lastMessage]);
+	}, [chat.lastMessage, chat.lastMessageDeleted]);
 
 	const handleDelete = (e: React.MouseEvent) => {
 		e.stopPropagation();
@@ -57,7 +59,7 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 				</div>
 
 				<div className={styles.bottomRow}>
-					{chat.lastMessage && (
+					{(chat.lastMessage || chat.lastMessageDeleted) && (
 						<div className={styles.lastMessage}>{parsedMessage}</div>
 					)}
 

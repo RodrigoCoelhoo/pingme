@@ -41,7 +41,7 @@ public class User {
 
     private String providerId;
 
-    private LocalDateTime lastSeenAt;
+    private Instant lastSeenAt;
 
     @CreatedDate
     private LocalDateTime createdAt;

@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +49,7 @@ public class UserService {
                 .username(request.username())
                 .password(encryptedPassword)
                 .displayName(request.displayName())
-                .lastSeenAt(LocalDateTime.now())
+                .lastSeenAt(Instant.now())
                 .build();
 
         User savedUser = userRepository.save(user);
@@ -113,5 +114,9 @@ public class UserService {
                 saved.getDisplayName(),
                 saved.getAvatarUrl()
         );
+    }
+
+    public User save(User dbUser) {
+        return userRepository.save(dbUser);
     }
 }

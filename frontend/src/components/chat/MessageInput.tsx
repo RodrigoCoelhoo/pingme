@@ -19,9 +19,12 @@ interface MessageInputProps {
 	onSendMessage: (content: string, files?: File[]) => void;
 	onTyping?: (isTyping: boolean) => void;
 	disabled?: boolean;
+	initialValue?: string;
+	editMode?: boolean;
+	onCancelEdit?: () => void;
 }
 
-export default function MessageInput({ onSendMessage, disabled = false, onTyping }: MessageInputProps) {
+export default function MessageInput({ onSendMessage, disabled = false, onTyping, initialValue, editMode, onCancelEdit }: MessageInputProps) {
 	const [message, setMessage] = useState('');
 	const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 	const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
@@ -35,6 +38,28 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 	const { theme } = useTheme();
 
 	const [messageError, setMessageError] = useState('');
+
+	useEffect(() => {
+		if (editMode && initialValue !== undefined) {
+			setMessage(initialValue);
+
+			setTimeout(() => {
+				if (textareaRef.current) {
+					textareaRef.current.style.height = 'auto';
+					textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+				}
+			}, 0);
+		}
+		if (!editMode) {
+			setMessage('');
+			setMessageError('');
+			setTimeout(() => {
+				if (textareaRef.current) {
+					textareaRef.current.style.height = 'auto';
+				}
+			}, 0);
+		}
+	}, [editMode, initialValue]);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -220,6 +245,21 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 
 	return (
 		<div className={styles.messageInputWrapper}>
+			{editMode && initialValue && (
+				<div className={styles.editContainer}>
+					<div className={styles.editPreview}>
+						<div className={styles.editPreviewBar} />
+						<div className={styles.editPreviewContent}>
+							<span className={styles.editPreviewLabel}>A editar mensagem</span>
+							<p className={styles.editPreviewText}>{initialValue}</p>
+						</div>
+						<button className={styles.editPreviewClose} onClick={onCancelEdit} type="button">
+							<X size={16} />
+						</button>
+					</div>
+				</div>
+			)}
+
 			{/* File preview strip */}
 			{attachedFiles.length > 0 && (
 				<div className={styles.filePreviewStrip}>
@@ -281,7 +321,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 					className={`${styles.iconBtn} ${attachedFiles.length > 0 ? styles.iconBtnActive : ''}`}
 					title={attachedFiles.length >= MAX_FILES ? `Limite de ${MAX_FILES} ficheiros atingido` : 'Anexar ficheiro'}
 					onClick={() => fileInputRef.current?.click()}
-					disabled={disabled || attachedFiles.length >= MAX_FILES}
+					disabled={disabled || attachedFiles.length >= MAX_FILES || editMode}
 					type="button"
 				>
 					<Paperclip size={20} />

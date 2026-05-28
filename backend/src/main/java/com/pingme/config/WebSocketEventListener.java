@@ -1,6 +1,13 @@
 package com.pingme.config;
 
+import com.pingme.contacts.ContactService;
+import com.pingme.shared.WebsocketBroadcaster;
+import com.pingme.shared.presence.PresenceEvent;
+import com.pingme.shared.presence.PresenceStatus;
+import com.pingme.shared.presence.PresenceTracker;
+import com.pingme.users.User;
 import com.pingme.users.UserRepository;
+import com.pingme.users.UserService;
 import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,72 +17,93 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class WebSocketEventListener {
 
-    private final UserRepository userRepository;
-    
-    // In-memory store: userId -> sessionId
-    private final Map<String, String> onlineUsers = new ConcurrentHashMap<>();
+    private final PresenceTracker presenceTracker;
+    private final ContactService contactService;
+    private final WebsocketBroadcaster websocketBroadcaster;
+    private final UserService userService;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        
         Map<String, Object> sessionAttributes = headerAccessor.getSessionAttributes();
-        
-        if (sessionAttributes != null) {
-            UserProfile user = (UserProfile) sessionAttributes.get("user");
-            
-            if (user != null) {
-                String sessionId = headerAccessor.getSessionId();
-                onlineUsers.put(user.id(), sessionId);
-                
-                log.info("User connected: {} (session: {})", user.username(), sessionId);
-            }
+
+        if (sessionAttributes == null) {
+            return;
         }
+
+        UserProfile user = (UserProfile) sessionAttributes.get("user");
+
+        if (user == null) {
+            return;
+        }
+
+        boolean becameOnline = presenceTracker.connect(
+                user.id(),
+                headerAccessor.getSessionId()
+        );
+
+        if(becameOnline) {
+            PresenceEvent presenceEvent = new PresenceEvent(
+                    user.id(),
+                    PresenceStatus.ONLINE,
+                    null
+            );
+
+            List<String> contacts = contactService.getAcceptedContactIds(user.id());
+            websocketBroadcaster.broadcastPresence(contacts, presenceEvent);
+        }
+
+        log.info("User connected: {}", user.username());
     }
 
     @EventListener
     public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        
         Map<String, Object> sessionAttributes = headerAccessor.getSessionAttributes();
-        
-        if (sessionAttributes != null) {
-            UserProfile user = (UserProfile) sessionAttributes.get("user");
-            
-            if (user != null) {
-                onlineUsers.remove(user.id());
-                
-                // Update lastSeenAt in database
-                userRepository.findById(user.id()).ifPresent(dbUser -> {
-                    dbUser.setLastSeenAt(LocalDateTime.now());
-                    userRepository.save(dbUser);
-                });
-                
-                log.info("User disconnected: {} (session: {})", user.username(), headerAccessor.getSessionId());
-            }
+
+        if (sessionAttributes == null) {
+            return;
         }
-    }
 
-    /**
-     * Check if a user is currently online
-     */
-    public boolean isUserOnline(String userId) {
-        return onlineUsers.containsKey(userId);
-    }
+        UserProfile user = (UserProfile) sessionAttributes.get("user");
 
-    /**
-     * Get all online user IDs
-     */
-    public Map<String, String> getOnlineUsers() {
-        return new ConcurrentHashMap<>(onlineUsers);
+        if (user == null) {
+            return;
+        }
+
+        boolean becameOffline = presenceTracker.disconnect(
+                user.id(),
+                headerAccessor.getSessionId()
+        );
+
+        if (becameOffline) {
+            Instant lastSeenAt = Instant.now();
+            User dbUser = userService.getUserById(user.id());
+
+            dbUser.setLastSeenAt(lastSeenAt);
+            dbUser = userService.save(dbUser);
+
+            PresenceEvent presenceEvent = new PresenceEvent(
+                    dbUser.getId(),
+                    PresenceStatus.OFFLINE,
+                    dbUser.getLastSeenAt()
+            );
+
+            List<String> contacts = contactService.getAcceptedContactIds(dbUser.getId());
+            websocketBroadcaster.broadcastPresence(contacts, presenceEvent);
+        }
+
+        log.info("User disconnected: {}", user.username());
     }
 }

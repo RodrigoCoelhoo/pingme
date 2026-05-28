@@ -32,6 +32,11 @@ class ContactService {
 	async deleteContact(contactId: string): Promise<void> {
 		await api.delete(`/contacts/${contactId}`);
 	}
+
+	async getOnlineContacts(): Promise<string[]> {
+		const response = await api.get<string[]>('/contacts/online');
+		return response.data;
+	}
 }
 
 export default new ContactService();

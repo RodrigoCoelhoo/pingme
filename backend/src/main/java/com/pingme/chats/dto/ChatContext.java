@@ -16,14 +16,24 @@ public record ChatContext(
         Instant sortTime,
         int unreadCount
 ) {
-    public ChatPreview toPreview() {
-        String chatName = chat.getChatType() == ChatType.PRIVATE && otherUser != null
-                ? otherUser.getDisplayName()
-                : chat.getChatName();
+    public ChatPreview toPreview(boolean online) {
+        String chatName = chat.getChatName();
+        String chatImageUrl = chat.getImageUrl();
+        String otherUserId = null;
+        Instant otherUserLastSeenAt = null;
 
-        String chatImageUrl = chat.getChatType() == ChatType.PRIVATE && otherUser != null
-                ? otherUser.getAvatarUrl()
-                : chat.getImageUrl();
+        if(chat.getChatType() == ChatType.PRIVATE && otherUser != null) {
+            chatName = otherUser.getDisplayName();
+            chatImageUrl = otherUser.getAvatarUrl();
+            otherUserId = otherUser.getId();
+            if(!online) {
+                otherUserLastSeenAt = otherUser.getLastSeenAt();
+            }
+        }
+
+        String lastMessageId = lastMessage != null
+                ? lastMessage.getId()
+                : null;
 
         String lastMessageContent = lastMessage != null
                 ? lastMessage.getContent()
@@ -33,16 +43,24 @@ public record ChatContext(
                 ? lastMessage.getCreatedAt()
                 : null;
 
+        Boolean lastMessageDeleted = lastMessage != null
+                ? lastMessage.isDeleted()
+                : null;
+
         return new ChatPreview(
                 chat.getId(),
                 chat.getChatType(),
                 chatName,
                 chatImageUrl,
+                lastMessageId,
                 lastMessageContent,
                 lastMessageTimestamp,
+                lastMessageDeleted,
                 member.getRole(),
                 member.isMuted(),
-                unreadCount
+                unreadCount,
+                otherUserId,
+                otherUserLastSeenAt
         );
     }
 }
