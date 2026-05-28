@@ -86,6 +86,8 @@ export default function Chat() {
 
 	const token = localStorage.getItem('accessToken');
 	const activeChatTypingRef = useRef<((indicator: TypingIndicator) => void) | null>(null);
+	const activeChatEditRef = useRef<((messageId: string, content: string, editedAt: string) => void) | null>(null);
+	const activeChatDeleteRef = useRef<((messageId: string) => void) | null>(null);
 
 	const { sendMessage, sendTyping } = useWebSocket({
 		chatId: activeChat ?? null,
@@ -102,6 +104,8 @@ export default function Chat() {
 					{
 						lastMessage: message.content,
 						lastMessageTimestamp: message.createdAt,
+						lastMessageId: message.messageId,
+						lastMessageDeleted: message.deleted,
 						unreadCount: isActiveChat
 							? 0
 							: isMuted
@@ -118,6 +122,8 @@ export default function Chat() {
 						...fetchedChat,
 						lastMessage: message.content,
 						lastMessageTimestamp: message.createdAt,
+						lastMessageId: message.messageId,
+						lastMessageDeleted: message.deleted,
 						unreadCount: fetchedChat.muted ? 0 : fetchedChat.unreadCount
 					});
 				} catch (error) {
@@ -165,6 +171,31 @@ export default function Chat() {
 					if (exists) {
 						updateChat(event.chatId, event.payload as Partial<ChatPreview>);
 					}
+					break;
+				case ChatEventType.MESSAGE_EDITED:
+					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
+						updateChat(event.chatId, {
+							lastMessageId: event.payload.messageId,
+							lastMessage: event.payload.content,
+							lastMessageTimestamp: event.payload.editedAt
+						}, false);
+					}
+
+					if (event.chatId !== activeChat) break;
+					activeChatEditRef.current?.(event.payload.messageId, event.payload.content, event.payload.editedAt);
+					break;
+
+				case ChatEventType.MESSAGE_DELETED:
+					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
+						updateChat(event.chatId, {
+							lastMessageId: event.payload.messageId,
+							lastMessage: event.payload.content,
+							lastMessageDeleted: event.payload.deleted
+						}, false);
+					}
+
+					if (event.chatId !== activeChat) break;
+					activeChatDeleteRef.current?.(event.payload.messageId);
 					break;
 			}
 		},
@@ -408,6 +439,8 @@ export default function Chat() {
 					onPromoteMember={groupActions.handlePromoteMember}
 					onMuteChat={groupActions.handleMuteChat}
 					onSendContactRequest={handleSendContactRequestWithUI}
+					onRegisterEditHandler={(fn) => { activeChatEditRef.current = fn; }}
+					onRegisterDeleteHandler={(fn) => { activeChatDeleteRef.current = fn; }}
 				/>
 			</div>
 

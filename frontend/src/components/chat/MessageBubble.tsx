@@ -5,22 +5,35 @@ import { getColor } from '../../utils/color';
 import { formatTime } from '../../utils/time';
 import Avatar from '../Avatar';
 import { createPortal } from 'react-dom';
-import { AlertCircle, Download, X } from 'lucide-react';
+import { AlertCircle, Download, Pencil, Trash2, X } from 'lucide-react';
 import { parseMessage } from '../../utils/messagesParser';
+import { MemberRole } from '../../services/chat/chat.types';
 
 interface MessageBubbleProps {
 	message: MessageResponse;
 	isOwn: boolean;
 	showNameAndAvatar: boolean;
 	onRemoveFailed?: (messageId: string) => void;
+	onEdit?: (message: MessageResponse) => void;
+	onDelete?: (messageId: string) => void;
+	currentUserRole?: MemberRole;
 }
 
 export default function MessageBubble({
 	message,
 	isOwn,
 	showNameAndAvatar,
-	onRemoveFailed
+	onRemoveFailed,
+	onEdit,
+	onDelete,
+	currentUserRole
 }: MessageBubbleProps) {
+	const [showMenu, setShowMenu] = useState(false);
+	const canEdit = isOwn && !message.deleted && !message.pending && !message.failed && message.type === 'TEXT';
+	const canDelete = (isOwn || currentUserRole === MemberRole.MODERATOR || currentUserRole === MemberRole.ADMIN)
+		&& !message.pending && !message.failed;
+	const showActions = canEdit || canDelete;
+
 	const [showImageModal, setShowImageModal] = useState(false);
 
 	if (message.type === 'SYSTEM') {
@@ -54,8 +67,8 @@ export default function MessageBubble({
 		}
 	};
 
-	return (
-		<>
+	if (message.deleted) {
+		return (
 			<div className={`${styles.messageWrapper} ${isOwn ? styles.own : styles.other}`}>
 				{!isOwn && showNameAndAvatar && (
 					<div className={styles.avatar}>
@@ -78,6 +91,63 @@ export default function MessageBubble({
 							{message.senderDisplayName}
 						</span>
 					)}
+					<div className={`${styles.bubble} ${styles.deletedBubble}`}>
+						<p className={styles.deletedText}>Mensagem eliminada</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<>
+			<div className={`${styles.messageWrapper} ${isOwn ? styles.own : styles.other}`}>
+				{!isOwn && showNameAndAvatar && (
+					<div className={styles.avatar}>
+						<Avatar
+							name={message?.senderDisplayName || 'User'}
+							src={message.senderAvatarUrl}
+						/>
+					</div>
+				)}
+
+				{!isOwn && !showNameAndAvatar && <div className={styles.avatarSpacer} />}
+				{isOwn && <div className={styles.ownSpacer} />}
+
+				{isOwn && showActions && !message.deleted && (
+					<div className={styles.messageActions}>
+						<button
+							className={styles.actionsToggle}
+							onClick={() => setShowMenu(v => !v)}
+						>
+							<Pencil size={14} />
+						</button>
+						{showMenu && (
+							<div className={styles.actionsDropdown}>
+								{canEdit && (
+									<button onClick={() => { onEdit?.(message); setShowMenu(false); }}>
+										<Pencil size={14} /> Editar
+									</button>
+								)}
+								{canDelete && (
+									<button onClick={() => { onDelete?.(message.messageId); setShowMenu(false); }} className={styles.deleteBtn}>
+										<Trash2 size={14} /> Eliminar
+									</button>
+								)}
+							</div>
+						)}
+					</div>
+				)}
+
+				<div className={styles.messageContent}>
+					{showNameAndAvatar && !isOwn && (
+						<span
+							className={styles.senderName}
+							style={{ color: nameColor }}
+						>
+							{message.senderDisplayName}
+						</span>
+					)}
 
 					{message.type === 'TEXT' && (
 						<div className={styles.bubble}>
@@ -85,9 +155,12 @@ export default function MessageBubble({
 							<p className={styles.text}>{message.content}</p>
 
 							<div className={styles.metadata}>
-								<span className={styles.time}>
-									{formatTime(message.createdAt)}
-								</span>
+								{message.editedAt && 
+								<div className={styles.editedInfo}>
+									<Pencil size={11} />
+									<span className={styles.editedLabel}>editado</span>
+									</div>}
+								<span className={styles.time}>{formatTime(message.createdAt)}</span>
 							</div>
 						</div>
 					)}
@@ -173,6 +246,31 @@ export default function MessageBubble({
 						</a>
 					)}
 				</div>
+
+				{!isOwn && showActions && !message.deleted && (
+					<div className={styles.messageActions}>
+						<button
+							className={styles.actionsToggle}
+							onClick={() => setShowMenu(v => !v)}
+						>
+							<Pencil size={14} />
+						</button>
+						{showMenu && (
+							<div className={styles.actionsDropdown}>
+								{canEdit && (
+									<button onClick={() => { onEdit?.(message); setShowMenu(false); }}>
+										<Pencil size={14} /> Editar
+									</button>
+								)}
+								{canDelete && (
+									<button onClick={() => { onDelete?.(message.messageId); setShowMenu(false); }} className={styles.deleteBtn}>
+										<Trash2 size={14} /> Eliminar
+									</button>
+								)}
+							</div>
+						)}
+					</div>
+				)}
 			</div>
 
 			{showImageModal &&

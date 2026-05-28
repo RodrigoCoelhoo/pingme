@@ -9,6 +9,7 @@ import com.pingme.chats.events.ChatEvent;
 import com.pingme.chats.events.ChatEventType;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberRepository;
+import com.pingme.chats.members.ChatRole;
 import com.pingme.messages.dto.MessageResponse;
 import com.pingme.shared.WebsocketBroadcaster;
 import com.pingme.shared.cloudinary.CloudinaryService;
@@ -127,16 +128,11 @@ public class MessageService {
             throw new BadRequestException("Message is already deleted");
         }
 
-        List<ChatMember> members = chatMemberRepository.findAllByChatIdAndUserIdIn(chatId, List.of(message.getSenderId(), currentUserId));
-        if(members.size() != 2) {
-            throw new ForbiddenException("Both users must be members of the chat");
-        }
-
-        ChatMember currentUserMembership = members.get(0).getUserId().equals(currentUserId) ? members.get(0) : members.get(1);
-        ChatMember otherUserMembership = members.get(0).getUserId().equals(message.getSenderId()) ? members.get(0) : members.get(1);
+        ChatMember currentUserMembership = chatMemberRepository.findByChatIdAndUserId(chatId, currentUserId)
+                .orElseThrow(() -> new ForbiddenException("Current user doesn't belong to this chat"));
 
         boolean isOwnMessage = message.getSenderId().equals(currentUserId);
-        if (!isOwnMessage && currentUserMembership.getRole().compareTo(otherUserMembership.getRole()) >= 0) {
+        if (!isOwnMessage && currentUserMembership.getRole() == ChatRole.MEMBER) {
             throw new ForbiddenException("You don't have permission to delete this message");
         }
 
@@ -157,7 +153,7 @@ public class MessageService {
 
         Message saved = messageRepository.save(message);
 
-        members = getChatMembers(chat);
+        List<ChatMember> members = getChatMembers(chat);
         User user = userService.getUserById(saved.getSenderId());
         websocketBroadcaster.broadcastEvent(
                 members.stream().map(ChatMember::getUserId).toList(),

@@ -30,6 +30,8 @@ interface ChatWindowProps {
 	onPromoteMember: (chatId: string, memberId: string, newRole: MemberRole) => void;
 	onMuteChat: (chatId: string) => void;
 	onSendContactRequest: (memberUsername: string) => void;
+	onRegisterEditHandler: (fn: (messageId: string, content: string, editedAt: string) => void) => void;
+	onRegisterDeleteHandler: (fn: (messageId: string) => void) => void;
 }
 
 export default function ChatWindow({
@@ -48,7 +50,9 @@ export default function ChatWindow({
 	onPromoteMember,
 	onMuteChat,
 	onSendContactRequest,
-	onUpdateChat
+	onUpdateChat,
+	onRegisterEditHandler,
+	onRegisterDeleteHandler
 }: ChatWindowProps) {
 	const [messages, setMessages] = useState<MessageResponse[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +69,45 @@ export default function ChatWindow({
 
 	const { user } = useAuth();
 	const currentUserId = user?.id || '';
+
+	const [editingMessage, setEditingMessage] = useState<MessageResponse | null>(null);
+
+	const handleEditMessage = async (messageId: string, content: string) => {
+		if (!chat?.chatId) return;
+		try {
+			await messageService.editMessage(chat.chatId, messageId, { content, type: 'TEXT' });
+			setMessages(prev => prev.map(m =>
+				m.messageId === messageId ? { ...m, content, editedAt: new Date().toISOString() } : m
+			));
+		} catch { showError('Erro ao editar mensagem.'); }
+		setEditingMessage(null);
+	};
+
+	const handleDeleteMessage = async (messageId: string) => {
+		if (!chat?.chatId) return;
+		try {
+			await messageService.deleteMessage(chat.chatId, messageId);
+			setMessages(prev => prev.map(m =>
+				m.messageId === messageId ? { ...m, deleted: true, content: '' } : m
+			));
+		} catch { showError('Erro ao eliminar mensagem.'); }
+	};
+
+	useEffect(() => {
+		onRegisterEditHandler((messageId, content, editedAt) => {
+			setMessages(prev => prev.map(m =>
+				m.messageId === messageId ? { ...m, content, editedAt } : m
+			));
+		});
+	}, [chat?.chatId]);
+
+	useEffect(() => {
+		onRegisterDeleteHandler((messageId) => {
+			setMessages(prev => prev.map(m =>
+				m.messageId === messageId ? { ...m, deleted: true, content: '' } : m
+			));
+		});
+	}, [chat?.chatId]);
 
 	const loadMoreMessages = useCallback(async () => {
 		if (!chat?.chatId || !hasMoreMessages || isLoadingMore) return;
@@ -346,6 +389,9 @@ export default function ChatWindow({
 		if (index === 0) return true;
 		const current = messages[index];
 		const prev = messages[index - 1];
+
+		if (prev?.deleted) return current.senderId !== prev?.senderId;
+
 		return current.senderId !== prev?.senderId;
 	};
 
@@ -430,6 +476,9 @@ export default function ChatWindow({
 											isOwn={message.senderId === currentUserId}
 											showNameAndAvatar={shouldShowNameAndAvatar(index)}
 											onRemoveFailed={handleRemoveFailedMessage}
+											onEdit={setEditingMessage}
+											onDelete={handleDeleteMessage}
+											currentUserRole={chat.role}
 										/>
 									</div>
 								)
@@ -463,11 +512,14 @@ export default function ChatWindow({
 				</button>
 			)}
 
-
-
 			<MessageInput
-				onSendMessage={handleSendMessage}
+				onSendMessage={editingMessage
+					? (content) => handleEditMessage(editingMessage.messageId, content)
+					: handleSendMessage}
 				onTyping={handleTyping}
+				initialValue={editingMessage?.content}
+				editMode={!!editingMessage}
+				onCancelEdit={() => setEditingMessage(null)}
 			/>
 
 			{/* Debug info*/}

@@ -4,7 +4,6 @@ import com.pingme.chats.ChatType;
 import com.pingme.chats.members.ChatRole;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 public record ChatPreview(
 
@@ -14,8 +13,10 @@ public record ChatPreview(
         String chatName,
         String chatImageUrl,
 
+        String lastMessageId,
         String lastMessage,
         Instant lastMessageTimestamp,
+        Boolean lastMessageDeleted,
 
         ChatRole role,
         boolean muted,

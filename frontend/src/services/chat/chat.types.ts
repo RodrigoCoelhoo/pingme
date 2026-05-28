@@ -5,8 +5,10 @@ export interface ChatPreview {
 	chatType: ChatType;
 	chatName: string;
 	chatImageUrl: string;
+	lastMessageId: string;
 	lastMessage: string;
 	lastMessageTimestamp: string;
+	lastMessageDeleted: boolean | null;
 	role: MemberRole;
 	muted: boolean;
 	unreadCount: number;
@@ -50,6 +52,8 @@ export enum ChatEventType {
     MEMBER_ROLE_UPDATED = 'MEMBER_ROLE_UPDATED',
     MEMBER_ADDED = 'MEMBER_ADDED',
 	DETAILS_UPDATED = 'DETAILS_UPDATED',
+	MESSAGE_EDITED = "MESSAGE_EDITED",
+	MESSAGE_DELETED = "MESSAGE_DELETED",
 }
 
 export interface UpdateChatRequest {

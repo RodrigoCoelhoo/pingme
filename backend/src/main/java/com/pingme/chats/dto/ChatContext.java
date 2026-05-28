@@ -7,7 +7,6 @@ import com.pingme.messages.Message;
 import com.pingme.users.User;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 public record ChatContext(
         Chat chat,
@@ -32,6 +31,10 @@ public record ChatContext(
             }
         }
 
+        String lastMessageId = lastMessage != null
+                ? lastMessage.getId()
+                : null;
+
         String lastMessageContent = lastMessage != null
                 ? lastMessage.getContent()
                 : null;
@@ -40,13 +43,19 @@ public record ChatContext(
                 ? lastMessage.getCreatedAt()
                 : null;
 
+        Boolean lastMessageDeleted = lastMessage != null
+                ? lastMessage.isDeleted()
+                : null;
+
         return new ChatPreview(
                 chat.getId(),
                 chat.getChatType(),
                 chatName,
                 chatImageUrl,
+                lastMessageId,
                 lastMessageContent,
                 lastMessageTimestamp,
+                lastMessageDeleted,
                 member.getRole(),
                 member.isMuted(),
                 unreadCount,

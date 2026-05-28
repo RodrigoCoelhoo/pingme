@@ -64,12 +64,16 @@ public class ChatService {
 
         User otherUser = userService.getUserById(otherUserId);
 
+        String lastMessageId = null;
         String lastMessage = null;
         Instant lastMessageTimestamp = null;
+        Boolean lastMessageDeleted = null;
         if (chat.getLastMessageId() != null) {
             Message message = messageService.getMessage(chat.getLastMessageId());
+            lastMessageId = message.getId();
             lastMessage = message.getContent();
             lastMessageTimestamp = message.getCreatedAt();
+            lastMessageDeleted = message.isDeleted();
         }
 
         long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
@@ -79,8 +83,10 @@ public class ChatService {
                 chat.getChatType(),
                 otherUser.getDisplayName(),
                 otherUser.getAvatarUrl(),
+                lastMessageId,
                 lastMessage,
                 lastMessageTimestamp,
+                lastMessageDeleted,
                 member.getRole(),
                 member.isMuted(),
                 (int) unreadCount,
@@ -198,7 +204,9 @@ public class ChatService {
                 chat.getChatType(),
                 chat.getChatName(),
                 chat.getImageUrl(),
-                "",
+                null,
+                null,
+                null,
                 null,
                 ChatRole.ADMIN,
                 false,
@@ -488,12 +496,16 @@ public class ChatService {
             otherUser = userService.getUserById(otherUserId);
         }
 
+        String lastMessageId = null;
         String lastMessage = null;
         Instant lastMessageTimestamp = null;
+        Boolean lastMessageDeleted = null;
         if (chat.getLastMessageId() != null) {
             Message message = messageService.getMessage(chat.getLastMessageId());
+            lastMessageId = message.getId();
             lastMessage = message.getContent();
             lastMessageTimestamp = message.getCreatedAt();
+            lastMessageDeleted = message.isDeleted();
         }
 
         long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
@@ -518,8 +530,10 @@ public class ChatService {
                 chat.getChatType(),
                 chatName,
                 chatImage,
+                lastMessageId,
                 lastMessage,
                 lastMessageTimestamp,
+                lastMessageDeleted,
                 member.getRole(),
                 member.isMuted(),
                 (int) unreadCount,
