@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import type { ChatPreview } from '../services/chat/chat.types';
 import chatService from '../services/chat/chat.service';
 
-const CHATS_PAGE_SIZE = 10;
+const CHATS_PAGE_SIZE = 20;
 
 interface UseChatsProps {
 	searchQuery?: string;
@@ -53,7 +53,7 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		}
 	}, [isLoading, hasMore, page, searchQuery, loadChats]);
 
-	const insertChatSorted = useCallback((newChat: ChatPreview) => {
+	const insertChatSorted = useCallback((newChat: ChatPreview, sort?: boolean) => {
 		setChats(prev => {
 			const exists = prev.some(c => c.chatId === newChat.chatId);
 			if (exists) return prev;
@@ -62,7 +62,7 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 
 			const updated = [newChat, ...prev];
 
-			return updated.sort((a, b) => {
+			return sort ? updated.sort((a, b) => {
 				if (!a.lastMessageTimestamp) return -1;
 				if (!b.lastMessageTimestamp) return 1;
 
@@ -70,7 +70,7 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 					new Date(b.lastMessageTimestamp).getTime() -
 					new Date(a.lastMessageTimestamp).getTime()
 				);
-			});
+			}) : updated;
 		});
 	}, []);
 

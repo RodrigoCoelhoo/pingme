@@ -199,28 +199,35 @@ public class ChatService {
 
         chatMemberService.saveAll(chatMembers);
 
-        ChatPreview chatPreview = new ChatPreview(
-                chat.getId(),
-                chat.getChatType(),
-                chat.getChatName(),
-                chat.getImageUrl(),
-                null,
-                null,
-                null,
-                null,
-                ChatRole.ADMIN,
-                false,
-                0,
-                null,
-                null
-        );
+        ChatPreview adminPreview = null;
+        for (ChatMember member : chatMembers) {
+            ChatPreview chatPreview = new ChatPreview(
+                    chat.getId(),
+                    chat.getChatType(),
+                    chat.getChatName(),
+                    chat.getImageUrl(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    member.getRole(),
+                    false,
+                    0,
+                    null,
+                    null
+            );
 
-        websocketBroadcaster.broadcastEvent(
-                chatMembers.stream().map(ChatMember::getUserId).toList(),
-                ChatEvent.of(ChatEventType.CHAT_CREATED, chat.getId(), chatPreview)
-        );
+            if (member.getRole() == ChatRole.ADMIN) {
+                adminPreview = chatPreview;
+            }
 
-        return chatPreview;
+            websocketBroadcaster.broadcastEvent(
+                    List.of(member.getUserId()),
+                    ChatEvent.of(ChatEventType.CHAT_CREATED, chat.getId(), chatPreview)
+            );
+        }
+
+        return adminPreview;
     }
 
     private Chat createChat(Chat chat) {

@@ -165,7 +165,7 @@ export default function Chat() {
 				case ChatEventType.MEMBER_ADDED:
 				case ChatEventType.CHAT_CREATED:
 					if (!exists) {
-						insertChatSorted(event.payload as ChatPreview);
+						insertChatSorted(event.payload as ChatPreview, false);
 					}
 					break;
 
