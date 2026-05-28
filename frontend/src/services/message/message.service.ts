@@ -24,10 +24,8 @@ class MessageService {
 		});
 	}
 
-	async editMessage(chatId: string, messageId: string, newContent: string): Promise<MessageResponse> {
-		const response = await api.patch<MessageResponse>(`/chats/${chatId}/messages/${messageId}`, {
-			content: newContent
-		});
+	async editMessage(chatId: string, messageId: string, request: MessageRequest): Promise<MessageResponse> {
+		const response = await api.patch<MessageResponse>(`/chats/${chatId}/messages/${messageId}`, request);
 		return response.data;
 	}
 

@@ -5,6 +5,14 @@ export function parseMessage(content: string): ReactNode {
 	try {
 		const data = JSON.parse(content);
 
+		if (
+			typeof data !== 'object' ||
+			data === null ||
+			!('event' in data)
+		) {
+			return content;
+		}
+
 		switch (data.event) {
 			case 'MEMBER_LEFT':
 				return (
@@ -48,7 +56,9 @@ export function parseMessage(content: string): ReactNode {
 				return (
 					<div>
 						<strong>@{data.actorName}</strong>
-						<span> removeu privilégios de <strong>MODERADOR</strong> de </span>
+						<span>
+							removeu privilégios de <strong>MODERADOR</strong> de
+						</span>{' '}
 						<strong>@{data.targetNames[0]}</strong>
 					</div>
 				);
@@ -63,7 +73,7 @@ export function parseMessage(content: string): ReactNode {
 				);
 
 			default:
-				return 'Mensagem de sistema';
+				return content;
 		}
 	} catch {
 		const isCloudinary = content.includes('res.cloudinary.com');

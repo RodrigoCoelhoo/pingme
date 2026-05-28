@@ -64,12 +64,16 @@ public class ChatService {
 
         User otherUser = userService.getUserById(otherUserId);
 
+        String lastMessageId = null;
         String lastMessage = null;
         Instant lastMessageTimestamp = null;
+        Boolean lastMessageDeleted = null;
         if (chat.getLastMessageId() != null) {
             Message message = messageService.getMessage(chat.getLastMessageId());
+            lastMessageId = message.getId();
             lastMessage = message.getContent();
             lastMessageTimestamp = message.getCreatedAt();
+            lastMessageDeleted = message.isDeleted();
         }
 
         long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
@@ -79,8 +83,10 @@ public class ChatService {
                 chat.getChatType(),
                 otherUser.getDisplayName(),
                 otherUser.getAvatarUrl(),
+                lastMessageId,
                 lastMessage,
                 lastMessageTimestamp,
+                lastMessageDeleted,
                 member.getRole(),
                 member.isMuted(),
                 (int) unreadCount,
@@ -193,12 +199,14 @@ public class ChatService {
 
         chatMemberService.saveAll(chatMembers);
 
-        return new ChatPreview(
+        ChatPreview chatPreview = new ChatPreview(
                 chat.getId(),
                 chat.getChatType(),
                 chat.getChatName(),
                 chat.getImageUrl(),
-                "",
+                null,
+                null,
+                null,
                 null,
                 ChatRole.ADMIN,
                 false,
@@ -206,6 +214,13 @@ public class ChatService {
                 null,
                 null
         );
+
+        websocketBroadcaster.broadcastEvent(
+                chatMembers.stream().map(ChatMember::getUserId).toList(),
+                ChatEvent.of(ChatEventType.CHAT_CREATED, chat.getId(), chatPreview)
+        );
+
+        return chatPreview;
     }
 
     private Chat createChat(Chat chat) {
@@ -295,6 +310,11 @@ public class ChatService {
         messageService.deleteAll(messages);
 
         chatRepository.delete(chat);
+
+        websocketBroadcaster.broadcastEvent(
+                members.stream().map(ChatMember::getUserId).toList(),
+                ChatEvent.of(ChatEventType.CHAT_DELETED, chat.getId())
+        );
     }
 
     public PagedResponse<ChatPreview> getUserChats(
@@ -476,12 +496,16 @@ public class ChatService {
             otherUser = userService.getUserById(otherUserId);
         }
 
+        String lastMessageId = null;
         String lastMessage = null;
         Instant lastMessageTimestamp = null;
+        Boolean lastMessageDeleted = null;
         if (chat.getLastMessageId() != null) {
             Message message = messageService.getMessage(chat.getLastMessageId());
+            lastMessageId = message.getId();
             lastMessage = message.getContent();
             lastMessageTimestamp = message.getCreatedAt();
+            lastMessageDeleted = message.isDeleted();
         }
 
         long unreadCount = messageService.getUnreadCount(chat.getId(), member.getLastReadMessageId());
@@ -506,8 +530,10 @@ public class ChatService {
                 chat.getChatType(),
                 chatName,
                 chatImage,
+                lastMessageId,
                 lastMessage,
                 lastMessageTimestamp,
+                lastMessageDeleted,
                 member.getRole(),
                 member.isMuted(),
                 (int) unreadCount,

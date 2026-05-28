@@ -3,7 +3,7 @@
 	gap: var(--space-2);
 	width: 100%;
 	animation: slideIn 0.2s var(--ease-out);
-
+	position: relative;
 }
 
 @keyframes slideIn {
@@ -85,8 +85,37 @@
 	width: fit-content;
 }
 
-.bubble:hover {
-	transform: translateY(-1px);
+.deletedBubble {
+	opacity: 0.8;
+	font-style: italic;
+}
+
+.messageWrapper.own .messageContent .bubble .deletedBubble {
+	color: white;
+}
+
+.messageWrapper.other .messageContent .bubble .deletedText {
+	color: var(--text);
+}
+
+.editedLabel {
+	font-size: var(--text-xs);
+	opacity: 0.7;
+}
+
+.messageWrapper.own .editedInfo {
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.messageWrapper.other .editedInfo {
+	color: var(--muted);
+}
+
+
+.editedInfo {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 }
 
 .messageWrapper.own .bubble {
@@ -215,68 +244,69 @@
 }
 
 .fileWrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 16px 18px 16px; /* extra em baixo para a barra */
-    border-radius: 12px;
-    border-bottom-right-radius: 4px;
-    min-width: 200px;
-    max-width: 280px;
-    overflow: hidden;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: var(--shadow-xs);
-    transition: transform var(--transition-fast);
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 16px 18px 16px;
+	/* extra em baixo para a barra */
+	border-radius: 12px;
+	border-bottom-right-radius: 4px;
+	min-width: 200px;
+	max-width: 280px;
+	overflow: hidden;
+	text-decoration: none;
+	color: inherit;
+	box-shadow: var(--shadow-xs);
+	transition: transform var(--transition-fast);
 	margin: 2px 0;
 }
 
 .fileWrapper:hover {
-    transform: translateY(-1px);
+	transform: translateY(-1px);
 }
 
 .messageWrapper.own .fileWrapper {
-    background: rgba(30, 136, 69, 0.8);
-    color: white;
+	background: rgba(30, 136, 69, 0.8);
+	color: white;
 }
 
 .messageWrapper.other .fileWrapper {
-    background: var(--bg-light);
-    color: var(--text);
-    border: 1px solid var(--border);
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 12px;
+	background: var(--bg-light);
+	color: var(--text);
+	border: 1px solid var(--border);
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 12px;
 }
 
 .messageWrapper.own .fileWrapper .time {
-    color: rgba(255, 255, 255, 0.9);
+	color: rgba(255, 255, 255, 0.9);
 }
 
 .messageWrapper.other .fileWrapper .time {
-    color: var(--muted);
+	color: var(--muted);
 }
 
 .fileName {
-    font-size: 13px;
-    font-weight: var(--font-medium);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
+	font-size: 13px;
+	font-weight: var(--font-medium);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	flex: 1;
 }
 
 .fileFailed {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: rgba(220, 38, 38, 0.55);
-    border-radius: 8px;
-    color: white;
-    font-size: 12px;
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	background: rgba(220, 38, 38, 0.55);
+	border-radius: 8px;
+	color: white;
+	font-size: 12px;
 }
 
 .image {
@@ -315,93 +345,103 @@
 }
 
 .imageWrapper {
-    position: relative;
-    display: inline-block;
+	position: relative;
+	display: inline-block;
 	margin: 15px 0;
 }
 
 .messageImage {
-    max-width: 260px;
-    max-height: 300px;
-    border-radius: 8px;
-    display: block;
+	max-width: 260px;
+	max-height: 300px;
+	border-radius: 8px;
+	display: block;
 
 	cursor: pointer;
 }
 
 .messageImage.dimmed {
-    opacity: 0.45;
-    filter: blur(1px);
+	opacity: 0.45;
+	filter: blur(1px);
 }
 
 .imageOverlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    border-radius: 8px;
-    color: white;
-    font-size: 12px;
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border-radius: 8px;
+	color: white;
+	font-size: 12px;
 }
 
 .failedOverlay {
-    background: rgba(220, 38, 38, 0.55);
+	background: rgba(220, 38, 38, 0.55);
 }
 
 /* Spinner a rodar */
 .spinner {
-    animation: spin 0.9s linear infinite;
+	animation: spin 0.9s linear infinite;
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
+	from {
+		transform: rotate(0deg);
+	}
+
+	to {
+		transform: rotate(360deg);
+	}
 }
 
 /* Botão de remover */
 .removeBtn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 2px;
-    padding: 4px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 50%;
-    color: white;
-    cursor: pointer;
-    transition: background 0.15s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-top: 2px;
+	padding: 4px;
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.4);
+	border-radius: 50%;
+	color: white;
+	cursor: pointer;
+	transition: background 0.15s;
 }
 
 .removeBtn:hover {
-    background: rgba(255, 255, 255, 0.35);
+	background: rgba(255, 255, 255, 0.35);
 }
 
 .progressBarWrapper {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.2);
-    overflow: hidden;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: rgba(255, 255, 255, 0.2);
+	overflow: hidden;
 }
 
 .progressBar {
-    height: 100%;
-    width: 40%;
-    background: white;
-    border-radius: 2px;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
-    animation: slide 1.2s ease-in-out infinite;
+	height: 100%;
+	width: 40%;
+	background: white;
+	border-radius: 2px;
+	box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+	animation: slide 1.2s ease-in-out infinite;
 }
 
 @keyframes slide {
-    0%   { transform: translateX(-100%); }
-    100% { transform: translateX(350%); }
+	0% {
+		transform: translateX(-100%);
+	}
+
+	100% {
+		transform: translateX(350%);
+	}
 }
 
 @keyframes modalIn {
@@ -469,6 +509,76 @@
 strong {
 	font-weight: var(--font-bold);
 	color: var(--text);
+}
+
+.messageActions {
+	display: none;
+	align-self: center;
+	position: relative;
+	margin: 0 4px;
+}
+
+.messageWrapper:hover .messageActions {
+	display: flex;
+}
+
+.actionsToggle {
+	background: transparent;
+	border: none;
+	border-radius: 50%;
+	width: 28px;
+	height: 28px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--muted);
+}
+
+.actionsToggle:hover {
+	color: var(--text);
+}
+
+.actionsDropdown {
+	position: absolute;
+	bottom: 32px;
+	background: var(--bg, #fff);
+	border: 1px solid var(--border, #e0e0e0);
+	border-radius: 8px;
+	padding: 4px;
+	min-width: 130px;
+	z-index: 100;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.own .actionsDropdown {
+	right: 0;
+}
+
+.other .actionsDropdown {
+	left: 0;
+}
+
+.actionsDropdown button {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 8px 12px;
+	background: none;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 14px;
+	color: var(--text);
+}
+
+.actionsDropdown button:hover {
+	background: var(--bg-light);
+}
+
+.deleteBtn {
+	color: var(--danger, #e53e3e) !important;
 }
 
 /* Mobile adjustments */
