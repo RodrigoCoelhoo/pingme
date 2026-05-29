@@ -1,4 +1,4 @@
-import { ArrowLeft, Search, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff } from 'lucide-react';
 import { ChatType, type ChatPreview, MemberRole, type UpdateChatRequest } from '../../services/chat/chat.types';
 import styles from '../../styles/chat/ChatHeader.module.css';
 import { useEffect, useState } from 'react';
@@ -98,9 +98,6 @@ export default function ChatHeader({
 			</button>
 
 			<div className={styles.actions}>
-				<button className={styles.actionBtn} title="Pesquisar na conversa">
-					<Search size={20} />
-				</button>
 				<button className={styles.actionBtn} title="Silenciar notificações" onClick={onMuteChat}>
 					{chat.muted ? <BellOff size={20} /> : <Bell size={20} />}
 				</button>

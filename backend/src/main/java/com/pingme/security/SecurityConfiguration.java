@@ -26,6 +26,7 @@ import java.util.List;
 public class SecurityConfiguration {
 
     private final SecurityFilter securityFilter;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -46,27 +47,28 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/auth/signin-local").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/auth/refresh").permitAll()
                         //.requestMatchers(HttpMethod.POST, "/api/...").hasRole("ADMIN")
+                        .requestMatchers("/oauth2/**").permitAll()
+                        .requestMatchers("/api/auth/google/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-
                         .requestMatchers(
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
-
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .redirectionEndpoint(r -> r
+                                .baseUri("/api/auth/google/callback")
+                        )
+                        .successHandler(oAuth2SuccessHandler)
                 );
 
         httpSecurity.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
         httpSecurity.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
     }
 
     @Bean

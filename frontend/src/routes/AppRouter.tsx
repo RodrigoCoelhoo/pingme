@@ -15,6 +15,7 @@ import PublicRoute from './PublicRoute.tsx';
 import Layout from '../layouts/Layout.tsx';
 import { ThemeProvider } from 'next-themes';
 import { Toaster } from 'react-hot-toast';
+import AuthCallback from '../pages/AuthCallback.tsx';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
@@ -25,6 +26,7 @@ const router = createBrowserRouter(
 				</Route>
 				<Route path="/signin" element={<Signin />} />
 				<Route path="/signup" element={<Signup />} />
+				<Route path="/auth/callback" element={<AuthCallback />} />
 			</Route>
 
 			<Route element={<ProtectedRoute />}>

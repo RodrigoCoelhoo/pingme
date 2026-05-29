@@ -24,7 +24,7 @@ public class AuthenticationService {
         }
     }
 
-    public AuthResponse generateAuthToken(User user, HttpServletResponse response) {
+    public AuthResponse generateAuthToken(User user, HttpServletResponse response, String sameSite) {
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
 
@@ -33,7 +33,7 @@ public class AuthenticationService {
                 .secure(false) // true in production (HTTPS)
                 .path("/api/auth")
                 .maxAge(30 * 24 * 60 * 60)
-                .sameSite("Strict")
+                .sameSite(sameSite)
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());

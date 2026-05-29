@@ -58,7 +58,7 @@ export default function SignUp() {
 	}
 
 	const handleGoogleSignUp = () => {
-		console.log('Sign up with Google')
+		window.location.href = `${import.meta.env.VITE_BACKEND_URL}/oauth2/authorization/google`
 	}
 
 	return (

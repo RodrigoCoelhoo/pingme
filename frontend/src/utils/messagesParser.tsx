@@ -16,7 +16,13 @@ export function parseMessage(content: string): ReactNode {
 		switch (data.event) {
 			case 'MEMBER_LEFT':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.targetNames[0]}</strong>
 						<span> saiu do grupo</span>
 					</div>
@@ -24,7 +30,13 @@ export function parseMessage(content: string): ReactNode {
 
 			case 'MEMBER_ADDED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
 						<span> adicionou </span>
 						<strong>@{data.targetNames.join(', @')}</strong>
@@ -33,7 +45,13 @@ export function parseMessage(content: string): ReactNode {
 
 			case 'MEMBER_KICKED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
 						<span> removeu </span>
 						<strong>@{data.targetNames[0]}</strong>
@@ -43,7 +61,13 @@ export function parseMessage(content: string): ReactNode {
 
 			case 'MEMBER_PROMOTED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
 						<span> promoveu </span>
 						<strong>@{data.targetNames[0]}</strong>
@@ -54,7 +78,13 @@ export function parseMessage(content: string): ReactNode {
 
 			case 'MEMBER_DEMOTED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
 						<span>
 							removeu privilégios de <strong>MODERADOR</strong> de
@@ -65,7 +95,13 @@ export function parseMessage(content: string): ReactNode {
 
 			case 'OWNERSHIP_TRANSFERRED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
 						<span> transferiu a propriedade do grupo para </span>
 						<strong>@{data.targetNames[0]}</strong>

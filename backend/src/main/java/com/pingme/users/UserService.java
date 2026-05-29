@@ -2,13 +2,11 @@ package com.pingme.users;
 
 import com.pingme.shared.cloudinary.CloudinaryService;
 import com.pingme.shared.cloudinary.CloudinaryUploadResult;
-import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.shared.exceptions.ResourceAlreadyExistsException;
 import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.users.dto.CreateUserRequest;
 import com.pingme.users.dto.UpdateUserRequest;
 import com.pingme.users.dto.UserProfile;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -118,5 +115,56 @@ public class UserService {
 
     public User save(User dbUser) {
         return userRepository.save(dbUser);
+    }
+
+    public User findOrCreateGoogleUser(String providerId, String email, String name, String avatarUrl) {
+        return userRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, providerId)
+                .orElseGet(() -> findLocalOrCreate(email, name, avatarUrl, providerId));
+    }
+
+    private User findLocalOrCreate(String email, String name, String avatarUrl, String providerId) {
+        return userRepository.findByEmail(email)
+                .map(existing -> syncGoogleFields(existing, providerId, avatarUrl)) // conta local existe → sync único
+                .orElseGet(() -> createGoogleUser(email, name, avatarUrl, providerId)); // conta nova → cria
+    }
+
+    private User syncGoogleFields(User user, String providerId, String avatarUrl) {
+        boolean changed = false;
+
+        if (user.getProvider() == AuthProvider.LOCAL) {
+            user.setProvider(AuthProvider.GOOGLE);
+            user.setProviderId(providerId);
+            changed = true;
+        }
+        if (avatarUrl != null && user.getAvatarUrl() == null) {
+            user.setAvatarUrl(avatarUrl);
+            changed = true;
+        }
+        return changed ? userRepository.save(user) : user;
+    }
+
+    private User createGoogleUser(String email, String name, String avatarUrl, String providerId) {
+        String baseUsername = email.split("@")[0].replaceAll("[^A-Za-z0-9_-]", "_");
+        String username = ensureUniqueUsername(baseUsername);
+
+        User user = User.builder()
+                .email(email)
+                .username(username)
+                .displayName(name != null ? name : username)
+                .avatarUrl(avatarUrl)
+                .provider(AuthProvider.GOOGLE)
+                .providerId(providerId)
+                .build();
+
+        return userRepository.save(user);
+    }
+
+    private String ensureUniqueUsername(String base) {
+        String candidate = base;
+        int suffix = 1;
+        while (userRepository.existsByUsername(candidate)) {
+            candidate = base + "_" + suffix++;
+        }
+        return candidate;
     }
 }
