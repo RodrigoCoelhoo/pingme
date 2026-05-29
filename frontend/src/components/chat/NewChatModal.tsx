@@ -11,6 +11,7 @@ import Input from '../Input';
 
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { showError } from '../../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface NewChatModalProps {
 	isOpen: boolean;
@@ -39,6 +40,8 @@ export default function NewChatModal({
 	const [validity, setValidity] = useState({
 		groupName: false
 	});
+
+	const { t } = useTranslation("sidebar");
 
 	const isGroupChat = selectedContacts.size > 1;
 
@@ -183,8 +186,8 @@ export default function NewChatModal({
 						}
 						<h2>
 							{isGroupChat
-								? 'Novo Grupo'
-								: 'Nova Conversa'
+								? t('chats.modal.titleGroup')
+								: t('chats.modal.title')
 							}
 						</h2>
 					</div>
@@ -201,7 +204,7 @@ export default function NewChatModal({
 						<Search size={18} />
 						<input
 							type="text"
-							placeholder="Procurar contactos..."
+							placeholder={t('contacts.search')}
 							value={searchQuery}
 							onChange={(e) =>
 								setSearchQuery(e.target.value)
@@ -215,15 +218,15 @@ export default function NewChatModal({
 						<div>
 							<div className={styles.selectedContacts}>
 								<span className={styles.selectedCount}>
-									{selectedContacts.size} selecionado
-									{selectedContacts.size > 1 ? 's' : ''}
+									{selectedContacts.size}
+									{selectedContacts.size > 1 ? ` ${t('chats.modal.multipleSelected')}` : ` ${t('chats.modal.oneSelected')}`}
 								</span>
 							</div>
 							{isGroupChat && (
 								<div className={styles.groupNameInput}>
 									<Input
-										label="Nome do grupo"
-										placeholder='Digite o nome do grupo'
+										label={t('chats.modal.groupField.label')}
+										placeholder={t('chats.modal.groupField.placeholder')}
 										type="text"
 										value={groupName}
 										onChange={(e) =>
@@ -248,12 +251,12 @@ export default function NewChatModal({
 					>
 						{contacts.length === 0 && isLoading ? (
 							<div className={styles.loadingState}>
-								A carregar contactos...
+								{t('contacts.loading')}
 							</div>
 						) :
 							contacts.length === 0 ? (
 								<div className={styles.emptyState}>
-									Nenhum contacto encontrado
+									{t('contacts.noContacts.contacts.title')}
 								</div>
 							) : (
 								contacts.map((contact) => (
@@ -289,7 +292,7 @@ export default function NewChatModal({
 
 						{contacts.length > 0 && isLoading && (
 							<div className={styles.loadingState}>
-								A carregar mais contactos...
+								{t('contacts.loading')}
 							</div>
 						)}
 					</div>
@@ -300,7 +303,7 @@ export default function NewChatModal({
 						className={styles.btnSecondary}
 						onClick={handleClose}
 					>
-						Cancelar
+						{t('chats.modal.secondaryButton')}
 					</button>
 					<button
 						className={styles.btnPrimary}
@@ -308,8 +311,8 @@ export default function NewChatModal({
 						disabled={!isValid}
 					>
 						{isGroupChat
-							? 'Criar Grupo'
-							: 'Iniciar Conversa'
+							? t('chats.modal.createGroup')
+							: t('chats.modal.primaryButton')
 						}
 					</button>
 				</div>

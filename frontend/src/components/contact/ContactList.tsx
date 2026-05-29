@@ -5,6 +5,7 @@ import PendingSentItem from './PendingSentItem';
 import styles from '../../styles/contact/ContactList.module.css';
 import type { ContactResponse } from '../../services/contact/contact.types';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { useTranslation } from 'react-i18next';
 
 type ContactTab = 'accepted' | 'received' | 'sent';
 
@@ -77,6 +78,8 @@ export default function ContactsList({
 		{ enabled: activeTab === 'sent', direction: 'bottom' }
 	);
 
+	const { t } = useTranslation("sidebar");
+
 	const renderTabContent = () => {
 		switch (activeTab) {
 			case 'accepted':
@@ -84,8 +87,8 @@ export default function ContactsList({
 					<div ref={acceptedRef} className={styles.scrollContainer}>
 						{acceptedContacts.length === 0 && !isLoadingAccepted ? (
 							<div className={styles.empty}>
-								<p>Nenhum contacto ainda</p>
-								<span>Adiciona contactos para começar a conversar</span>
+								<p>{t('contacts.noContacts.contacts.title')}</p>
+								<span>{t('contacts.noContacts.contacts.description')}</span>
 							</div>
 						) : (
 							<>
@@ -100,7 +103,7 @@ export default function ContactsList({
 								{isLoadingAccepted && (
 									<div className={styles.loading}>
 										<div className={styles.spinner}></div>
-										<span>A carregar mais contactos...</span>
+										<span>{t('contacts.loading')}</span>
 									</div>
 								)}
 							</>
@@ -113,8 +116,8 @@ export default function ContactsList({
 					<div ref={receivedRef} className={styles.scrollContainer}>
 						{receivedPending.length === 0 && !isLoadingReceivedPending ? (
 							<div className={styles.empty}>
-								<p>Nenhum pedido recebido</p>
-								<span>Aqui aparecerão os pedidos de contacto que receberes</span>
+								<p>{t('contacts.noContacts.received.title')}</p>
+								<span>{t('contacts.noContacts.received.description')}</span>
 							</div>
 						) : (
 							<>
@@ -129,7 +132,7 @@ export default function ContactsList({
 								{isLoadingReceivedPending && (
 									<div className={styles.loading}>
 										<div className={styles.spinner}></div>
-										<span>A carregar mais pedidos...</span>
+										<span>{t('contacts.loading')}</span>
 									</div>
 								)}
 							</>
@@ -142,8 +145,8 @@ export default function ContactsList({
 					<div ref={sentRef} className={styles.scrollContainer}>
 						{sentPending.length === 0 && !isLoadingSentPending ? (
 							<div className={styles.empty}>
-								<p>Nenhum pedido enviado</p>
-								<span>Aqui aparecerão os pedidos de contacto que enviaste</span>
+								<p>{t('contacts.noContacts.sent.title')}</p>
+								<span>{t('contacts.noContacts.sent.description')}</span>
 							</div>
 						) : (
 							<>
@@ -157,7 +160,7 @@ export default function ContactsList({
 								{isLoadingSentPending && (
 									<div className={styles.loading}>
 										<div className={styles.spinner}></div>
-										<span>A carregar mais pedidos...</span>
+										<span>{t('contacts.loading')}</span>
 									</div>
 								)}
 							</>
@@ -177,13 +180,13 @@ export default function ContactsList({
 					className={`${styles.tab} ${activeTab === 'accepted' ? styles.active : ''}`}
 					onClick={() => setActiveTab('accepted')}
 				>
-					Contactos
+					{t('contacts.title')}
 				</button>
 				<button
 					className={`${styles.tab} ${activeTab === 'received' ? styles.active : ''}`}
 					onClick={() => setActiveTab('received')}
 				>
-					Recebidos
+					{t('contacts.contactsTabs.received')}
 					{pendingReceivedCount > 0 && (
 						<span className={styles.badge}>{pendingReceivedCount}</span>
 					)}
@@ -192,7 +195,7 @@ export default function ContactsList({
 					className={`${styles.tab} ${activeTab === 'sent' ? styles.active : ''}`}
 					onClick={() => setActiveTab('sent')}
 				>
-					Enviados
+					{t('contacts.contactsTabs.sent')}
 					{pendingSentCount > 0 && (
 						<span className={styles.badge}>{pendingSentCount}</span>
 					)}

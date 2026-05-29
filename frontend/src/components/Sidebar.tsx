@@ -5,6 +5,7 @@ import type { ContactResponse } from '../services/contact/contact.types';
 import ChatList from './chat/ChatList';
 import ContactsList from './contact/ContactList';
 import UserMenu from './UserMenu';
+import { useTranslation } from 'react-i18next';
 
 type SidebarTab = 'chats' | 'contacts';
 
@@ -89,11 +90,13 @@ export default function Sidebar({
 	onCancelRequest,
 	onDeleteContact
 }: Props) {
+	const { t } = useTranslation("sidebar");
+	
 	return (
 		<div className={`${styles.chatSidebar} ${isSidebarOpen ? styles.open : ''}`}>
 			<div className={styles.sidebarHeader}>
 				<div className={styles.sidebarTitle}>
-					<h1>{activeTab === 'chats' ? 'Conversas' : 'Contactos'}</h1>
+					<h1>{activeTab === 'chats' ? t('chats.title') : t('contacts.title')}</h1>
 				</div>
 
 				<button
@@ -110,7 +113,7 @@ export default function Sidebar({
 					onClick={() => setActiveTab('chats')}
 				>
 					<MessageSquare size={18} />
-					<span>Conversas</span>
+					<span>{t('chats.title')}</span>
 				</button>
 
 				<button
@@ -118,7 +121,7 @@ export default function Sidebar({
 					onClick={() => setActiveTab('contacts')}
 				>
 					<Users size={18} />
-					<span>Contactos</span>
+					<span>{t('contacts.title')}</span>
 				</button>
 			</div>
 
@@ -128,8 +131,8 @@ export default function Sidebar({
 					type="text"
 					placeholder={
 						activeTab === 'chats'
-							? 'Procurar conversas...'
-							: 'Procurar contactos... (@ para username)'
+							? t('chats.search')
+							: t('contacts.search')
 					}
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
