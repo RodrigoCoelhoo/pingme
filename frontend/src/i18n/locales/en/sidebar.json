@@ -27,6 +27,7 @@
 		},
 		"search": "Search contacts...",
 		"loading": "Loading contacts...",
+		"pending": "Pending",
 		"noContacts": {
 			"contacts": {
 				"title": "No contacts found",

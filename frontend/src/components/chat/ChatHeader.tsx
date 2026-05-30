@@ -6,6 +6,7 @@ import Avatar from '../Avatar';
 import ChatDetailsModal from './ChatDetailsModal';
 import AddMembersModal from './AddMembersModal';
 import { formatLastSeen } from '../../utils/time';
+import { useTranslation } from 'react-i18next';
 
 interface ChatHeaderProps {
 	chat: ChatPreview;
@@ -41,6 +42,7 @@ export default function ChatHeader({
 	const [showGroupDetails, setShowGroupDetails] = useState<boolean>(false);
 	const [showAddMembers, setShowAddMembers] = useState<boolean>(false);
 
+	const { t } = useTranslation("chat");
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -90,7 +92,7 @@ export default function ChatHeader({
 				<div className={styles.details}>
 					<h3 className={styles.name}>{chat.chatName}</h3>
 					{chat.chatType === ChatType.GROUP ? (
-						<p className={styles.status}>Ver detalhes do grupo</p>
+						<p className={styles.status}>{t('headerDetails')}</p>
 					) : (
 						<p className={styles.status}>{online ? 'Online' : `${formatLastSeen(chat.otherUserLastSeenAt)}`}</p>
 					)}
@@ -98,7 +100,7 @@ export default function ChatHeader({
 			</button>
 
 			<div className={styles.actions}>
-				<button className={styles.actionBtn} title="Silenciar notificações" onClick={onMuteChat}>
+				<button className={styles.actionBtn} title="Mute notifications" onClick={onMuteChat}>
 					{chat.muted ? <BellOff size={20} /> : <Bell size={20} />}
 				</button>
 			</div>

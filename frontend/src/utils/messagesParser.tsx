@@ -86,9 +86,9 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.actorName}</strong>
-						<span>
-							removeu privilégios de <strong>MODERADOR</strong> de
-						</span>{' '}
+						<span> removeu privilégios de </span>
+						<strong>MODERADOR</strong>
+						<span> de </span>
 						<strong>@{data.targetNames[0]}</strong>
 					</div>
 				);

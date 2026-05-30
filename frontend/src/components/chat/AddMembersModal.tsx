@@ -10,6 +10,7 @@ import Avatar from '../Avatar';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { showError } from '../../utils/toast';
 import type { ChatPreview } from '../../services/chat/chat.types';
+import { useTranslation } from 'react-i18next';
 
 interface AddMembersModalProps {
 	chat: ChatPreview;
@@ -33,6 +34,8 @@ export default function AddMembersModal({
 	const [searchQuery, setSearchQuery] = useState('');
 
 	const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
+
+	const { t } = useTranslation("chat");
 
 	const isValid = selectedContacts.size > 0;
 
@@ -156,7 +159,7 @@ export default function AddMembersModal({
 				<div className={styles.modalHeader}>
 					<div className={styles.modalTitle}>
 						<Users size={24} />
-						<h2>Add members</h2>
+						<h2>{t("addMembers.title")}</h2>
 					</div>
 					<button
 						className={styles.closeBtn}
@@ -171,7 +174,7 @@ export default function AddMembersModal({
 						<Search size={18} />
 						<input
 							type="text"
-							placeholder="Procurar contactos..."
+							placeholder={t("addMembers.search")}
 							value={searchQuery}
 							onChange={(e) =>
 								setSearchQuery(e.target.value)
@@ -184,8 +187,8 @@ export default function AddMembersModal({
 					{selectedContacts.size > 0 && (
 						<div className={styles.selectedContacts}>
 							<span className={styles.selectedCount}>
-								{selectedContacts.size} selecionado
-								{selectedContacts.size > 1 ? 's' : ''}
+								{selectedContacts.size} {' '}
+								{selectedContacts.size > 1 ? t("addMembers.multiple") : t("addMembers.single")}
 							</span>
 						</div>
 					)}
@@ -196,12 +199,12 @@ export default function AddMembersModal({
 					>
 						{contacts.length === 0 && isLoading ? (
 							<div className={styles.loadingState}>
-								A carregar contactos...
+								{t("addMembers.loading")}
 							</div>
 						) :
 							contacts.length === 0 ? (
 								<div className={styles.emptyState}>
-									Nenhum contacto encontrado
+									{t("addMembers.noContacts")}
 								</div>
 							) : (
 								contacts.map((contact) => (
@@ -237,7 +240,7 @@ export default function AddMembersModal({
 
 						{contacts.length > 0 && isLoading && (
 							<div className={styles.loadingState}>
-								A carregar mais contactos...
+								{t("addMembers.loading")}
 							</div>
 						)}
 					</div>
@@ -248,14 +251,14 @@ export default function AddMembersModal({
 						className={styles.btnSecondary}
 						onClick={handleClose}
 					>
-						Cancelar
+						{t("cancel")}
 					</button>
 					<button
 						className={styles.btnPrimary}
 						onClick={handleSubmit}
 						disabled={!isValid}
 					>
-						Adicionar Membros
+						{t("addMembers.title")}
 					</button>
 				</div>
 			</div>

@@ -1,1 +1,42 @@
-{}
+{
+	"noActiveChat": "Seleciona uma conversa",
+	"noActiveChatDescription": "Escolhe uma conversa da lista ou cria uma nova",
+	"message": {
+		"noMessages": "Nenhuma mensagem ainda",
+		"noMessagesDescription": "Envia a primeira mensagem para começar a conversa",
+		"loading": "A carregar mensagens..."
+	},
+	"typing": {
+		"one": "está a escrever...",
+		"multiple": "estão a escrever...",
+		"and": "e"
+	},
+	"inputPlaceholder": "Escreve uma mensagem...",
+	"headerDetails": "Ver detalhes do grupo",
+	"modal": {
+		"title": "Detalhes do Grupo",
+		"members": "Membros",
+		"actions": {
+			"leaveGroup": "Sair do grupo",
+			"deleteChat": "Eliminar conversa",
+			"promote": "Promover a Moderador",
+			"demote": "Rebaixar a Membro",
+			"transferOwnership": "Transferir propriedade",
+			"kick": "Expulsar membro"
+		}
+	},
+	"save": "Guardar",
+	"cancel": "Cancelar",
+	"search": "Procurar membros ou @username ...",
+	"add": "Adicionar",
+	"loading": "A carregar membros ...",
+	"noMembers": "Nenhum membro encontrado",
+	"addMembers": {
+		"title": "Adicionar Membros",
+		"search": "Procurar contactos ou @username ...",
+		"noContacts": "Nenhum contacto encontrado",
+		"loading": "A carregar contactos...",
+		"single": "selecionado",
+		"multiple": "selecionados"
+	}
+}

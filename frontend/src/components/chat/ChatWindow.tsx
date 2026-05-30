@@ -12,6 +12,7 @@ import MessageInput from './MessageInput';
 import styles from '../../styles/chat/ChatWindow.module.css';
 import type { TypingIndicator } from '../../services/websocket/websocket.types';
 import { showError } from '../../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface ChatWindowProps {
 	chat: ChatPreview | null;
@@ -67,6 +68,7 @@ export default function ChatWindow({
 	const messagesSizeRef = useRef(50);
 	const shouldScrollToBottomRef = useRef(false);
 
+	const { t } = useTranslation("chat");
 	const { user } = useAuth();
 	const currentUserId = user?.id || '';
 
@@ -399,9 +401,9 @@ export default function ChatWindow({
 		const users = [...typingUsers];
 
 		if (users.length <= 1) return users[0] ?? "";
-		if (users.length === 2) return `${users[0]} e ${users[1]}`;
+		if (users.length === 2) return `${users[0]} ${t('typing.and')} ${users[1]}`;
 
-		return `${users.slice(0, -1).join(", ")} e ${users.at(-1)}`;
+		return `${users.slice(0, -1).join(", ")} ${t('typing.and')} ${users.at(-1)}`;
 	};
 
 	const handleRemoveFailedMessage = useCallback((messageId: string) => {
@@ -413,8 +415,8 @@ export default function ChatWindow({
 			<div className={styles.emptyState}>
 				<div className={styles.emptyContent}>
 					<MessageCircle size={80} strokeWidth={1.5} />
-					<h2>Seleciona uma conversa</h2>
-					<p>Escolhe uma conversa da lista ou cria uma nova</p>
+					<h2>{t('noActiveChat')}</h2>
+					<p>{t('noActiveChatDescription')}</p>
 				</div>
 			</div>
 		);
@@ -441,7 +443,7 @@ export default function ChatWindow({
 				{isLoading && (
 					<div className={styles.loadingOverlay}>
 						<Loader size={48} className={styles.spinner} />
-						<p>A carregar mensagens...</p>
+						<p>{t('message.loading')}</p>
 					</div>
 				)}
 
@@ -449,15 +451,15 @@ export default function ChatWindow({
 					{isLoadingMore && (
 						<div className={styles.loadingMore}>
 							<Loader size={20} className={styles.spinner} />
-							<span>A carregar mensagens antigas...</span>
+							<span>{t('message.loading')}</span>
 						</div>
 					)}
 
 					{messages.length === 0 ? (
 						<div className={styles.noMessages}>
 							<MessageCircle size={48} strokeWidth={1.5} />
-							<p>Nenhuma mensagem ainda</p>
-							<span>Envia a primeira mensagem para começar a conversa</span>
+							<p>{t('message.noMessages')}</p>
+							<span>{t('message.noMessagesDescription')}</span>
 						</div>
 					) : (
 						<>
@@ -497,7 +499,7 @@ export default function ChatWindow({
 						<span></span>
 					</div>
 					<span className={styles.typingText}>
-						{formatTypingUsers()} {typingUsers.size === 1 ? 'está' : 'estão'} a escrever...
+						{formatTypingUsers()} {typingUsers.size === 1 ? t('typing.one') : t('typing.multiple')}
 					</span>
 				</div>
 			)}

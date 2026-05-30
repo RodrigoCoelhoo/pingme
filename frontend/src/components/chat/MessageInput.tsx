@@ -4,6 +4,7 @@ import styles from '../../styles/chat/MessageInput.module.css';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { useTheme } from 'next-themes';
 import { showError } from '../../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -36,6 +37,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 	const isTypingRef = useRef(false);
 
 	const { theme } = useTheme();
+	const { t } = useTranslation("chat");
 
 	const [messageError, setMessageError] = useState('');
 
@@ -337,7 +339,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 					<textarea
 						ref={textareaRef}
 						className={`${styles.textarea} ${messageError ? styles.textareaError : ''}`}
-						placeholder="Escreve uma mensagem..."
+						placeholder={t('inputPlaceholder')}
 						value={message}
 						onChange={handleInput}
 						onKeyDown={handleKeyDown}

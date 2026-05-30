@@ -26,6 +26,7 @@
 		},
 		"search": "Pesquisar contactos...",
 		"loading": "A carregar contactos...",
+		"pending": "Pendente",
 		"noContacts": {
 			"contacts": {
 				"title": "Nenhum contacto encontrado",

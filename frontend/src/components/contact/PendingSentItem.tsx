@@ -3,6 +3,7 @@ import styles from '../../styles/contact/PendingSentItem.module.css';
 import type { ContactResponse } from '../../services/contact/contact.types';
 import { useEffect, useState } from 'react';
 import Avatar from '../Avatar';
+import { useTranslation } from 'react-i18next';
 
 interface PendingSentItemProps {
 	contact: ContactResponse;
@@ -12,6 +13,8 @@ interface PendingSentItemProps {
 export default function PendingSentItem({ contact, onCancel }: PendingSentItemProps) {
 	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 	const [isProcessing, setIsProcessing] = useState(false);
+
+	const { t } = useTranslation("sidebar");
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -39,7 +42,7 @@ export default function PendingSentItem({ contact, onCancel }: PendingSentItemPr
 				<p className={styles.username}>{contact.username}</p>
 				<span className={styles.status}>
 					<Clock size={14} />
-					Pendente
+					{t("contacts.pending")}
 				</span>
 			</div>
 
