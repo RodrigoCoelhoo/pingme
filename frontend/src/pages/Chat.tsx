@@ -19,9 +19,12 @@ import type { TypingIndicator } from '../services/websocket/websocket.types';
 import chatService from '../services/chat/chat.service';
 import { playNotificationSound } from '../utils/notification';
 import contactService from '../services/contact/contact.service';
+import { useTranslation } from 'react-i18next';
 
 export default function Chat() {
 	const [onlineUsers, setOnlineUsers] = useState<Set<string>>(new Set());
+
+	const { t } = useTranslation('toast');
 
 	useEffect(() => {
 		const loadOnlineUsers = async () => {
@@ -302,7 +305,7 @@ export default function Chat() {
 			await handleDeleteChat(chatId);
 			removeChat(chatId);
 		} catch (error) {
-			showError('Erro ao eliminar conversa. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.leave') }));
 		}
 	};
 
@@ -310,7 +313,7 @@ export default function Chat() {
 		try {
 			await handleAcceptContact(contactId);
 		} catch (error) {
-			showError('Erro ao aceitar contacto. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.acceptContact') }));
 		}
 	};
 
@@ -318,7 +321,7 @@ export default function Chat() {
 		try {
 			await handleRejectContact(contactId);
 		} catch (error) {
-			showError('Erro ao rejeitar contacto. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.rejectContact') }));
 		}
 	};
 
@@ -326,17 +329,17 @@ export default function Chat() {
 		try {
 			await handleCancelRequest(contactId);
 		} catch (error) {
-			showError('Erro ao cancelar pedido. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.cancelRequest') }));
 		}
 	};
 
 	const handleAddContactWrapper = async (username: string): Promise<boolean> => {
 		try {
 			await handleAddContact(username);
-			showSuccess('Contacto adicionado com sucesso!')
+			showSuccess(t('actions.success', { action: t('actions.contactAdded') }));
 			return true;
 		} catch (error) {
-			showError('Erro ao adicionar contacto. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.addContact') }));
 			return false;
 		}
 	};
@@ -355,7 +358,7 @@ export default function Chat() {
 
 			await handleDeleteContact(contactId);
 		} catch (error) {
-			showError('Erro ao remover contacto. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.deleteContact') }));
 		}
 	};
 
@@ -368,9 +371,9 @@ export default function Chat() {
 				setActiveChat(null);
 			}
 
-			showSuccess('Grupo eliminado com sucesso!');
+			showSuccess(t('actions.success', { action: t('actions.groupDeleted') }));
 		} catch (error) {
-			showError('Erro ao eliminar grupo. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.delete') }));
 		}
 	};
 
@@ -379,7 +382,7 @@ export default function Chat() {
 			const newContact = await groupActions.handleSendContactRequest(username);
 			addSentPendingContact(newContact);
 
-			showSuccess('Pedido enviado com sucesso!');
+			showSuccess(t('actions.success', { action: t('actions.contactSent') }));
 		} catch (error) {
 			// already handled
 		}

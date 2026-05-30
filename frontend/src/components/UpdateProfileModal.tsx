@@ -8,6 +8,7 @@ import styles from '../styles/UpdateProfileModal.module.css';
 
 import type { UserProfile } from '../services/user/user.types';
 import { showError } from '../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface UpdateProfileModalProps {
 	isOpen: boolean;
@@ -36,6 +37,8 @@ export default function UpdateProfileModal({
 	const [isValid, setIsValid] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
 
+	const { t } = useTranslation("toast");
+
 	useEffect(() => {
 
 		if (isOpen && user) {
@@ -63,12 +66,12 @@ export default function UpdateProfileModal({
 		if (!file) return;
 
 		if (!file.type.startsWith('image/')) {
-			showError('Please select a valid image.');
+			showError(t('media.validImage'));
 			return;
 		}
 
 		if (file.size > MAX_FILE_SIZE) {
-			showError('Image must be smaller than 5MB.');
+			showError(t('media.imageSize', { size: MAX_FILE_SIZE, unit: 'MB' }));
 			return;
 		}
 

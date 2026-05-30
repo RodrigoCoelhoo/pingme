@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { AlertCircle, Download, Pencil, Trash2, X } from 'lucide-react';
 import { parseMessage } from '../../utils/messagesParser';
 import { MemberRole } from '../../services/chat/chat.types';
+import { useTranslation } from 'react-i18next';
 
 interface MessageBubbleProps {
 	message: MessageResponse;
@@ -36,10 +37,12 @@ export default function MessageBubble({
 
 	const [showImageModal, setShowImageModal] = useState(false);
 
+	const { t } = useTranslation("system");
+
 	if (message.type === 'SYSTEM') {
 		return (
 			<div className={styles.systemMessage}>
-				{parseMessage(message.content)}
+				{parseMessage(message.content, t)}
 			</div>
 		);
 	}

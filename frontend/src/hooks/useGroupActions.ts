@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { MemberRole, type ChatPreview, type UpdateChatRequest } from '../services/chat/chat.types';
 import type { ContactResponse } from '../services/contact/contact.types';
 import { showError, showSuccess } from '../utils/toast';
@@ -32,12 +33,14 @@ export function useGroupActions({
 }: UseGroupActionsProps) {
 	const confirmation = useConfirmation();
 
+	const { t } = useTranslation("toast");
+
 	const handleLeaveGroup = async (chatId: string) => {
 		const confirmed = await confirmation.confirm({
-			title: 'Sair do Grupo',
-			message: 'Tens a certeza que queres sair deste grupo?',
-			confirmText: 'Sair',
-			cancelText: 'Cancelar',
+			title: t('confirmation.leaveGroup.title'),
+			message: t('confirmation.leaveGroup.message'),
+			confirmText: t('confirmation.leaveGroup.confirm'),
+			cancelText: t('confirmation.leaveGroup.cancel'),
 			variant: 'warning'
 		});
 
@@ -46,16 +49,16 @@ export function useGroupActions({
 		try {
 			await onLeaveGroup(chatId);
 		} catch (error) {
-			showError('Erro ao sair do grupo. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.leave') }));
 		}
 	};
 
 	const handleDeleteGroup = async (chatId: string) => {
 		const confirmed = await confirmation.confirm({
-			title: 'Eliminar Grupo',
-			message: 'Tens a certeza que queres eliminar este grupo? Esta ação não pode ser revertida.',
-			confirmText: 'Eliminar',
-			cancelText: 'Cancelar',
+			title: t('confirmation.deleteGroup.title'),
+			message: t('confirmation.deleteGroup.message'),
+			confirmText: t('confirmation.deleteGroup.confirm'),
+			cancelText: t('confirmation.deleteGroup.cancel'),
 			variant: 'danger'
 		});
 
@@ -64,16 +67,16 @@ export function useGroupActions({
 		try {
 			await onDeleteGroup(chatId);
 		} catch (error) {
-			showError('Erro ao eliminar o grupo. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.delete') }));
 		}
 	};
 
 	const handleTransferOwnership = async (chatId: string, newOwnerId: string) => {
 		const confirmed = await confirmation.confirm({
-			title: 'Transferir Propriedade',
-			message: 'Tens a certeza que queres transferir a propriedade do grupo?',
-			confirmText: 'Transferir',
-			cancelText: 'Cancelar',
+			title: t('confirmation.transferOwnership.title'),
+			message: t('confirmation.transferOwnership.message'),
+			confirmText: t('confirmation.transferOwnership.confirm'),
+			cancelText: t('confirmation.transferOwnership.cancel'),
 			variant: 'danger'
 		});
 
@@ -86,9 +89,9 @@ export function useGroupActions({
 				role: MemberRole.MODERATOR
 			});
 
-			showSuccess('Propriedade transferida com sucesso!');
+			showSuccess(t('actions.success', { action: t('actions.transferSuccess') }));
 		} catch (error) {
-			showError('Erro ao transferir a propriedade. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.transfer') }));
 		}
 	};
 
@@ -96,7 +99,7 @@ export function useGroupActions({
 		try {
 			await onKickMember(chatId, memberId);
 		} catch (error) {
-			showError('Erro ao remover o membro. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.kick') }));
 		}
 	};
 
@@ -104,7 +107,7 @@ export function useGroupActions({
 		try {
 			await onAddMembers(chatId, memberIds);
 		} catch (error) {
-			showError('Erro ao adicionar membros. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.add') }));
 		}
 	};
 
@@ -116,7 +119,7 @@ export function useGroupActions({
 
 			return updatedChat;
 		} catch (error) {
-			showError('Erro ao atualizar o grupo. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.update') }));
 			throw error;
 		}
 	};
@@ -125,7 +128,7 @@ export function useGroupActions({
 		try {
 			await onPromoteMember(chatId, memberId, newRole);
 		} catch (error) {
-			showError('Erro ao atualizar o role. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.role') }));
 		}
 	};
 
@@ -134,7 +137,7 @@ export function useGroupActions({
 			await onMuteChat(chatId);
 			onToggleMuteChat(chatId);
 		} catch (error) {
-			showError('Erro ao silenciar o chat. Tenta novamente.');
+			showError(t('actions.error', { action: t('actions.mute') }));
 		}
 	};
 
@@ -143,7 +146,7 @@ export function useGroupActions({
 			const response = await onSendContactRequest(username);
 			return response;
 		} catch (error) {
-			showError('Erro ao enviar pedido de contacto.');
+			showError(t('actions.error', { action: t('actions.contact') }));
 			throw error;
 		}
 	};

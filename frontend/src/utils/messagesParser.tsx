@@ -1,7 +1,11 @@
+import type { TFunction } from 'i18next';
 import { FileText, ImageIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export function parseMessage(content: string): ReactNode {
+export function parseMessage(
+	content: string,
+	t: TFunction
+): ReactNode {
 	try {
 		const data = JSON.parse(content);
 
@@ -24,7 +28,7 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.targetNames[0]}</strong>
-						<span> saiu do grupo</span>
+						<span> {t('system.memberLeft')}</span>
 					</div>
 				);
 
@@ -38,7 +42,7 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.actorName}</strong>
-						<span> adicionou </span>
+						<span> {t('system.memberAdded')} </span>
 						<strong>@{data.targetNames.join(', @')}</strong>
 					</div>
 				);
@@ -53,9 +57,9 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.actorName}</strong>
-						<span> removeu </span>
+						<span> {t('system.memberKicked')} </span>
 						<strong>@{data.targetNames[0]}</strong>
-						<span> do grupo</span>
+						<span> {t('system.memberKickedSuffix')}</span>
 					</div>
 				);
 
@@ -69,10 +73,10 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.actorName}</strong>
-						<span> promoveu </span>
+						<span> {t('system.memberPromoted')} </span>
 						<strong>@{data.targetNames[0]}</strong>
-						<span> para </span>
-						<strong>MODERADOR</strong>
+						<span> {t('system.memberPromotedSuffix')} </span>
+						<strong>{t('system.moderator')}</strong>
 					</div>
 				);
 
@@ -86,9 +90,9 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.actorName}</strong>
-						<span> removeu privilégios de </span>
-						<strong>MODERADOR</strong>
-						<span> de </span>
+						<span> {t('system.memberDemoted')} </span>
+						<strong>{t('system.moderator')}</strong>
+						<span> {t('system.memberDemotedSuffix')} </span>
 						<strong>@{data.targetNames[0]}</strong>
 					</div>
 				);
@@ -103,7 +107,7 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<strong>@{data.actorName}</strong>
-						<span> transferiu a propriedade do grupo para </span>
+						<span> {t('system.ownershipTransferred')} </span>
 						<strong>@{data.targetNames[0]}</strong>
 					</div>
 				);
@@ -128,7 +132,7 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<ImageIcon size={16} />
-						<span>Imagem</span>
+						<span>{t('system.image')}</span>
 					</div>
 				);
 			}

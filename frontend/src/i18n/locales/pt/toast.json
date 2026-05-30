@@ -1,1 +1,60 @@
-{}
+{
+	"actions": {
+		"success": "{{action}} com sucesso!",
+		"contactAdded": "Contacto adicionado",
+		"groupDeleted": "Chat de grupo eliminado",
+		"contactSent": "Pedido de contacto enviado",
+		"transferSuccess": "Propriedade do grupo transferida",
+		"error": "Erro ao {{action}}. Por favor, tente novamente.",
+		"leave": "sair do chat",
+		"delete": "eliminar o chat de grupo",
+		"transfer": "transferir a propriedade do grupo",
+		"kick": "remover o membro do grupo",
+		"add": "adicionar os membros ao grupo",
+		"update": "atualizar o grupo",
+		"role": "atualizar os privilégios do membro",
+		"mute": "silenciar a conversa",
+		"contact": "enviar solicitação de contato",
+		"edit": "editar a mensagem",
+		"deleteMessage": "eliminar a mensagem",
+		"acceptContact": "aceitar contacto",
+		"rejectContact": "rejeitar contacto",
+		"cancelRequest": "cancelar pedido de contacto",
+		"addContact": "adicionar contacto",
+		"deleteContact": "remover contacto"
+	},
+	"loading": {
+		"error": "Erro ao carregar {{content}}. Por favor, tente novamente.",
+		"contacts": "contactos"
+	},
+	"media": {
+		"image": "imagem",
+		"file": "ficheiro",
+		"validImage": "Porfavor seleciona uma imagem válida",
+		"imageSize": "A imagem deve ser menor que {{size}}{{units}}",
+		"emptyFiles": "Não é possível enviar ficheiros vazios",
+		"fileSizeLimit": "{{filename}} excede o limite de {{size}}{{units}}.",
+		"fileLimit": "Limite de {{count}} ficheiros por mensagem excedido.",
+		"filesIgnored": "{{count}} ficheiro(s) ignorado(s). Limite de {{limit}} ficheiros por mensagem."
+	},
+	"confirmation": {
+		"leaveGroup": {
+			"title": "Sair do grupo",
+			"message": "Tens a certeza que queres sair deste grupo?",
+			"confirm": "Sair",
+			"cancel": "Cancelar"
+		},
+		"deleteGroup": {
+			"title": "Eliminar grupo",
+			"message": "Tens a certeza que queres eliminar este grupo? Esta ação não pode ser revertida.",
+			"confirm": "Eliminar",
+			"cancel": "Cancelar"
+		},
+		"transferOwnership": {
+			"title": "Transferir propriedade do grupo",
+			"message": "Tens a certeza que queres transferir a propriedade deste grupo? Esta ação não pode ser revertida.",
+			"confirm": "Transferir",
+			"cancel": "Cancelar"
+		}
+	}
+}

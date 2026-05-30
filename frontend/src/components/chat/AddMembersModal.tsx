@@ -36,6 +36,7 @@ export default function AddMembersModal({
 	const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
 
 	const { t } = useTranslation("chat");
+	const { t: tToast } = useTranslation("toast");
 
 	const isValid = selectedContacts.size > 0;
 
@@ -72,7 +73,7 @@ export default function AddMembersModal({
 			setHasMore(newContacts.length === LIMIT);
 			setPage(pageToLoad);
 		} catch (error) {
-			showError("There was an error loading contacts");
+			showError(tToast('loading.error', { action: tToast('loading.contacts') }));
 		} finally {
 			setIsLoading(false);
 		}

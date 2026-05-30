@@ -69,6 +69,7 @@ export default function ChatWindow({
 	const shouldScrollToBottomRef = useRef(false);
 
 	const { t } = useTranslation("chat");
+	const { t: tToast } = useTranslation("toast");
 	const { user } = useAuth();
 	const currentUserId = user?.id || '';
 
@@ -81,7 +82,7 @@ export default function ChatWindow({
 			setMessages(prev => prev.map(m =>
 				m.messageId === messageId ? { ...m, content, editedAt: new Date().toISOString() } : m
 			));
-		} catch { showError('Erro ao editar mensagem.'); }
+		} catch { showError(tToast('actions.error', { action: tToast('actions.edit') })); }
 		setEditingMessage(null);
 	};
 
@@ -92,7 +93,7 @@ export default function ChatWindow({
 			setMessages(prev => prev.map(m =>
 				m.messageId === messageId ? { ...m, deleted: true, content: '' } : m
 			));
-		} catch { showError('Erro ao eliminar mensagem.'); }
+		} catch { showError(tToast('actions.error', { action: tToast('actions.deleteMessage') })); }
 	};
 
 	useEffect(() => {
@@ -336,7 +337,7 @@ export default function ChatWindow({
 			const emptyFiles = files.filter(file => file.size === 0);
 
 			if (emptyFiles.length > 0) {
-				showError('Não é possível enviar ficheiros vazios');
+				showError(tToast('media.emptyFiles'));
 			}
 
 			if (validFiles.length === 0) {

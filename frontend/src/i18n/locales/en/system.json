@@ -1,0 +1,27 @@
+{
+	"system": {
+		"memberLeft": "left the group",
+		"memberAdded": "added",
+		"memberKicked": "removed",
+		"memberKickedSuffix": "from the group",
+		"memberPromoted": "promoted",
+		"memberPromotedSuffix": "to",
+		"memberDemoted": "removed the privileges of",
+		"moderator": "MODERATOR",
+		"memberDemotedSuffix": "from",
+		"ownershipTransferred": "transferred the ownership of the group to",
+		"image": "Image"
+	},
+	"time": {
+		"days": "days",
+		"hour": "hour",
+		"hours": "hours",
+		"minute": "minute",
+		"minutes": "minutes",
+		"week": "week",
+		"weeks": "weeks",
+		"seenLastTime": "Last seen {{time}} {{units}} ago",
+		"lastSeenDate": "Last seen on {{date}}",
+		"lastSeenJustNow": "Last seen just now"
+	}
+}

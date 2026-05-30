@@ -13,8 +13,8 @@ import enSidebar from './locales/en/sidebar.json'
 import ptSidebar from './locales/pt/sidebar.json'
 import enToast from './locales/en/toast.json'
 import ptToast from './locales/pt/toast.json'
-import enRules from './locales/en/rules.json'
-import ptRules from './locales/pt/rules.json'
+import enSystem from './locales/en/system.json'
+import ptSystem from './locales/pt/system.json'
 
 const savedLang = localStorage.getItem('lang') || 'en'
 
@@ -29,7 +29,7 @@ i18n
 				chat: enChat,
 				sidebar: enSidebar,
 				toast: enToast,
-				rules: enRules
+				system: enSystem
 			},
 			pt: {
 				common: ptCommon,
@@ -38,7 +38,7 @@ i18n
 				chat: ptChat,
 				sidebar: ptSidebar,
 				toast: ptToast,
-				rules: ptRules
+				system: ptSystem
 			},
 		},
 		lng: savedLang,

@@ -43,11 +43,22 @@ export default function ChatHeader({
 	const [showAddMembers, setShowAddMembers] = useState<boolean>(false);
 
 	const { t } = useTranslation("chat");
+	const { t: tTime } = useTranslation("system");
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
+	}, []);
+
+	const [, forceUpdate] = useState(0);
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			forceUpdate(prev => prev + 1);
+		}, 30000);
+
+		return () => clearInterval(interval);
 	}, []);
 
 	const handleLeaveGroup = () => {
@@ -94,7 +105,7 @@ export default function ChatHeader({
 					{chat.chatType === ChatType.GROUP ? (
 						<p className={styles.status}>{t('headerDetails')}</p>
 					) : (
-						<p className={styles.status}>{online ? 'Online' : `${formatLastSeen(chat.otherUserLastSeenAt)}`}</p>
+						<p className={styles.status}>{online ? 'Online' : `${formatLastSeen(chat.otherUserLastSeenAt, tTime)}`}</p>
 					)}
 				</div>
 			</button>

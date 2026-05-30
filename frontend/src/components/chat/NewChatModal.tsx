@@ -42,6 +42,7 @@ export default function NewChatModal({
 	});
 
 	const { t } = useTranslation("sidebar");
+	const { t: tToast } = useTranslation("toast");
 
 	const isGroupChat = selectedContacts.size > 1;
 
@@ -82,7 +83,7 @@ export default function NewChatModal({
 			setHasMore(newContacts.length === LIMIT);
 			setPage(pageToLoad);
 		} catch (error) {
-			showError("There was an error loading contacts");
+			showError(tToast('loading.error', { action: tToast('loading.contacts') }));
 		} finally {
 			setIsLoading(false);
 		}

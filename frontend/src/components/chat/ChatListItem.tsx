@@ -5,6 +5,7 @@ import styles from '../../styles/chat/ChatListItem.module.css';
 import Avatar from '../Avatar';
 import { formatTime } from '../../utils/time';
 import { parseMessage } from '../../utils/messagesParser';
+import { useTranslation } from 'react-i18next';
 
 interface ChatListItemProps {
 	chat: ChatPreview;
@@ -17,6 +18,8 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 	const [isHovered, setIsHovered] = useState(false);
 	const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+	const { t } = useTranslation("system");
+
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener('resize', handleResize);
@@ -27,7 +30,7 @@ export default function ChatListItem({ chat, isActive, onClick, onDelete }: Chat
 		if (chat.lastMessageDeleted) return 'Message deleted';
 		if (!chat.lastMessage) return '';
 
-		return parseMessage(chat.lastMessage);
+		return parseMessage(chat.lastMessage, t);
 	}, [chat.lastMessage, chat.lastMessageDeleted]);
 
 	const handleDelete = (e: React.MouseEvent) => {
