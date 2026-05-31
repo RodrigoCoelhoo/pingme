@@ -9,7 +9,7 @@ interface UseChatInteractionsProps {
 	setActiveTab: (tab: 'chats' | 'contacts') => void;
 	handleCreatePrivateChat: (userId: string) => Promise<ChatPreview>;
 	handleCreateGroupChat: (memberIds: string[], groupName?: string) => Promise<ChatPreview>;
-	insertChatSorted: (chat: ChatPreview) => void;
+	insertChatSorted: (chat: ChatPreview, sort?: boolean) => void;
 	updateChat: (chatId: string, updates: Partial<ChatPreview>) => void;
 }
 
@@ -50,7 +50,7 @@ export function useChatInteractions({
 	const handleCreatePrivateChatWithUI = async (userId: string) => {
 		try {
 			const chat = await handleCreatePrivateChat(userId);
-			insertChatSorted(chat);
+			insertChatSorted(chat, true);
 			setActiveTab('chats');
 			if (isMobile) {
 				setIsSidebarOpen(false);

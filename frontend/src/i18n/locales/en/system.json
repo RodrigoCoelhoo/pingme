@@ -13,6 +13,7 @@
 		"image": "Image"
 	},
 	"time": {
+		"day": "day",
 		"days": "days",
 		"hour": "hour",
 		"hours": "hours",
