@@ -6,6 +6,7 @@
 		"noChatsDescription": "Clique em + para iniciar uma nova conversa",
 		"modal": {
 			"title": "Nova Conversa",
+			"titleGroup": "Nova conversa em grupo",
 			"noContacts": "Nenhum contacto encontrado.",
 			"oneSelected": "selecionado",
 			"multipleSelected": "selecionados",

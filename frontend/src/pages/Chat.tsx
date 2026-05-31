@@ -182,6 +182,8 @@ export default function Chat() {
 			switch (event.type) {
 				case EventType.MEMBER_KICKED:
 				case EventType.CHAT_DELETED:
+					if (!event.chatId) break;
+
 					removeChat(event.chatId);
 					if (activeChat === event.chatId) {
 						setActiveChat(null);
@@ -189,6 +191,8 @@ export default function Chat() {
 					break;
 
 				case EventType.MEMBER_ROLE_UPDATED:
+					if (!event.chatId) break;
+
 					if (exists) {
 						updateChat(event.chatId, { role: event.payload as MemberRole });
 					}
@@ -202,11 +206,15 @@ export default function Chat() {
 					break;
 
 				case EventType.DETAILS_UPDATED:
+					if (!event.chatId) break;
+
 					if (exists) {
 						updateChat(event.chatId, event.payload as Partial<ChatPreview>);
 					}
 					break;
 				case EventType.MESSAGE_EDITED:
+					if (!event.chatId) break;
+
 					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
 						updateChat(event.chatId, {
 							lastMessageId: event.payload.messageId,
@@ -220,6 +228,8 @@ export default function Chat() {
 					break;
 
 				case EventType.MESSAGE_DELETED:
+					if (!event.chatId) break;
+
 					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
 						updateChat(event.chatId, {
 							lastMessageId: event.payload.messageId,
@@ -235,19 +245,22 @@ export default function Chat() {
 					addReceivedPendingContact(event.payload);
 					break;
 				case EventType.CONTACT_ACCEPTED:
-					console.log('Contact accepted:', event.contactId);
+					if (!event.contactId) break;
+
 					removeSentPendingContact(event.contactId);
 					addAcceptedContact(event.payload);
 					break;
 				case EventType.CONTACT_REJECTED:
+					if (!event.contactId) break;
 					removeSentPendingContact(event.contactId);
 					break;
 				case EventType.CONTACT_CANCEL:
-					console.log('Contact request cancelled:', event.contactId);
-					console.log(receivedPending);
-					removeReceivedPendingContact(event.contactId); 
+					if (!event.contactId) break;
+					removeReceivedPendingContact(event.contactId);
 					break;
 				case EventType.CONTACT_DELETED:
+					if (!event.contactId || !event.chatId) break;
+					
 					removeAcceptedContact(event.contactId);
 					removeChat(event.chatId);
 					if (activeChat === event.chatId) {

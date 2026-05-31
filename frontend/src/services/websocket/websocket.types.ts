@@ -24,10 +24,10 @@ export interface PresenceEvent {
   lastSeenAt: string | null;
 }
 
-export interface Event {
+export interface WebSocketEvent {
   type: EventType;
-  chatId: string | null;
-  contactId: string | null;
+  chatId?: string;
+  contactId?: string;
   payload: any;
 }
 

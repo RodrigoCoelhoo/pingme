@@ -49,11 +49,5 @@
 			"primaryButtonSuccess": "Added!",
 			"secondaryButton": "Cancel"
 		}
-	},
-	"settings": {
-		"editProfile": "Edit Profile",
-		"language": "Language",
-		"theme": "Theme",
-		"logout": "Log out"
 	}
 }

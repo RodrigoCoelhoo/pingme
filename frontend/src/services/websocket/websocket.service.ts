@@ -4,7 +4,7 @@ import type {
 	MessageRequest,
 	MessageResponse,
 } from '../message/message.types'; // Adjust path if needed
-import type { PresenceEvent, TypingIndicator, WebSocketConfig } from './websocket.types';
+import type { PresenceEvent, TypingIndicator, WebSocketConfig, WebSocketEvent } from './websocket.types';
 
 class WebSocketService {
 	private client: Client | null = null;
@@ -134,7 +134,7 @@ class WebSocketService {
 	}
 
 	subscribeToUserEvents(
-		onEventReceived: (event: Event) => void
+		onEventReceived: (event: WebSocketEvent) => void
 	): () => void {
 		if (!this.client || !this.connected) return () => { };
 
@@ -149,7 +149,7 @@ class WebSocketService {
 			'/user/queue/events',
 			(message: IMessage) => {
 				try {
-					const payload: Event = JSON.parse(message.body);
+					const payload: WebSocketEvent = JSON.parse(message.body);
 					onEventReceived(payload);
 				} catch (error) {
 					console.error('❌ Error parsing event:', error);

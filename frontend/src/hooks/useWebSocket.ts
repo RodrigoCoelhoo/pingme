@@ -2,14 +2,14 @@ import { useEffect, useRef, useCallback } from 'react';
 import webSocketService from '../services/websocket/websocket.service';
 import type { MessageResponse } from '../services/message/message.types';
 import type { PresenceEvent, TypingIndicator } from '../services/websocket/websocket.types';
-import type { ChatEvent } from '../services/chat/chat.types';
+import type { WebSocketEvent } from '../services/websocket/websocket.types';
 
 interface UseWebSocketProps {
 	chatId: string | null;
 	token: string | null;
 	onMessageReceived?: (message: MessageResponse) => void;
 	onTypingReceived?: (indicator: TypingIndicator) => void;
-	onEventReceived?: (event: ChatEvent) => void;
+	onEventReceived?: (event: WebSocketEvent) => void;
 	onPresenceReceived?: (event: PresenceEvent) => void;
 	enabled?: boolean;
 }

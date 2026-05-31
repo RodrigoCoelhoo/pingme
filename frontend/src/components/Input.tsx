@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type InputHTMLAttributes } from 'react'
+import { useCallback, useEffect, useRef, useState, type InputHTMLAttributes } from 'react'
 import styles from '../styles/Input.module.css'
 import { useTranslation } from 'react-i18next';
 
@@ -33,42 +33,51 @@ export default function Input({
 	const [internalError, setInternalError] = useState<string>('')
 	const [touched, setTouched] = useState(false)
 
+	const onValidationChangeRef = useRef(onValidationChange)
+	useEffect(() => {
+		onValidationChangeRef.current = onValidationChange
+	})
+
+	const rulesRef = useRef(rules)
+	useEffect(() => {
+		rulesRef.current = rules
+	})
+
 	const { t } = useTranslation("auth");
 
 	const error = externalError || (touched ? internalError : '')
 
 	const validateValue = useCallback((val: string) => {
-		
 		if (props.required && !val.trim()) {
 			setInternalError(t('input.required'))
-			onValidationChange?.(false)
+			onValidationChangeRef.current?.(false)
 			return
 		}
 
 		if (matchValue !== undefined && val !== matchValue) {
 			setInternalError(t('input.passwordsDontMatch'))
-			onValidationChange?.(false)
+			onValidationChangeRef.current?.(false)
 			return
 		}
 
-		if (rules.length === 0) {
+		if (rulesRef.current.length === 0) {
 			setInternalError('')
-			onValidationChange?.(true)
+			onValidationChangeRef.current?.(true)
 			return
 		}
 
-		for (const rule of rules) {
+		for (const rule of rulesRef.current) {
 			const result = rule(val)
 			if (result !== true) {
 				setInternalError(t(result))
-				onValidationChange?.(false)
+				onValidationChangeRef.current?.(false)
 				return
 			}
 		}
 
 		setInternalError('')
-		onValidationChange?.(true)
-	}, [matchValue, rules, onValidationChange])
+		onValidationChangeRef.current?.(true)
+	}, [matchValue, t])
 
 	useEffect(() => {
 		validateValue(value)
