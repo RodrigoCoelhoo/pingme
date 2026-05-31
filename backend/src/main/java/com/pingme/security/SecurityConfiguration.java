@@ -26,6 +26,7 @@ import java.util.List;
 public class SecurityConfiguration {
 
     private final SecurityFilter securityFilter;
+    private final RateLimitFilter rateLimitFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
@@ -66,6 +67,7 @@ public class SecurityConfiguration {
                 );
 
         httpSecurity.addFilterBefore(corsFilter(), UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
         httpSecurity.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
