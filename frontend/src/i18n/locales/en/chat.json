@@ -1,0 +1,42 @@
+{
+	"noActiveChat": "Select a chat",
+	"noActiveChatDescription": "Select a chat from the sidebar or start a new one",
+	"message": {
+		"noMessages": "No messages yet",
+		"noMessagesDescription": "Send the first message to start the conversation",
+		"loading": "Loading messages..."
+	},
+	"typing": {
+		"one": "is typing...",
+		"multiple": "are typing...",
+		"and": "and"
+	},
+	"inputPlaceholder": "Type a message...",
+	"headerDetails": "View group details",
+	"modal": {
+		"title": "Group Details",
+		"members": "Members",
+		"actions": {
+			"leaveGroup": "Leave group",
+			"deleteChat": "Delete chat",
+			"promote": "Promote to Moderator",
+			"demote": "Demote to Member",
+			"transferOwnership": "Transfer ownership",
+			"kick": "Kick member"
+		}
+	},
+	"save": "Save",
+	"cancel": "Cancel",
+	"search": "Search members or @username ...",
+	"add": "Add",
+	"loading": "Loading members ...",
+	"noMembers": "No members found",
+	"addMembers": {
+		"title": "Add Members",
+		"search": "Search contacts or @username ...",
+		"noContacts": "No contacts found",
+		"loading": "Loading contacts...",
+		"single": "selected",
+		"multiple": "selected"
+	}
+}

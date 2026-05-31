@@ -1,4 +1,4 @@
-import { ArrowLeft, Search, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, Bell, BellOff } from 'lucide-react';
 import { ChatType, type ChatPreview, MemberRole, type UpdateChatRequest } from '../../services/chat/chat.types';
 import styles from '../../styles/chat/ChatHeader.module.css';
 import { useEffect, useState } from 'react';
@@ -6,6 +6,7 @@ import Avatar from '../Avatar';
 import ChatDetailsModal from './ChatDetailsModal';
 import AddMembersModal from './AddMembersModal';
 import { formatLastSeen } from '../../utils/time';
+import { useTranslation } from 'react-i18next';
 
 interface ChatHeaderProps {
 	chat: ChatPreview;
@@ -41,11 +42,23 @@ export default function ChatHeader({
 	const [showGroupDetails, setShowGroupDetails] = useState<boolean>(false);
 	const [showAddMembers, setShowAddMembers] = useState<boolean>(false);
 
+	const { t } = useTranslation("chat");
+	const { t: tTime } = useTranslation("system");
 
 	useEffect(() => {
 		const handleResize = () => setIsMobile(window.innerWidth <= 768);
 		window.addEventListener('resize', handleResize);
 		return () => window.removeEventListener('resize', handleResize);
+	}, []);
+
+	const [, forceUpdate] = useState(0);
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			forceUpdate(prev => prev + 1);
+		}, 30000);
+
+		return () => clearInterval(interval);
 	}, []);
 
 	const handleLeaveGroup = () => {
@@ -90,18 +103,15 @@ export default function ChatHeader({
 				<div className={styles.details}>
 					<h3 className={styles.name}>{chat.chatName}</h3>
 					{chat.chatType === ChatType.GROUP ? (
-						<p className={styles.status}>Ver detalhes do grupo</p>
+						<p className={styles.status}>{t('headerDetails')}</p>
 					) : (
-						<p className={styles.status}>{online ? 'Online' : `${formatLastSeen(chat.otherUserLastSeenAt)}`}</p>
+						<p className={styles.status}>{online ? 'Online' : `${formatLastSeen(chat.otherUserLastSeenAt, tTime)}`}</p>
 					)}
 				</div>
 			</button>
 
 			<div className={styles.actions}>
-				<button className={styles.actionBtn} title="Pesquisar na conversa">
-					<Search size={20} />
-				</button>
-				<button className={styles.actionBtn} title="Silenciar notificações" onClick={onMuteChat}>
+				<button className={styles.actionBtn} title="Mute notifications" onClick={onMuteChat}>
 					{chat.muted ? <BellOff size={20} /> : <Bell size={20} />}
 				</button>
 			</div>

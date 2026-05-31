@@ -16,7 +16,7 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 	const [isLoading, setIsLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 
-	const { t } = useTranslation("auth");
+	const { t } = useTranslation("sidebar");
 	const [validity, setValidity] = useState({
 		username: false
 	});
@@ -60,7 +60,7 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 				<div className={styles.header}>
 					<div className={styles.titleWrapper}>
 						<UserPlus size={24} className={styles.icon} />
-						<h2>Adicionar Contacto</h2>
+						<h2>{t('contacts.modal.title')}</h2>
 					</div>
 					<button className={styles.closeBtn} onClick={handleClose}>
 						<X size={24} />
@@ -70,9 +70,9 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 				<form onSubmit={handleSubmit} className={styles.body}>
 					<div className={styles.inputGroup}>
 						<Input
-							label={t('signup.username')}
+							label={t('contacts.modal.username')}
 							type="text"
-							placeholder={`${t('signup.usernamePlaceholder')}`}
+							placeholder="rodrigo_coelho"
 							value={username}
 							onChange={(e) => setUsername(e.target.value)}
 							rules={usernameRules(t)}
@@ -92,7 +92,7 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 							onClick={handleClose}
 							disabled={isLoading}
 						>
-							Cancelar
+							{t('contacts.modal.secondaryButton')}
 						</button>
 						<button
 							type="submit"
@@ -105,9 +105,9 @@ export default function AddContactModal({ isOpen, onClose, onAddContact }: AddCo
 									A adicionar...
 								</>
 							) : success ? (
-								'Adicionado!'
+								t('contacts.modal.primaryButtonSuccess')
 							) : (
-								'Adicionar'
+								t('contacts.modal.primaryButton')
 							)}
 						</button>
 					</div>

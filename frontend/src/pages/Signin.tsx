@@ -47,8 +47,7 @@ export default function Signin() {
 	};
 
 	const handleGoogleSignIn = () => {
-		// TODO: Add Google OAuth logic
-		console.log('Sign in with Google')
+		window.location.href = `${import.meta.env.VITE_BACKEND_URL}/oauth2/authorization/google`
 	}
 
 	return (

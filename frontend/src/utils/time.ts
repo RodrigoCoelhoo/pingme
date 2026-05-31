@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+
 export function formatTime(dateString: string): string {
 	const date = new Date(dateString);
 	const now = new Date();
@@ -37,7 +39,10 @@ export function formatTime(dateString: string): string {
 	return `${formattedDate} ${time}`;
 }
 
-export function formatLastSeen(dateString: string | null | undefined): string {
+export function formatLastSeen(
+	dateString: string | null | undefined,
+	t: TFunction
+): string {
 	if (!dateString) {
 		return 'Offline';
 	}
@@ -53,28 +58,28 @@ export function formatLastSeen(dateString: string | null | undefined): string {
 	const weeks = Math.floor(days / 7);
 
 	if (minutes < 1) {
-		return 'Visto pela última vez agora mesmo';
+		return `${t("time.lastSeenJustNow")}`;
 	}
 
 	if (minutes < 60) {
-		return `Visto pela última vez há ${minutes} min`;
+		return `${t("time.seenLastTime", { time: minutes, units: (minutes === 1 ? t("time.minute") : t("time.minutes")) })}`;
 	}
 
 	if (hours < 24) {
-		return `Visto pela última vez há ${hours}h`;
+		return `${t("time.seenLastTime", { time: hours, units: (hours === 1 ? t("time.hour") : t("time.hours")) })}`;
 	}
 
 	if (days === 1) {
-		return 'Visto pela última vez ontem';
+		return `${t("time.seenLastTime", { time: days, units: t("time.day") })}`;
 	}
 
 	if (days < 7) {
-		return `Visto pela última vez há ${days} dias`;
+		return `${t("time.seenLastTime", { time: days, units: t("time.days") })}`;
 	}
 
 	if (weeks < 5) {
-		return `Visto pela última vez há ${weeks} semana${weeks > 1 ? 's' : ''}`;
+		return `${t("time.seenLastTime", { time: weeks, units: (weeks === 1 ? t("time.week") : t("time.weeks")) })}`;
 	}
 
-	return `Visto pela última vez em ${date.toLocaleDateString('pt-PT')}`;
+	return t("time.lastSeenDate", { date: date.toLocaleDateString('pt-PT') });
 }

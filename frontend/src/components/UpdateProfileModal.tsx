@@ -8,6 +8,7 @@ import styles from '../styles/UpdateProfileModal.module.css';
 
 import type { UserProfile } from '../services/user/user.types';
 import { showError } from '../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 interface UpdateProfileModalProps {
 	isOpen: boolean;
@@ -36,6 +37,9 @@ export default function UpdateProfileModal({
 	const [isValid, setIsValid] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
 
+	const { t } = useTranslation("toast");
+	const { t: tAuth } = useTranslation("auth");
+
 	useEffect(() => {
 
 		if (isOpen && user) {
@@ -63,12 +67,12 @@ export default function UpdateProfileModal({
 		if (!file) return;
 
 		if (!file.type.startsWith('image/')) {
-			showError('Please select a valid image.');
+			showError(t('media.validImage'));
 			return;
 		}
 
 		if (file.size > MAX_FILE_SIZE) {
-			showError('Image must be smaller than 5MB.');
+			showError(t('media.imageSize', { size: MAX_FILE_SIZE, unit: 'MB' }));
 			return;
 		}
 
@@ -131,7 +135,7 @@ export default function UpdateProfileModal({
 				<div className={styles.modalHeader}>
 
 					<h2>
-						Atualizar Perfil
+						{tAuth('profile.title')}
 					</h2>
 
 					<button
@@ -175,37 +179,37 @@ export default function UpdateProfileModal({
 							</div>
 
 							<p className={styles.avatarHint}>
-								Clique no ícone para alterar a foto de perfil
+								{tAuth('profile.picture')}
 							</p>
 
 						</div>
 
 						<Input
-							label="Nome de Exibição"
+							label={tAuth('signup.displayName')}
 							type="text"
 							value={displayName}
 							onChange={(e) => setDisplayName(e.target.value)}
 							onValidationChange={setIsValid}
 							required
-							placeholder="Digite seu nome de exibição"
+							placeholder={tAuth('profile.displayNamePlaceholder')}
 						/>
 
 						<Input
-							label="Username"
+							label={tAuth('signup.username')}
 							type="text"
 							value={user?.username || ''}
 							onChange={() => { }}
 							disabled
-							placeholder="Username"
+							placeholder={tAuth('signup.usernamePlaceholder')}
 						/>
 
 						<Input
-							label="Email"
+							label={tAuth('signup.email')}
 							type="email"
 							value={user?.email || ''}
 							onChange={() => { }}
 							disabled
-							placeholder="Email"
+							placeholder={tAuth('signup.emailPlaceholder')}
 						/>
 
 					</div>
@@ -218,7 +222,7 @@ export default function UpdateProfileModal({
 							onClick={onClose}
 							disabled={isLoading}
 						>
-							Cancelar
+							{tAuth('profile.secondaryButton')}
 						</button>
 
 						<button
@@ -232,8 +236,8 @@ export default function UpdateProfileModal({
 						>
 							{
 								isLoading
-									? 'Guardando...'
-									: 'Guardar Alterações'
+									? tAuth('profile.primaryButtonLoading')
+									: tAuth('profile.primaryButton')
 							}
 						</button>
 

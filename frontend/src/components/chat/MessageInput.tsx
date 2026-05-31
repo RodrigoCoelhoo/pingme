@@ -4,6 +4,7 @@ import styles from '../../styles/chat/MessageInput.module.css';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 import { useTheme } from 'next-themes';
 import { showError } from '../../utils/toast';
+import { useTranslation } from 'react-i18next';
 
 const MAX_FILE_SIZE_MB = 5;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -36,6 +37,8 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 	const isTypingRef = useRef(false);
 
 	const { theme } = useTheme();
+	const { t } = useTranslation("chat");
+	const { t: tToast } = useTranslation("toast");
 
 	const [messageError, setMessageError] = useState('');
 
@@ -195,7 +198,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 
 		for (const file of files) {
 			if (file.size > MAX_FILE_SIZE_BYTES) {
-				showError(`"${file.name}" excede o limite de ${MAX_FILE_SIZE_MB} MB.`);
+				showError(tToast('media.fileSizeLimit', { fileName: file.name, size: MAX_FILE_SIZE_MB, unit: 'MB' }));
 				continue;
 			}
 			validFiles.push(file);
@@ -205,7 +208,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 			const slotsAvailable = MAX_FILES - prev.length;
 
 			if (slotsAvailable <= 0) {
-				showError(`Limite de ${MAX_FILES} ficheiros por mensagem atingido.`);
+				showError(tToast('media.fileLimit', { count: MAX_FILES }));
 				return prev;
 			}
 
@@ -213,9 +216,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 			const rejected = validFiles.slice(slotsAvailable);
 
 			if (rejected.length > 0) {
-				showError(
-					`${rejected.length} ficheiro(s) ignorado(s): limite de ${MAX_FILES} ficheiros por mensagem.`
-				);
+				showError(tToast('media.filesIgnored', { count: rejected.length, limit: MAX_FILES }));
 			}
 
 			const newAttachments: AttachedFile[] = accepted.map(file => ({
@@ -337,7 +338,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 					<textarea
 						ref={textareaRef}
 						className={`${styles.textarea} ${messageError ? styles.textareaError : ''}`}
-						placeholder="Escreve uma mensagem..."
+						placeholder={t('inputPlaceholder')}
 						value={message}
 						onChange={handleInput}
 						onKeyDown={handleKeyDown}

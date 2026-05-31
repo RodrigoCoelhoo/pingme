@@ -17,6 +17,7 @@ interface AuthContextType {
 	signOut: () => void;
 	refreshUser: () => Promise<void>;
 	updateUser: (user: UserProfile) => void;
+	handleOAuthCallback: (token: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -106,6 +107,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		setUser(updatedUser);
 	};
 
+	const handleOAuthCallback = async (token: string) => {
+		localStorage.setItem('accessToken', token)
+		await fetchUserProfile()
+	}
+
 	const value: AuthContextType = useMemo(() => ({
 		user,
 		isAuthenticated: !!user,
@@ -114,7 +120,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 		signUp,
 		signOut,
 		refreshUser,
-		updateUser
+		updateUser,
+		handleOAuthCallback,
 	}), [user, isLoading]);
 
 	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -8,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import { createPortal } from 'react-dom';
 import { ContactStatus } from '../../services/contact/contact.types';
+import { useTranslation } from 'react-i18next';
 
 interface ChatDetailsModalProps {
 	chat: ChatPreview;
@@ -45,6 +46,7 @@ export default function ChatDetailsModal({
 	const [debouncedSearch, setDebouncedSearch] = useState('');
 
 	const { user } = useAuth();
+	const { t } = useTranslation("chat");
 
 	const userId = user?.id || '';
 	const isAdmin = chat.role === MemberRole.ADMIN;
@@ -197,7 +199,7 @@ export default function ChatDetailsModal({
 			<div className={styles.overlay} onClick={onClose} />
 			<div className={styles.modal}>
 				<div className={styles.header}>
-					<h2 className={styles.title}>Group Details</h2>
+					<h2 className={styles.title}>{t("modal.title")}</h2>
 					<button className={styles.closeBtn} onClick={onClose}>
 						<X size={24} />
 					</button>
@@ -250,13 +252,13 @@ export default function ChatDetailsModal({
 											setIsEditingName(false);
 										}}
 									>
-										Cancel
+										{t("cancel")}
 									</button>
 									<button
 										className={styles.saveBtn}
 										onClick={handleSaveName}
 									>
-										Save
+										{t("save")}
 									</button>
 								</div>
 							</div>
@@ -280,7 +282,7 @@ export default function ChatDetailsModal({
 						<div className={styles.sectionHeader}>
 							<div className={styles.sectionTitle}>
 								<Users size={18} />
-								<span>Members ({totalMembers})</span>
+								<span>{t("modal.members")} ({totalMembers})</span>
 							</div>
 
 							<div className={styles.sectionActions}>
@@ -303,7 +305,7 @@ export default function ChatDetailsModal({
 										onClick={onAddMembers}
 									>
 										<UserPlus size={18} />
-										<span>Add</span>
+										<span>{t("add")}</span>
 									</button>
 								)}
 							</div>
@@ -315,7 +317,7 @@ export default function ChatDetailsModal({
 
 								<input
 									type="text"
-									placeholder="Search members or @username..."
+									placeholder={t("search")}
 									value={search}
 									onChange={(e) => setSearch(e.target.value)}
 									className={styles.searchInput}
@@ -441,7 +443,7 @@ export default function ChatDetailsModal({
 																		}}
 																	>
 																		<ArrowUp size={16} />
-																		<span>Promote to Moderator</span>
+																		<span>{t("modal.actions.promote")}</span>
 																	</button>
 																)}
 																{member.role === MemberRole.MODERATOR && (
@@ -455,7 +457,7 @@ export default function ChatDetailsModal({
 																			}}
 																		>
 																			<ArrowDown size={16} />
-																			<span>Demote to Member</span>
+																			<span>{t("modal.actions.demote")}</span>
 																		</button>
 																	</>
 																)}
@@ -490,7 +492,7 @@ export default function ChatDetailsModal({
 																	}}
 																>
 																	<Crown size={16} />
-																	<span>Transfer Ownership</span>
+																	<span>{t("modal.actions.transferOwnership")}</span>
 																</button>
 															</>
 														)}
@@ -503,7 +505,7 @@ export default function ChatDetailsModal({
 															}}
 														>
 															<UserMinus size={16} />
-															<span>Kick Member</span>
+															<span>{t("modal.actions.kick")}</span>
 														</button>
 													</div>,
 													document.body
@@ -516,13 +518,13 @@ export default function ChatDetailsModal({
 
 							{loadingMembers && (
 								<div className={styles.membersLoading}>
-									Loading members...
+									{t("loading")}
 								</div>
 							)}
 
 							{!loadingMembers && members.length === 0 && (
 								<div className={styles.membersEmpty}>
-									No members found
+									{t("noMembers")}
 								</div>
 							)}
 						</div>
@@ -536,7 +538,7 @@ export default function ChatDetailsModal({
 								onClick={onDeleteGroup}
 							>
 								<Trash2 size={18} />
-								<span>Delete Group</span>
+								<span>{t("modal.actions.deleteChat")}</span>
 							</button>
 						) : (
 							<button
@@ -544,7 +546,7 @@ export default function ChatDetailsModal({
 								onClick={onLeaveGroup}
 							>
 								<LogOut size={18} />
-								<span>Leave Group</span>
+								<span>{t("modal.actions.leaveGroup")}</span>
 							</button>
 						)}
 					</div>

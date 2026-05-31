@@ -1,7 +1,11 @@
+import type { TFunction } from 'i18next';
 import { FileText, ImageIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export function parseMessage(content: string): ReactNode {
+export function parseMessage(
+	content: string,
+	t: TFunction
+): ReactNode {
 	try {
 		const data = JSON.parse(content);
 
@@ -16,58 +20,94 @@ export function parseMessage(content: string): ReactNode {
 		switch (data.event) {
 			case 'MEMBER_LEFT':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.targetNames[0]}</strong>
-						<span> saiu do grupo</span>
+						<span> {t('system.memberLeft')}</span>
 					</div>
 				);
 
 			case 'MEMBER_ADDED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
-						<span> adicionou </span>
+						<span> {t('system.memberAdded')} </span>
 						<strong>@{data.targetNames.join(', @')}</strong>
 					</div>
 				);
 
 			case 'MEMBER_KICKED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
-						<span> removeu </span>
+						<span> {t('system.memberKicked')} </span>
 						<strong>@{data.targetNames[0]}</strong>
-						<span> do grupo</span>
+						<span> {t('system.memberKickedSuffix')}</span>
 					</div>
 				);
 
 			case 'MEMBER_PROMOTED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
-						<span> promoveu </span>
+						<span> {t('system.memberPromoted')} </span>
 						<strong>@{data.targetNames[0]}</strong>
-						<span> para </span>
-						<strong>MODERADOR</strong>
+						<span> {t('system.memberPromotedSuffix')} </span>
+						<strong>{t('system.moderator')}</strong>
 					</div>
 				);
 
 			case 'MEMBER_DEMOTED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
-						<span>
-							removeu privilégios de <strong>MODERADOR</strong> de
-						</span>{' '}
+						<span> {t('system.memberDemoted')} </span>
+						<strong>{t('system.moderator')}</strong>
+						<span> {t('system.memberDemotedSuffix')} </span>
 						<strong>@{data.targetNames[0]}</strong>
 					</div>
 				);
 
 			case 'OWNERSHIP_TRANSFERRED':
 				return (
-					<div>
+					<div
+						style={{
+							overflow: 'hidden',
+							textOverflow: 'ellipsis',
+							whiteSpace: 'nowrap'
+						}}
+					>
 						<strong>@{data.actorName}</strong>
-						<span> transferiu a propriedade do grupo para </span>
+						<span> {t('system.ownershipTransferred')} </span>
 						<strong>@{data.targetNames[0]}</strong>
 					</div>
 				);
@@ -92,7 +132,7 @@ export function parseMessage(content: string): ReactNode {
 						}}
 					>
 						<ImageIcon size={16} />
-						<span>Imagem</span>
+						<span>{t('system.image')}</span>
 					</div>
 				);
 			}
