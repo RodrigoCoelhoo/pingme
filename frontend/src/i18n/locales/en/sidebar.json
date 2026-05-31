@@ -1,0 +1,53 @@
+{
+	"chats": {
+		"title": "Chats",
+		"search": "Search chats...",
+		"noChats": "No chats found",
+		"noChatsDescription": "Click on + to start a new chat",
+		"modal": {
+			"title": "New Chat",
+			"titleGroup": "New group chat",
+			"noContacts": "No contacts found.",
+			"oneSelected": "selected",
+			"multipleSelected": "selected",
+			"groupField": {
+				"label": "Group Name",
+				"placeholder": "Enter group name"
+			},
+			"primaryButton": "Start chat",
+			"createGroup": "Create group",
+			"secondaryButton": "Cancel"
+		}
+	},
+	"contacts": {
+		"title": "Contacts",
+		"contactsTabs": {
+			"received": "Received",
+			"sent": "Sent"
+		},
+		"search": "Search contacts...",
+		"loading": "Loading contacts...",
+		"pending": "Pending",
+		"noContacts": {
+			"contacts": {
+				"title": "No contacts found",
+				"description": "Add contacts to start chatting"
+			},
+			"received": {
+				"title": "No contact requests received yet",
+				"description": "You haven't received any contact requests"
+			},
+			"sent": {
+				"title": "No contact requests sent yet",
+				"description": "You haven't sent any contact requests"
+			}
+		},
+		"modal": {
+			"title": "Add contact",
+			"username": "Username",
+			"primaryButton": "Add",
+			"primaryButtonSuccess": "Added!",
+			"secondaryButton": "Cancel"
+		}
+	}
+}

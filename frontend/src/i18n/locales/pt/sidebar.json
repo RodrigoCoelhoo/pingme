@@ -1,0 +1,53 @@
+{
+	"chats": {
+		"title": "Conversas",
+		"search": "Pesquisar conversas...",
+		"noChats": "Nenhuma conversa encontrada",
+		"noChatsDescription": "Clique em + para iniciar uma nova conversa",
+		"modal": {
+			"title": "Nova Conversa",
+			"titleGroup": "Nova conversa em grupo",
+			"noContacts": "Nenhum contacto encontrado.",
+			"oneSelected": "selecionado",
+			"multipleSelected": "selecionados",
+			"groupField": {
+				"label": "Nome do Grupo",
+				"placeholder": "Introduza o nome do grupo"
+			},
+			"primaryButton": "Iniciar conversa",
+			"createGroup": "Criar grupo",
+			"secondaryButton": "Cancelar"
+		}
+	},
+	"contacts": {
+		"title": "Contactos",
+		"contactsTabs": {
+			"received": "Recebidos",
+			"sent": "Enviados"
+		},
+		"search": "Pesquisar contactos...",
+		"loading": "A carregar contactos...",
+		"pending": "Pendente",
+		"noContacts": {
+			"contacts": {
+				"title": "Nenhum contacto encontrado",
+				"description": "Adicione contactos para começar a conversar"
+			},
+			"received": {
+				"title": "Nenhum pedido de contacto recebido",
+				"description": "Ainda não recebeu nenhum pedido de contacto"
+			},
+			"sent": {
+				"title": "Nenhum pedido de contacto enviado",
+				"description": "Ainda não enviou nenhum pedido de contacto"
+			}
+		},
+		"modal": {
+			"title": "Adicionar contacto",
+			"username": "Nome de Utilizador",
+			"primaryButton": "Adicionar",
+			"primaryButtonSuccess": "Adicionado!",
+			"secondaryButton": "Cancelar"
+		}
+	}
+}

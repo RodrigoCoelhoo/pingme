@@ -1,11 +1,12 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 import styles from '../styles/Button.module.css'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 	variant?: 'primary' | 'secondary' | 'ghost' | 'outline'
 	size?: 'small' | 'medium' | 'large'
 	fullWidth?: boolean
-	href?: string
+	to?: string // 👈 use this instead of href
 	icon?: ReactNode
 	children: ReactNode
 }
@@ -14,7 +15,7 @@ export default function Button({
 	variant = 'primary',
 	size = 'medium',
 	fullWidth = false,
-	href,
+	to,
 	icon,
 	children,
 	className = '',
@@ -28,12 +29,12 @@ export default function Button({
 		className
 	].filter(Boolean).join(' ')
 
-	if (href) {
+	if (to) {
 		return (
-			<a href={href} className={classes}>
+			<Link to={to} className={classes}>
 				{icon && <span className={styles.icon}>{icon}</span>}
 				{children}
-			</a>
+			</Link>
 		)
 	}
 

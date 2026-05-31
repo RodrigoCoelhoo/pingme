@@ -35,7 +35,7 @@ public class AuthenticationController {
 
         authenticationService.checkPassword(request.password(), user.getPassword());
 
-        AuthResponse token = authenticationService.generateAuthToken(user, response);
+        AuthResponse token = authenticationService.generateAuthToken(user, response, "Strict");
         return ResponseEntity.ok(token);
     }
 

@@ -4,6 +4,8 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import { useAuth } from '../contexts/AuthContext'
 import { displayNameRules, emailRules, passwordRules, usernameRules } from '../rules/rules'
+import Logo from '../assets/favicon-192.png'
+import { Trans, useTranslation } from 'react-i18next'
 
 export default function SignUp() {
 	const [displayName, setDisplayName] = useState('')
@@ -24,6 +26,8 @@ export default function SignUp() {
 		confirmPassword: false
 	})
 
+	const { t } = useTranslation("auth");
+
 	const isFormValid = Object.values(validity).every(Boolean) && acceptedTerms
 
 	const { signUp } = useAuth();
@@ -32,7 +36,7 @@ export default function SignUp() {
 		e.preventDefault()
 
 		if (!isFormValid) {
-			setError('Preenche corretamente todos os campos')
+			setError(t('signup.errorDefault'))
 			return
 		}
 
@@ -54,7 +58,7 @@ export default function SignUp() {
 	}
 
 	const handleGoogleSignUp = () => {
-		console.log('Sign up with Google')
+		window.location.href = `${import.meta.env.VITE_BACKEND_URL}/oauth2/authorization/google`
 	}
 
 	return (
@@ -64,29 +68,33 @@ export default function SignUp() {
 				<div className={styles.authBrand}>
 					<div className={styles.brandContent}>
 						<div className={styles.logo}>
-							<div className={styles.logoIcon}>P</div>
+							<img src={Logo} alt="PingMe Logo" className={styles.logoIcon} />
 							<span className={styles.logoText}>
 								Ping<span className={styles.logoAccent}>Me</span>
 							</span>
 						</div>
-						<h1 className={styles.brandTitle}>
-							Começa a conversar hoje! 🚀
-						</h1>
-						<p className={styles.brandSubtitle}>
-							Cria a tua conta e junta-te a milhares de utilizadores.
-						</p>
-						<div className={styles.brandFeatures}>
-							<div className={styles.brandFeature}>
-								<span className={styles.featureIcon}>✓</span>
-								<span>Configuração em 30 segundos</span>
+						<div className={styles.brand}>
+							<div className={styles.brandDescription}>
+								<h1 className={styles.brandTitle}>
+									{t('signup.brand.title')}
+								</h1>
+								<p className={styles.brandSubtitle}>
+									{t('signup.brand.subtitle')}
+								</p>
 							</div>
-							<div className={styles.brandFeature}>
-								<span className={styles.featureIcon}>✓</span>
-								<span>Sem cartão de crédito</span>
-							</div>
-							<div className={styles.brandFeature}>
-								<span className={styles.featureIcon}>✓</span>
-								<span>Grátis para sempre</span>
+							<div className={styles.brandFeatures}>
+								<div className={styles.brandFeature}>
+									<span className={styles.featureIcon}>✓</span>
+									<span>{t('signup.brand.features.0')}</span>
+								</div>
+								<div className={styles.brandFeature}>
+									<span className={styles.featureIcon}>✓</span>
+									<span>{t('signup.brand.features.1')}</span>
+								</div>
+								<div className={styles.brandFeature}>
+									<span className={styles.featureIcon}>✓</span>
+									<span>{t('signup.brand.features.2')}</span>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -96,11 +104,11 @@ export default function SignUp() {
 				<div className={styles.authForm}>
 					<div className={styles.formWrapper}>
 						<div className={styles.formHeader}>
-							<h2 className={styles.formTitle}>Criar conta</h2>
+							<h2 className={styles.formTitle}>{t('signup.title')}</h2>
 							<p className={styles.formSubtitle}>
-								Já tens uma conta?{' '}
+								{t('signup.subtitle')}{' '}
 								<a href="/signin" className={styles.formLink}>
-									Iniciar sessão
+									{t('signup.signin')}
 								</a>
 							</p>
 						</div>
@@ -114,11 +122,11 @@ export default function SignUp() {
 						<form onSubmit={handleSubmit} className={styles.form}>
 							<Input
 								type="text"
-								label="Nome de exibição"
-								placeholder="Rodrigo Coelho"
+								label={t('signup.displayName')}
+								placeholder={t('signup.displayNamePlaceholder')}
 								value={displayName}
 								onChange={(e) => setDisplayName(e.target.value)}
-								rules={displayNameRules()}
+								rules={displayNameRules(t)}
 								required
 								onValidationChange={(isValid) =>
 									setValidity(v => ({ ...v, displayName: isValid }))
@@ -126,12 +134,12 @@ export default function SignUp() {
 							/>
 
 							<Input
-								label="Nome de utilizador"
+								label={t('signup.username')}
 								type="text"
-								placeholder="rodrigo_coelho"
+								placeholder={t('signup.usernamePlaceholder')}
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
-								rules={usernameRules()}
+								rules={usernameRules(t)}
 								required
 								onValidationChange={(isValid) =>
 									setValidity(v => ({ ...v, username: isValid }))
@@ -139,25 +147,25 @@ export default function SignUp() {
 							/>
 
 							<Input
-								label="Email"
+								label={t('signup.email')}
 								type="email"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
-								rules={emailRules()}
+								rules={emailRules(t)}
 								required
-								placeholder="name@example.com"
+								placeholder={t('signup.emailPlaceholder')}
 								onValidationChange={(isValid) =>
 									setValidity(v => ({ ...v, email: isValid }))
 								}
 							/>
 
 							<Input
-								label="Password"
+								label={t('signup.password')}
 								type="password"
-								placeholder="••••••••"
+								placeholder={t('signup.passwordPlaceholder')}
 								value={password}
 								onChange={(e) => setPassword(e.target.value)}
-								rules={passwordRules()}
+								rules={passwordRules(t)}
 								required
 								onValidationChange={(isValid) =>
 									setValidity(v => ({ ...v, password: isValid }))
@@ -165,9 +173,9 @@ export default function SignUp() {
 							/>
 
 							<Input
-								label="Confirmar password"
+								label={t('signup.confirmPassword')}
 								type="password"
-								placeholder="••••••••"
+								placeholder={t('signup.confirmPasswordPlaceholder')}
 								value={confirmPassword}
 								onChange={(e) => setConfirmPassword(e.target.value)}
 								matchValue={password}
@@ -186,14 +194,7 @@ export default function SignUp() {
 										required
 									/>
 									<span>
-										Aceito os{' '}
-										<a href="/terms" className={styles.termsLink}>
-											Termos de Serviço
-										</a>{' '}
-										e a{' '}
-										<a href="/privacy" className={styles.termsLink}>
-											Política de Privacidade
-										</a>
+										<Trans ns={"auth"} i18nKey="signup.terms" components={{ a: <a /> }} />
 									</span>
 								</label>
 							</div>
@@ -204,12 +205,12 @@ export default function SignUp() {
 								fullWidth
 								disabled={loading || !isFormValid}
 							>
-								{loading ? 'A criar conta...' : 'Criar conta'}
+								{loading ? t('signup.submitting') : t('signup.submit')}
 							</Button>
 						</form>
 
 						<div className={styles.divider}>
-							<span>ou</span>
+							<span>{t('signin.divider')}</span>
 						</div>
 
 						<Button
@@ -226,7 +227,7 @@ export default function SignUp() {
 								</svg>
 							}
 						>
-							Continuar com Google
+							{t('signin.google')}
 						</Button>
 					</div>
 				</div>

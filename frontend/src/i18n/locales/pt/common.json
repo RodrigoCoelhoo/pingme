@@ -1,1 +1,8 @@
-{}
+{
+    "start": "Começar",
+    "login": "Entrar",
+    "editProfile": "Editar Perfil",
+    "language": "Idioma",
+    "theme": "Tema",
+    "logout": "Terminar Sessão"
+}

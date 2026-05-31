@@ -7,6 +7,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Document(collection = "users")
@@ -33,13 +34,14 @@ public class User {
     private String displayName;
 
     private String avatarUrl;
+    private String avatarPublicId;
 
     @Builder.Default
     private AuthProvider provider = AuthProvider.LOCAL;
 
     private String providerId;
 
-    private LocalDateTime lastSeenAt;
+    private Instant lastSeenAt;
 
     @CreatedDate
     private LocalDateTime createdAt;

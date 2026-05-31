@@ -10,18 +10,27 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "axios": "^1.15.0",
+    "country-flag-icons": "^1.6.16",
+    "emoji-picker-react": "^4.19.1",
+    "framer-motion": "^12.38.0",
     "i18next": "^26.0.5",
+    "lucide-react": "^1.14.0",
+    "next-themes": "^0.4.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-hot-toast": "^2.6.0",
     "react-i18next": "^17.0.3",
-    "react-router-dom": "^7.14.1"
+    "react-router-dom": "^7.14.1",
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",

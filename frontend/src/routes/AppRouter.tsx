@@ -10,20 +10,27 @@ import Signin from '../pages/Signin.tsx';
 import Signup from '../pages/Signup.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
 import Logout from '../pages/Logout.tsx';
-import Chats from '../pages/Chats.tsx';
+import Chat from '../pages/Chat.tsx';
 import PublicRoute from './PublicRoute.tsx';
+import Layout from '../layouts/Layout.tsx';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'react-hot-toast';
+import AuthCallback from '../pages/AuthCallback.tsx';
 
 const router = createBrowserRouter(
 	createRoutesFromElements(
 		<>
 			<Route element={<PublicRoute />}>
-				<Route path="/" element={<Landing />} />
+				<Route element={<Layout />}>
+					<Route path="/" element={<Landing />} />
+				</Route>
 				<Route path="/signin" element={<Signin />} />
 				<Route path="/signup" element={<Signup />} />
+				<Route path="/auth/callback" element={<AuthCallback />} />
 			</Route>
 
 			<Route element={<ProtectedRoute />}>
-				<Route path="/chats" element={<Chats />} />
+				<Route path="/chats" element={<Chat />} />
 				<Route path="/logout" element={<Logout />} />
 			</Route>
 		</>
@@ -31,5 +38,37 @@ const router = createBrowserRouter(
 );
 
 export default function App() {
-	return <RouterProvider router={router} />;
+	return (
+		<ThemeProvider
+			attribute="data-theme"
+			defaultTheme="dark"
+			enableSystem={false}
+		>
+			<Toaster
+				position="top-right"
+				toastOptions={{
+					duration: 3000,
+					style: {
+						background: 'var(--surface)',
+						color: 'var(--text)',
+						border: '1px solid var(--border)',
+					},
+					success: {
+						iconTheme: {
+							primary: '#22c55e',
+							secondary: '#fff',
+						},
+					},
+					error: {
+						iconTheme: {
+							primary: '#ef4444',
+							secondary: '#fff',
+						},
+					},
+				}}
+			/>
+
+			<RouterProvider router={router} />
+		</ThemeProvider>
+	);
 }

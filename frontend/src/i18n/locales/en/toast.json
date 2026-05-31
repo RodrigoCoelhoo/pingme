@@ -1,0 +1,60 @@
+{
+	"actions": {
+		"success": "{{action}} successfully!",
+		"contactAdded": "Contact sent",
+		"groupDeleted": "Group chat deleted",
+		"contactSent": "Contact request sent",
+		"transferSuccess": "Group ownership transferred",
+		"error": "Failed to {{action}}. Please try again.",
+		"leave": "leave the chat",
+		"delete": "delete the group chat",
+		"transfer": "transfer group ownership",
+		"kick": "remove the member from the group",
+		"add": "add members to the group",
+		"update": "update the group",
+		"role": "update member privileges",
+		"mute": "mute the conversation",
+		"contact": "send a contact request",
+		"edit": "edit the message",
+		"deleteMessage": "delete the message",
+		"acceptContact": "accept contact",
+		"rejectContact": "reject contact",
+		"cancelRequest": "cancel contact request",
+		"addContact": "add contact",
+		"deleteContact": "remove contact"
+	},
+	"loading": {
+		"error": "Failed to load {{content}}. Please try again.",
+		"contacts": "contacts"
+	},
+	"media": {
+		"image": "image",
+		"file": "file",
+		"validImage": "Please select a valid image",
+		"imageSize": "The image must be smaller than {{size}}{{units}}",
+		"emptyFiles": "Cannot send empty files",
+		"fileSizeLimit": "{{filename}} exceeds the {{size}}{{units}} limit.",
+		"fileLimit": "The limit of {{count}} files per message has been exceeded.",
+		"filesIgnored": "{{count}} file(s) ignored. Limit of {{limit}} files per message."
+	},
+	"confirmation": {
+		"leaveGroup": {
+			"title": "Leave group",
+			"message": "Are you sure you want to leave this group?",
+			"confirm": "Leave",
+			"cancel": "Cancel"
+		},
+		"deleteGroup": {
+			"title": "Delete group",
+			"message": "Are you sure you want to delete this group? This action cannot be undone.",
+			"confirm": "Delete",
+			"cancel": "Cancel"
+		},
+		"transferOwnership": {
+			"title": "Transfer group ownership",
+			"message": "Are you sure you want to transfer ownership of this group? This action cannot be undone.",
+			"confirm": "Transfer",
+			"cancel": "Cancel"
+		}
+	}
+}

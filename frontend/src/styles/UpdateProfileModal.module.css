@@ -1,0 +1,144 @@
+/* styles/UpdateProfileModal.module.css */
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	padding: 1rem;
+	
+	background: rgba(0, 0, 0, 0.7);
+	backdrop-filter: blur(4px);
+}
+
+.modalContent {
+	background-color: var(--bg-dark);
+	border-radius: 12px;
+	width: 100%;
+	max-width: 450px;
+	box-shadow: var(--shadow-xl);
+	overflow: hidden;
+	color: var(--text);
+}
+
+.modalHeader {
+	background-color: var(--bg);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1.5rem;
+	border-bottom: 1px solid var(--border);
+}
+
+.modalHeader h2 {
+	margin: 0;
+	font-size: 1.25rem;
+	font-weight: 600;
+}
+
+.closeBtn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 6px;
+	color: var(--muted);
+	transition: all 0.2s;
+}
+
+.closeBtn:hover {
+	color: var(--text);
+}
+
+.modalBody {
+	padding: 1.5rem;
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+}
+
+.avatarSection {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.avatarWrapper {
+	position: relative;
+}
+
+.avatarUpload {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	background: var(--gradient);
+	border-color: var(--green-500);
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border: 3px solid var(--bg);
+	transition: all 0.2s;
+	color: white;
+}
+
+.avatarUpload:hover {
+	transform: scale(1.05);
+}
+
+.avatarHint {
+	font-size: 0.875rem;
+	color: var(--text-secondary, #6b7280);
+	margin: 0;
+	text-align: center;
+}
+
+.modalFooter {
+	background-color: var(--bg);
+	display: flex;
+	gap: 0.75rem;
+	padding: 1.5rem;
+	border-top: 1px solid var(--border);
+	justify-content: flex-end;
+}
+
+.cancelBtn,
+.submitBtn {
+	padding: 0.625rem 1.25rem;
+	border-radius: 8px;
+	font-size: 0.875rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s;
+	border: none;
+}
+
+.cancelBtn {
+	background-color: var(--bg-light);
+}
+
+.submitBtn {
+	background: var(--gradient);
+	border-color: var(--green-500);
+	color: white;
+}
+
+.submitBtn:hover:not(:disabled) {
+	background-color: var(--primary-hover, #2563eb);
+}
+
+.submitBtn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
