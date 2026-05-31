@@ -1,7 +1,7 @@
 {
 	"actions": {
 		"success": "{{action}} com sucesso!",
-		"contactAdded": "Contacto adicionado",
+		"contactAdded": "Contacto enviado",
 		"groupDeleted": "Chat de grupo eliminado",
 		"contactSent": "Pedido de contacto enviado",
 		"transferSuccess": "Propriedade do grupo transferida",

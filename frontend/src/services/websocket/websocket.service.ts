@@ -5,7 +5,6 @@ import type {
 	MessageResponse,
 } from '../message/message.types'; // Adjust path if needed
 import type { PresenceEvent, TypingIndicator, WebSocketConfig } from './websocket.types';
-import type { ChatEvent } from '../chat/chat.types';
 
 class WebSocketService {
 	private client: Client | null = null;
@@ -135,7 +134,7 @@ class WebSocketService {
 	}
 
 	subscribeToUserEvents(
-		onEventReceived: (event: ChatEvent) => void
+		onEventReceived: (event: Event) => void
 	): () => void {
 		if (!this.client || !this.connected) return () => { };
 
@@ -150,7 +149,7 @@ class WebSocketService {
 			'/user/queue/events',
 			(message: IMessage) => {
 				try {
-					const payload: ChatEvent = JSON.parse(message.body);
+					const payload: Event = JSON.parse(message.body);
 					onEventReceived(payload);
 				} catch (error) {
 					console.error('❌ Error parsing event:', error);

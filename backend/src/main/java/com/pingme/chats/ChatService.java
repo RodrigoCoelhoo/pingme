@@ -2,8 +2,8 @@ package com.pingme.chats;
 
 import com.mongodb.DuplicateKeyException;
 import com.pingme.chats.dto.*;
-import com.pingme.chats.events.ChatEvent;
-import com.pingme.chats.events.ChatEventType;
+import com.pingme.shared.events.Event;
+import com.pingme.shared.events.EventType;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.chats.members.ChatMemberService;
@@ -48,6 +48,10 @@ public class ChatService {
     private final PresenceTracker presenceTracker;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
+        if (!contactService.existsAcceptedContactBetween(userId, targetId)) {
+            throw new ForbiddenException("User is not in your contact list");
+        }
+
         Chat chat = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId))
                 .orElseGet(() -> createPrivateChat(userId, targetId));
 
@@ -116,10 +120,6 @@ public class ChatService {
 
         if (userId.equals(targetId)) {
             throw new BadRequestException("You cannot create a chat with yourself");
-        }
-
-        if (!contactService.existsAcceptedContactBetween(userId, targetId)) {
-            throw new ForbiddenException("User is not in your contact list");
         }
 
         String privateChatKey = createPrivateChatKey(userId, targetId);
@@ -223,7 +223,7 @@ public class ChatService {
 
             websocketBroadcaster.broadcastEvent(
                     List.of(member.getUserId()),
-                    ChatEvent.of(ChatEventType.CHAT_CREATED, chat.getId(), chatPreview)
+                    Event.of(EventType.CHAT_CREATED, chat.getId(), chatPreview)
             );
         }
 
@@ -320,7 +320,7 @@ public class ChatService {
 
         websocketBroadcaster.broadcastEvent(
                 members.stream().map(ChatMember::getUserId).toList(),
-                ChatEvent.of(ChatEventType.CHAT_DELETED, chat.getId())
+                Event.of(EventType.CHAT_DELETED, chat.getId())
         );
     }
 
@@ -576,7 +576,7 @@ public class ChatService {
         Chat saved = chatRepository.save(chat);
         websocketBroadcaster.broadcastEvent(
                 getChatMembersIds(saved),
-                ChatEvent.of(ChatEventType.DETAILS_UPDATED, saved.getId(), new UpdateChatResponse(saved.getChatName(), saved.getImageUrl()))
+                Event.of(EventType.DETAILS_UPDATED, saved.getId(), new UpdateChatResponse(saved.getChatName(), saved.getImageUrl()))
         );
 
         return getChatPreviewById(saved, userId);

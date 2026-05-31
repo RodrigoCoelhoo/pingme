@@ -1,7 +1,14 @@
 package com.pingme.contacts;
 
+import com.pingme.chats.Chat;
+import com.pingme.chats.ChatRepository;
+import com.pingme.shared.events.Event;
+import com.pingme.shared.events.EventType;
+import com.pingme.chats.members.ChatMember;
+import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.contacts.dto.ContactDTO;
 import com.pingme.contacts.dto.ContactResponse;
+import com.pingme.shared.WebsocketBroadcaster;
 import com.pingme.shared.exceptions.ContactConflictException;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.shared.exceptions.ResourceNotFound;
@@ -15,13 +22,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class ContactService {
 
     private final ContactRepository contactRepository;
+    private final ChatRepository chatRepository;
+    private final ChatMemberRepository chatMemberRepository;
     private final UserService userService;
+    private final WebsocketBroadcaster websocketBroadcaster;
 
     public Contact getContact(UserProfile user, String contactId) {
         return contactRepository.findByIdAndUser(contactId, user.id())
@@ -94,6 +106,23 @@ public class ContactService {
                 .build();
 
         Contact result = contactRepository.save(contact);
+
+
+        User currentUser = userService.getUserById(user.id());
+        ContactResponse response = new ContactResponse(
+                result.getId(),
+                currentUser.getId(),
+                currentUser.getDisplayName(),
+                currentUser.getUsername(),
+                currentUser.getAvatarUrl(),
+                result.getStatus(),
+                result.getCreatedAt()
+        );
+
+        websocketBroadcaster.broadcastEvent(
+                List.of(result.getReceiverId()),
+                Event.contact(EventType.CONTACT_RECEIVED, result.getId(), response)
+        );
         return new ContactResponse(
                 result.getId(),
                 target.getId(),
@@ -118,19 +147,45 @@ public class ContactService {
                 if (!isReceiver) throw new ForbiddenException("Only the receiver can accept a request");
 
                 contact.setStatus(ContactStatus.ACCEPTED);
-                contactRepository.save(contact);
+                Contact saved = contactRepository.save(contact);
+
+                User receiver = userService.getUserById(contact.getReceiverId());
+                ContactResponse response = new ContactResponse(
+                        saved.getId(),
+                        receiver.getId(),
+                        receiver.getDisplayName(),
+                        receiver.getUsername(),
+                        receiver.getAvatarUrl(),
+                        saved.getStatus(),
+                        saved.getCreatedAt()
+                );
+
+                websocketBroadcaster.broadcastEvent(
+                        List.of(contact.getSenderId()),
+                        Event.contact(EventType.CONTACT_ACCEPTED, contact.getId(), response)
+                );
             }
 
             case REJECT -> {
                 if (!isReceiver) throw new ForbiddenException("Only the receiver can reject a request");
 
                 contactRepository.delete(contact);
+
+                websocketBroadcaster.broadcastEvent(
+                        List.of(contact.getSenderId()),
+                        Event.contact(EventType.CONTACT_REJECTED, contact.getId())
+                );
             }
 
             case CANCEL -> {
                 if (isReceiver) throw new ForbiddenException("Only the sender can cancel a request");
 
                 contactRepository.delete(contact);
+
+                websocketBroadcaster.broadcastEvent(
+                        List.of(contact.getReceiverId()),
+                        Event.contact(EventType.CONTACT_CANCEL, contact.getId())
+                );
             }
         }
     }
@@ -138,6 +193,27 @@ public class ContactService {
     public void deleteContact(UserProfile user, String contactId) {
         Contact contact = getContact(user, contactId);
         contactRepository.delete(contact);
+
+        String privateKey = createPrivateChatKey(contact.getSenderId(), contact.getReceiverId());
+        Optional<Chat> chat = chatRepository.findByPrivateChatKey(privateKey);
+        // if empty they never chatted
+        if(chat.isPresent()) {
+            String chatId = chat.get().getId();
+            List<ChatMember> members = chatMemberRepository.findByChatId(chatId);
+            members.forEach(m -> m.setActive(false));
+            chatMemberRepository.saveAll(members);
+
+            websocketBroadcaster.broadcastEvent(
+                    members.stream().map(ChatMember::getUserId).toList(),
+                    Event.of(EventType.CONTACT_DELETED, chatId, contactId)
+            );
+        }
+    }
+
+    private String createPrivateChatKey(String user1, String user2) {
+        return Stream.of(user1, user2)
+                .sorted()
+                .collect(Collectors.joining("_"));
     }
 
     public boolean existsAcceptedContactBetween(String user1, String user2) {

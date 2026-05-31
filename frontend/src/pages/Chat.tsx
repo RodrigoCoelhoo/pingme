@@ -10,12 +10,12 @@ import { useGroupActions } from '../hooks/useGroupActions';
 import { useChatInteractions } from '../hooks/useChatInteractions';
 import { useContacts } from '../hooks/useContacts';
 import { useChats } from '../hooks/useChats';
-import { ChatEventType, ChatType, MemberRole, type ChatPreview } from '../services/chat/chat.types';
+import { ChatType, MemberRole, type ChatPreview } from '../services/chat/chat.types';
 import { showError, showSuccess } from '../utils/toast';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useEffect, useRef, useState } from 'react';
 import type { MessageResponse } from '../services/message/message.types';
-import type { TypingIndicator } from '../services/websocket/websocket.types';
+import { EventType, type TypingIndicator } from '../services/websocket/websocket.types';
 import chatService from '../services/chat/chat.service';
 import { playNotificationSound } from '../utils/notification';
 import contactService from '../services/contact/contact.service';
@@ -82,10 +82,37 @@ export default function Chat() {
 		loadMore: loadMoreChats,
 		insertChatSorted,
 		removeChat,
+		removeChatsByUserId,
 		updateChat,
 		toggleMuteChat,
 		updateChatsByUserId
 	} = useChats({ searchQuery: activeTab === 'chats' ? searchQuery : '' });
+
+	const {
+		acceptedContacts,
+		isLoadingAccepted,
+		acceptedHasMore,
+		loadMoreAccepted,
+		receivedPending,
+		isLoadingReceivedPending,
+		receivedPendingHasMore,
+		loadMoreReceivedPending,
+		sentPending,
+		isLoadingSentPending,
+		sentPendingHasMore,
+		loadMoreSentPending,
+		handleAcceptContact,
+		handleRejectContact,
+		handleCancelRequest,
+		handleAddContact,
+		handleDeleteContact,
+		addSentPendingContact,
+		addReceivedPendingContact,
+		addAcceptedContact,
+		removeReceivedPendingContact,
+		removeSentPendingContact,
+		removeAcceptedContact
+	} = useContacts({ searchQuery: activeTab === 'contacts' ? searchQuery : '' });
 
 	const token = localStorage.getItem('accessToken');
 	const activeChatTypingRef = useRef<((indicator: TypingIndicator) => void) | null>(null);
@@ -150,34 +177,36 @@ export default function Chat() {
 		onEventReceived: (event) => {
 			const exists = chats.find(c => c.chatId === event.chatId);
 
+			console.log(event);
+
 			switch (event.type) {
-				case ChatEventType.MEMBER_KICKED:
-				case ChatEventType.CHAT_DELETED:
+				case EventType.MEMBER_KICKED:
+				case EventType.CHAT_DELETED:
 					removeChat(event.chatId);
 					if (activeChat === event.chatId) {
 						setActiveChat(null);
 					}
 					break;
 
-				case ChatEventType.MEMBER_ROLE_UPDATED:
+				case EventType.MEMBER_ROLE_UPDATED:
 					if (exists) {
 						updateChat(event.chatId, { role: event.payload as MemberRole });
 					}
 					break;
 
-				case ChatEventType.MEMBER_ADDED:
-				case ChatEventType.CHAT_CREATED:
+				case EventType.MEMBER_ADDED:
+				case EventType.CHAT_CREATED:
 					if (!exists) {
 						insertChatSorted(event.payload as ChatPreview, false);
 					}
 					break;
 
-				case ChatEventType.DETAILS_UPDATED:
+				case EventType.DETAILS_UPDATED:
 					if (exists) {
 						updateChat(event.chatId, event.payload as Partial<ChatPreview>);
 					}
 					break;
-				case ChatEventType.MESSAGE_EDITED:
+				case EventType.MESSAGE_EDITED:
 					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
 						updateChat(event.chatId, {
 							lastMessageId: event.payload.messageId,
@@ -190,7 +219,7 @@ export default function Chat() {
 					activeChatEditRef.current?.(event.payload.messageId, event.payload.content, event.payload.editedAt);
 					break;
 
-				case ChatEventType.MESSAGE_DELETED:
+				case EventType.MESSAGE_DELETED:
 					if (event.payload.messageId === chats.find(c => c.chatId === event.chatId)?.lastMessageId) {
 						updateChat(event.chatId, {
 							lastMessageId: event.payload.messageId,
@@ -201,6 +230,29 @@ export default function Chat() {
 
 					if (event.chatId !== activeChat) break;
 					activeChatDeleteRef.current?.(event.payload.messageId);
+					break;
+				case EventType.CONTACT_RECEIVED:
+					addReceivedPendingContact(event.payload);
+					break;
+				case EventType.CONTACT_ACCEPTED:
+					console.log('Contact accepted:', event.contactId);
+					removeSentPendingContact(event.contactId);
+					addAcceptedContact(event.payload);
+					break;
+				case EventType.CONTACT_REJECTED:
+					removeSentPendingContact(event.contactId);
+					break;
+				case EventType.CONTACT_CANCEL:
+					console.log('Contact request cancelled:', event.contactId);
+					console.log(receivedPending);
+					removeReceivedPendingContact(event.contactId); 
+					break;
+				case EventType.CONTACT_DELETED:
+					removeAcceptedContact(event.contactId);
+					removeChat(event.chatId);
+					if (activeChat === event.chatId) {
+						setActiveChat(null);
+					}
 					break;
 			}
 		},
@@ -235,26 +287,7 @@ export default function Chat() {
 
 	const activeChatMessageRef = useRef<((msg: MessageResponse) => void) | null>(null);
 
-	const {
-		acceptedContacts,
-		isLoadingAccepted,
-		acceptedHasMore,
-		loadMoreAccepted,
-		receivedPending,
-		isLoadingReceivedPending,
-		receivedPendingHasMore,
-		loadMoreReceivedPending,
-		sentPending,
-		isLoadingSentPending,
-		sentPendingHasMore,
-		loadMoreSentPending,
-		handleAcceptContact,
-		handleRejectContact,
-		handleCancelRequest,
-		handleAddContact,
-		handleDeleteContact,
-		addSentPendingContact
-	} = useContacts({ searchQuery: activeTab === 'contacts' ? searchQuery : '' });
+
 
 	const {
 		handleActiveChatChange,
@@ -356,7 +389,20 @@ export default function Chat() {
 
 			if (!confirmed) return;
 
+			const otherUserId = acceptedContacts.find(
+				c => c.contactId === contactId
+			)?.userId;
+
 			await handleDeleteContact(contactId);
+
+			if (otherUserId) {
+				removeChatsByUserId(otherUserId);
+				const activeChatPreview = chats.find(c => c.chatId === activeChat);
+
+				if (activeChatPreview?.otherUserId === otherUserId) {
+					setActiveChat(null);
+				}
+			}
 		} catch (error) {
 			showError(t('actions.error', { action: t('actions.deleteContact') }));
 		}

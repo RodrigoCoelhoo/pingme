@@ -1,6 +1,6 @@
 package com.pingme.shared;
 
-import com.pingme.chats.events.ChatEvent;
+import com.pingme.shared.events.Event;
 import com.pingme.messages.dto.MessageResponse;
 import com.pingme.shared.presence.PresenceEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class WebsocketBroadcaster {
         }
     }
 
-    public void broadcastEvent(List<String> recipientIds, ChatEvent event) {
+    public void broadcastEvent(List<String> recipientIds, Event event) {
         for (String memberId : recipientIds) {
             messagingTemplate.convertAndSendToUser(memberId, "/queue/events", event);
         }

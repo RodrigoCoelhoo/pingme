@@ -132,6 +132,12 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 
 	}, []);
 
+	const removeChatsByUserId = useCallback((userId: string) => {
+		setChats(prev =>
+			prev.filter(chat => chat.otherUserId !== userId)
+		);
+	}, []);
+
 	return {
 		chats,
 		isLoading,
@@ -141,6 +147,7 @@ export function useChats({ searchQuery = '' }: UseChatsProps = {}) {
 		removeChat,
 		updateChat,
 		toggleMuteChat,
-		updateChatsByUserId
+		updateChatsByUserId,
+		removeChatsByUserId
 	};
 }

@@ -41,23 +41,6 @@ export interface ChatMember {
 	status: ContactStatus;
 }
 
-export interface ChatEvent {
-	type: ChatEventType;
-	chatId: string;
-	payload: any;
-}
-
-export enum ChatEventType {
-	MEMBER_KICKED = 'MEMBER_KICKED',
-    MEMBER_ROLE_UPDATED = 'MEMBER_ROLE_UPDATED',
-    MEMBER_ADDED = 'MEMBER_ADDED',
-	DETAILS_UPDATED = 'DETAILS_UPDATED',
-	MESSAGE_EDITED = "MESSAGE_EDITED",
-	MESSAGE_DELETED = "MESSAGE_DELETED",
-	CHAT_CREATED = 'CHAT_CREATED',
-	CHAT_DELETED = 'CHAT_DELETED'
-}
-
 export interface UpdateChatRequest {
 	chatName?: string;
 }

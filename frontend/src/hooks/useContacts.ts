@@ -202,6 +202,45 @@ export function useContacts({ searchQuery = '' }: UseContactsProps = {}) {
 		setSentPending(prev => [contact, ...prev]);
 	};
 
+	const addReceivedPendingContact = (contact: ContactResponse) => {
+		setReceivedPending(prev => {
+			if (prev.some(c => c.contactId === contact.contactId)) {
+				return prev;
+			}
+			return [contact, ...prev];
+		});
+	};
+
+	const removeSentPendingContact = (contactId: string) => {
+		setSentPending(prev =>
+			prev.filter(c => c.contactId !== contactId)
+		);
+	};
+
+	const removeReceivedPendingContact = (contactId: string) => {
+		setReceivedPending(prev =>
+			prev.filter(c => c.contactId !== contactId)
+		);
+	};
+
+	const removeAcceptedContact = (contactId: string) => {
+		setAcceptedContacts(prev =>
+			prev.filter(c => c.contactId !== contactId)
+		);
+	};
+
+	const addAcceptedContact = (contact: ContactResponse) => {
+		setAcceptedContacts(prev => {
+			if (prev.some(c => c.contactId === contact.contactId)) {
+				return prev;
+			}
+			return [
+				{ ...contact, status: ContactStatus.ACCEPTED },
+				...prev
+			];
+		});
+	};
+
 	return {
 		// Accepted contacts
 		acceptedContacts,
@@ -228,5 +267,10 @@ export function useContacts({ searchQuery = '' }: UseContactsProps = {}) {
 		handleAddContact,
 		handleDeleteContact,
 		addSentPendingContact,
+		addReceivedPendingContact,
+		addAcceptedContact,
+		removeReceivedPendingContact,
+		removeSentPendingContact,
+		removeAcceptedContact
 	};
 }

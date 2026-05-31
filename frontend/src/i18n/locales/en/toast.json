@@ -1,7 +1,7 @@
 {
 	"actions": {
 		"success": "{{action}} successfully!",
-		"contactAdded": "Contact added",
+		"contactAdded": "Contact sent",
 		"groupDeleted": "Group chat deleted",
 		"contactSent": "Contact request sent",
 		"transferSuccess": "Group ownership transferred",

@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pingme.chats.Chat;
 import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatType;
-import com.pingme.chats.events.ChatEvent;
-import com.pingme.chats.events.ChatEventType;
+import com.pingme.shared.events.Event;
+import com.pingme.shared.events.EventType;
 import com.pingme.chats.members.ChatMember;
 import com.pingme.chats.members.ChatMemberRepository;
 import com.pingme.chats.members.ChatRole;
@@ -31,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -114,7 +113,7 @@ public class MessageService {
         List<ChatMember> members = getChatMembers(chat);
         websocketBroadcaster.broadcastEvent(
                 members.stream().map(ChatMember::getUserId).toList(),
-                ChatEvent.of(ChatEventType.MESSAGE_EDITED, chat.getId(), response)
+                Event.of(EventType.MESSAGE_EDITED, chat.getId(), response)
         );
 
         return response;
@@ -157,7 +156,7 @@ public class MessageService {
         User user = userService.getUserById(saved.getSenderId());
         websocketBroadcaster.broadcastEvent(
                 members.stream().map(ChatMember::getUserId).toList(),
-                ChatEvent.of(ChatEventType.MESSAGE_DELETED, chat.getId(), MessageResponse.from(saved, user))
+                Event.of(EventType.MESSAGE_DELETED, chat.getId(), MessageResponse.from(saved, user))
         );
     }
 

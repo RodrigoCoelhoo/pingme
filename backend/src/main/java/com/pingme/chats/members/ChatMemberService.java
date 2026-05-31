@@ -4,8 +4,8 @@ import com.pingme.chats.Chat;
 import com.pingme.chats.ChatRepository;
 import com.pingme.chats.ChatType;
 import com.pingme.chats.dto.ChatPreview;
-import com.pingme.chats.events.ChatEvent;
-import com.pingme.chats.events.ChatEventType;
+import com.pingme.shared.events.Event;
+import com.pingme.shared.events.EventType;
 import com.pingme.chats.members.dto.UpdateRole;
 import com.pingme.contacts.Contact;
 import com.pingme.contacts.ContactService;
@@ -146,7 +146,7 @@ public class ChatMemberService {
             chatMemberRepository.save(currentUser);
             websocketBroadcaster.broadcastEvent(
                     List.of(currentUser.getUserId()),
-                    ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR)
+                    Event.of(EventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR)
             );
 
             role = ChatRole.ADMIN;
@@ -177,7 +177,7 @@ public class ChatMemberService {
 
         websocketBroadcaster.broadcastEvent(
                 List.of(otherUser.getUserId()),
-                ChatEvent.of(ChatEventType.MEMBER_ROLE_UPDATED, chatId, role)
+                Event.of(EventType.MEMBER_ROLE_UPDATED, chatId, role)
         );
     }
 
@@ -224,7 +224,7 @@ public class ChatMemberService {
 
         websocketBroadcaster.broadcastEvent(
                 List.of(otherUser.getUserId()),
-                ChatEvent.of(ChatEventType.MEMBER_KICKED, chatId)
+                Event.of(EventType.MEMBER_KICKED, chatId)
         );
     }
 
@@ -317,7 +317,7 @@ public class ChatMemberService {
 
             websocketBroadcaster.broadcastEvent(
                     new ArrayList<>(allAddedIds),
-                    ChatEvent.of(ChatEventType.MEMBER_ADDED, chatId, chatPreview)
+                    Event.of(EventType.MEMBER_ADDED, chatId, chatPreview)
             );
         }
     }
