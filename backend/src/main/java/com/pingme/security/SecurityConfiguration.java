@@ -48,6 +48,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/api/auth/signin-local").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/auth/refresh").permitAll()
                         //.requestMatchers(HttpMethod.POST, "/api/...").hasRole("ADMIN")
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/oauth2/**").permitAll()
                         .requestMatchers("/api/auth/google/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
