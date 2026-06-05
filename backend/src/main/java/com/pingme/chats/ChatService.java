@@ -23,7 +23,9 @@ import com.pingme.users.User;
 import com.pingme.users.UserService;
 import com.pingme.shared.utils.PagedResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
@@ -48,12 +51,22 @@ public class ChatService {
     private final PresenceTracker presenceTracker;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
+        log.debug("Getting or creating private chat [userId={}, targetId={}]", userId, targetId);
+
         if (!contactService.existsAcceptedContactBetween(userId, targetId)) {
+            log.warn("Private chat attempt with non-contact [userId={}, targetId={}]", userId, targetId);
             throw new ForbiddenException("User is not in your contact list");
         }
 
-        Chat chat = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId))
-                .orElseGet(() -> createPrivateChat(userId, targetId));
+        Optional<Chat> existing = chatRepository.findByPrivateChatKey(createPrivateChatKey(userId, targetId));
+        boolean existed = existing.isPresent();
+        Chat chat = existing.orElseGet(() -> createPrivateChat(userId, targetId));
+
+        if (!existed) {
+            log.info("Private chat created [chatId={}, userId={}, targetId={}]", chat.getId(), userId, targetId);
+        } else {
+            log.debug("Private chat already exists [chatId={}, userId={}, targetId={}]", chat.getId(), userId, targetId);
+        }
 
         ChatMember member = chatMemberService.getChatMember(chat.getId(), userId);
         member = chatMemberService.activateChatMember(member);
@@ -112,13 +125,15 @@ public class ChatService {
         boolean isMember = chatMemberService.exists(chatId, userId);
 
         if (!isMember) {
+            log.warn("Unauthorized chat access attempt [userId={}, chatId={}]", userId, chatId);
             throw new ForbiddenException("Current user doesn't belong to this chat");
         }
     }
 
+    @Transactional
     private Chat createPrivateChat(String userId, String targetId) {
-
         if (userId.equals(targetId)) {
+            log.warn("Self-chat attempt [userId={}]", userId);
             throw new BadRequestException("You cannot create a chat with yourself");
         }
 
@@ -158,7 +173,9 @@ public class ChatService {
                 .collect(Collectors.joining("_"));
     }
 
+    @Transactional
     public ChatPreview createGroupChat(String userId, List<String> memberIds, String chatName) {
+        log.info("Creating group chat [creatorId={}, memberCount={}, chatName='{}']", userId, memberIds.size(), chatName);
 
         List<String> members = new ArrayList<>(memberIds);
 
@@ -175,6 +192,11 @@ public class ChatService {
         boolean allValid = contactSet.containsAll(otherMembers);
 
         if (!allValid) {
+            log.warn(
+                    "Group chat creation with non-contacts [userId={}, invalidMembers={}]",
+                    userId,
+                    otherMembers.stream().filter(id -> !contactSet.contains(id)).toList()
+            );
             throw new ForbiddenException("Some users are not in your contact list");
         }
 
@@ -198,6 +220,13 @@ public class ChatService {
                 .toList();
 
         chatMemberService.saveAll(chatMembers);
+
+        log.info(
+                "Group chat created [chatId={}, creatorId={}, memberCount={}]",
+                chat.getId(),
+                userId,
+                members.size()
+        );
 
         ChatPreview adminPreview = null;
         for (ChatMember member : chatMembers) {
@@ -234,18 +263,23 @@ public class ChatService {
 
         if (chat.getChatType() == ChatType.PRIVATE) {
             if (chat.getPrivateChatKey() == null || chat.getPrivateChatKey().isBlank()) {
+                log.error("Attempted to create PRIVATE chat without privateChatKey");
                 throw new IllegalArgumentException("PRIVATE chat must have privateChatKey");
             }
         }
         else if (chat.getChatType() == ChatType.GROUP) {
             if (chat.getPrivateChatKey() != null) {
+                log.error("Attempted to create GROUP chat with privateChatKey");
                 throw new IllegalArgumentException("GROUP chat cannot have privateChatKey");
             }
         }
 
         try {
-            return chatRepository.save(chat);
+            Chat saved = chatRepository.save(chat);
+            log.debug("Chat persisted [chatId={}, type={}]", saved.getId(), saved.getChatType());
+            return saved;
         } catch (DuplicateKeyException e) {
+            log.warn("Duplicate key on chat creation, fetching existing [privateChatKey={}]", chat.getPrivateChatKey());
             return chatRepository.findByPrivateChatKey(chat.getPrivateChatKey())
                     .orElseThrow(() -> new IllegalStateException(
                             "Duplicate key conflict but chat was not found"
@@ -302,10 +336,13 @@ public class ChatService {
         );
     }
 
+    @Transactional
     public void deleteChat(String userId, String chatId) {
+        log.info("Deleting chat [userId={}, chatId={}]", userId, chatId);
         ChatMember currentUser = chatMemberService.getChatMember(chatId, userId);
 
         if(currentUser.getRole() != ChatRole.ADMIN) {
+            log.warn("Non-admin attempted chat deletion [userId={}, chatId={}]", userId, chatId);
             throw new ForbiddenException("You don't have enough permissions for this action");
         }
 
@@ -317,6 +354,7 @@ public class ChatService {
         messageService.deleteAll(messages);
 
         chatRepository.delete(chat);
+        log.info("Chat deleted [chatId={}, type={}, memberCount={}]", chatId, chat.getChatType(), members.size());
 
         websocketBroadcaster.broadcastEvent(
                 members.stream().map(ChatMember::getUserId).toList(),
@@ -550,30 +588,47 @@ public class ChatService {
     }
 
     public ChatPreview updateChat(String userId, String chatId, UpdateChatRequest request, MultipartFile file) throws IOException {
+        log.info(
+                "Updating chat [userId={}, chatId={}, hasNameChange={}, hasImage={}]",
+                userId, chatId,
+                request != null && request.chatName() != null,
+                file != null && !file.isEmpty()
+        );
+
         ChatMember currentUser = chatMemberService.getChatMember(chatId, userId);
 
         if(currentUser.getRole() != ChatRole.ADMIN) {
+            log.warn("Non-admin attempted chat update [userId={}, chatId={}]", userId, chatId);
             throw new ForbiddenException("You don't have enough permissions");
         }
 
         Chat chat = getChat(chatId, userId);
 
         if (request != null && request.chatName() != null) {
+            log.debug(
+                    "Updating chat name [chatId={}, oldName='{}', newName='{}']",
+                    chatId,
+                    chat.getChatName(),
+                    request.chatName()
+            );
             chat.setChatName(request.chatName());
         }
 
         if (file != null && !file.isEmpty()) {
 
             if (chat.getImagePublicId() != null) {
+                log.debug("Deleting old chat image [chatId={}, publicId={}]", chatId, chat.getImagePublicId());
                 cloudinaryService.deleteImage(chat.getImagePublicId());
             }
 
             CloudinaryUploadResult result = cloudinaryService.uploadProfilePicture(file);
             chat.setImageUrl(result.secureUrl());
             chat.setImagePublicId(result.publicId());
+            log.debug("Chat image uploaded [chatId={}, publicId={}]", chatId, result.publicId());
         }
 
         Chat saved = chatRepository.save(chat);
+        log.info("Chat updated [chatId={}]", chatId);
         websocketBroadcaster.broadcastEvent(
                 getChatMembersIds(saved),
                 Event.of(EventType.DETAILS_UPDATED, saved.getId(), new UpdateChatResponse(saved.getChatName(), saved.getImageUrl()))

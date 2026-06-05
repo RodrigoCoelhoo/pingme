@@ -8,8 +8,10 @@ import com.pingme.users.dto.CreateUserRequest;
 import com.pingme.users.dto.UpdateUserRequest;
 import com.pingme.users.dto.UserProfile;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -17,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -25,17 +28,20 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
 
+    @Transactional
     public UserProfile createUser(CreateUserRequest request) {
-
         String email = request.email().toLowerCase();
+        String username = request.username().toLowerCase();
+
+        log.info("Creating user [email={}, username={}]", email, username);
 
         if (userRepository.existsByEmail(email)) {
+            log.warn("Email already exists [email={}]", email);
             throw new ResourceAlreadyExistsException("Email already in use");
         }
 
-        String username = request.username().toLowerCase();
-
         if (userRepository.existsByUsername(username)) {
+            log.warn("Username already exists [username={}]", username);
             throw new ResourceAlreadyExistsException("Username already taken");
         }
 
@@ -50,22 +56,38 @@ public class UserService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        log.info(
+                "User created [userId={}, username={}]",
+                savedUser.getId(),
+                savedUser.getUsername()
+        );
+
         return mapToResponse(savedUser);
     }
 
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFound("User with Email: '" + email + "' not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found [email={}]", email);
+                    return new ResourceNotFound("User with Email: '" + email + "' not found");
+                });
     }
 
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFound("User with Username: '" + username + "' not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found [username={}]", username);
+                    return new ResourceNotFound("User with Username: '" + username + "' not found");
+                });
     }
 
     public User getUserById(String id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFound("User with ID: '" + id + "' not found"));
+                .orElseThrow(() -> {
+                    log.warn("User not found [userId={}]", id);
+                    return new ResourceNotFound("User with ID: '" + id + "' not found");
+                });
     }
 
     private UserProfile mapToResponse(User user) {
@@ -86,13 +108,17 @@ public class UserService {
     }
 
     public UserProfile updateUser(String userId, UpdateUserRequest request, MultipartFile file) throws IOException {
+        log.info("Updating user [userId={}]", userId);
+
         User user = getUserById(userId);
 
         if (request != null && request.displayName() != null) {
+            log.debug("Updating display name [userId={}]", userId);
             user.setDisplayName(request.displayName());
         }
 
         if (file != null && !file.isEmpty()) {
+            log.debug("Uploading avatar [userId={}]", userId);
 
             if (user.getAvatarPublicId() != null) {
                 cloudinaryService.deleteImage(user.getAvatarPublicId());
@@ -104,6 +130,8 @@ public class UserService {
         }
 
         User saved = userRepository.save(user);
+
+        log.info("User updated [userId={}]", saved.getId());
         return new UserProfile(
                 saved.getId(),
                 saved.getEmail(),
@@ -117,6 +145,7 @@ public class UserService {
         return userRepository.save(dbUser);
     }
 
+    @Transactional
     public User findOrCreateGoogleUser(String providerId, String email, String name, String avatarUrl) {
         return userRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, providerId)
                 .orElseGet(() -> findLocalOrCreate(email, name, avatarUrl, providerId));

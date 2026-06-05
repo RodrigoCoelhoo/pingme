@@ -21,12 +21,15 @@ import com.pingme.users.User;
 import com.pingme.users.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMemberService {
@@ -80,13 +83,16 @@ public class ChatMemberService {
     }
 
     public void markAsRead(String chatId, String userId, String messageId) {
+        log.debug("Marking chat as read [userId={}, chatId={}, messageId={}]", userId, chatId, messageId);
         ChatMember member = getChatMember(chatId, userId);
         member.setLastReadMessageId(messageId);
 
         chatMemberRepository.save(member);
     }
 
+    @Transactional
     public void leaveChat(String chatId, String userId) {
+        log.info("User leaving chat [userId={}, chatId={}]", userId, chatId);
         ChatMember member = getChatMember(chatId, userId);
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ResourceNotFound("Chat not found"));
@@ -95,10 +101,14 @@ public class ChatMemberService {
             if(member.isActive()) {
                 member.setActive(false);
                 chatMemberRepository.save(member);
+                log.info("User deactivated from private chat [userId={}, chatId={}]", userId, chatId);
+            } else {
+                log.debug("User already inactive in private chat [userId={}, chatId={}]", userId, chatId);
             }
         }
         else {
             if(member.getRole() == ChatRole.ADMIN) {
+                log.warn("Admin attempted to leave group chat [userId={}, chatId={}]", userId, chatId);
                 throw new ForbiddenException("You can't leave a group while you're ADMIN");
             }
 
@@ -106,9 +116,12 @@ public class ChatMemberService {
                 member.setRole(ChatRole.MEMBER);
                 member.setActive(false);
                 chatMemberRepository.save(member);
+                log.info("User left group chat [userId={}, chatId={}]", userId, chatId);
 
                 User user = userService.getUserById(userId);
                 broadcastSystemMessage(chat, SystemMessageContent.of(SystemEventType.MEMBER_LEFT, user.getUsername()));
+            } else {
+                log.debug("User already inactive in group chat [userId={}, chatId={}]", userId, chatId);
             }
         }
     }
@@ -125,13 +138,24 @@ public class ChatMemberService {
         return chatMemberRepository.findByChatIdAndUserId(chatId, userId).isPresent();
     }
 
+    @Transactional
     public void updateRole(String chatId, String currentUserId, @Valid UpdateRole data) {
+        log.info(
+                "Role update requested [chatId={}, requesterId={}, targetId={}, newRole={}]",
+                chatId,
+                currentUserId,
+                data.userId(),
+                data.role()
+        );
+
         if (currentUserId.equals(data.userId())) {
+            log.warn("Self role-update attempt [userId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("You cannot modify yourself");
         }
 
         ChatMember currentUser = getChatMember(chatId, currentUserId);
         if(currentUser.getRole() != ChatRole.ADMIN) {
+            log.warn("Non-admin attempted role update [userId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("Only admins can modify other person's role");
         }
 
@@ -144,6 +168,9 @@ public class ChatMemberService {
         if(data.role() == ChatRole.ADMIN) {
             currentUser.setRole(ChatRole.MODERATOR);
             chatMemberRepository.save(currentUser);
+
+            log.info("Ownership transferred [chatId={}, fromUserId={}, toUserId={}]", chatId, currentUserId, data.userId());
+
             websocketBroadcaster.broadcastEvent(
                     List.of(currentUser.getUserId()),
                     Event.of(EventType.MEMBER_ROLE_UPDATED, chatId, ChatRole.MODERATOR)
@@ -153,10 +180,12 @@ public class ChatMemberService {
             eventType = SystemEventType.OWNERSHIP_TRANSFERRED;
         }
         else if (data.role() == ChatRole.MODERATOR) {
+            log.info("Member promoted to moderator [chatId={}, targetId={}]", chatId, data.userId());
             role = ChatRole.MODERATOR;
             eventType = SystemEventType.MEMBER_PROMOTED;
         }
         else {
+            log.info("Member demoted to member [chatId={}, targetId={}]", chatId, data.userId());
             role = ChatRole.MEMBER;
             eventType = SystemEventType.MEMBER_DEMOTED;
         }
@@ -181,8 +210,12 @@ public class ChatMemberService {
         );
     }
 
+    @Transactional
     public void kickMember(String chatId, String currentUserId, String memberId) {
+        log.info("Kick requested [chatId={}, requesterId={}, targetId={}]", chatId, currentUserId, memberId);
+
         if (currentUserId.equals(memberId)) {
+            log.warn("Self-kick attempt [userId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("You cannot kick yourself");
         }
 
@@ -193,20 +226,29 @@ public class ChatMemberService {
         ChatRole otherUserRole = otherUser.getRole();
 
         if (otherUserRole == ChatRole.ADMIN) {
+            log.warn("Attempted to kick admin [requesterId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("You cannot modify the admin");
         }
 
         if (currentUserRole == ChatRole.MEMBER) {
+            log.warn("Member attempted kick [userId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("Members cannot perform this action");
         }
 
         if (currentUserRole == ChatRole.MODERATOR && otherUserRole == ChatRole.MODERATOR) {
+            log.warn(
+                    "Moderator attempted to kick another moderator [requesterId={}, targetId={}, chatId={}]",
+                    currentUserId,
+                    memberId,
+                    chatId
+            );
             throw new ForbiddenException("Moderators cannot kick other moderators");
         }
 
         otherUser.setRole(ChatRole.MEMBER);
         otherUser.setActive(false);
         chatMemberRepository.save(otherUser);
+        log.info("Member kicked [chatId={}, kickedId={}, byUserId={}]", chatId, memberId, currentUserId);
 
         Chat chat = chatRepository.findById(chatId)
                 .orElseThrow(() -> new ResourceNotFound("Chat not found"));
@@ -228,10 +270,19 @@ public class ChatMemberService {
         );
     }
 
+    @Transactional
     public void addMembers(String chatId, String currentUserId, List<String> memberIds) {
+        log.info(
+                "Adding members to chat [chatId={}, requesterId={}, requestedCount={}]",
+                chatId,
+                currentUserId,
+                memberIds.size()
+        );
+
         boolean isMember = chatMemberRepository.findByChatIdAndUserId(chatId, currentUserId).isPresent();
 
         if (!isMember) {
+            log.warn("Non-member attempted to add members [userId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("Current user doesn't belong to this chat");
         }
 
@@ -242,6 +293,7 @@ public class ChatMemberService {
         ChatMember currentUser = getChatMember(chatId, currentUserId);
 
         if(currentUser.getRole() == ChatRole.MEMBER) {
+            log.warn("Member (non-mod) attempted to add members [userId={}, chatId={}]", currentUserId, chatId);
             throw new ForbiddenException("You don't have permission to add other persons");
         }
 
@@ -287,6 +339,14 @@ public class ChatMemberService {
         allAddedIds.addAll(finalNewMembers);
 
         if (!allAddedIds.isEmpty()) {
+            log.info(
+                    "Members added to chat [chatId={}, addedCount={}, reactivatedCount={}, newCount={}]",
+                    chatId,
+                    allAddedIds.size(),
+                    reactivatedIds.size(),
+                    finalNewMembers.size()
+            );
+
             List<String> addedNames = userService.getUsersByIds(allAddedIds)
                     .stream()
                     .map(User::getUsername)
@@ -318,6 +378,14 @@ public class ChatMemberService {
             websocketBroadcaster.broadcastEvent(
                     new ArrayList<>(allAddedIds),
                     Event.of(EventType.MEMBER_ADDED, chatId, chatPreview)
+            );
+        }
+        else {
+            log.warn(
+                    "Add members request resulted in no additions [chatId={}, requesterId={}, requestedIds={}]",
+                    chatId,
+                    currentUserId,
+                    memberIds
             );
         }
     }
