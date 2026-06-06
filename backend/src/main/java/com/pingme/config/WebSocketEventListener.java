@@ -2,6 +2,7 @@ package com.pingme.config;
 
 import com.pingme.contacts.ContactService;
 import com.pingme.shared.WebsocketBroadcaster;
+import com.pingme.shared.metrics.WebsocketMetrics;
 import com.pingme.shared.presence.PresenceEvent;
 import com.pingme.shared.presence.PresenceStatus;
 import com.pingme.shared.presence.PresenceTracker;
@@ -31,6 +32,7 @@ public class WebSocketEventListener {
     private final ContactService contactService;
     private final WebsocketBroadcaster websocketBroadcaster;
     private final UserService userService;
+    private final WebsocketMetrics websocketMetrics;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -51,6 +53,7 @@ public class WebSocketEventListener {
                 user.id(),
                 headerAccessor.getSessionId()
         );
+        websocketMetrics.connectionOpened();
 
         if(becameOnline) {
             PresenceEvent presenceEvent = new PresenceEvent(
@@ -86,6 +89,7 @@ public class WebSocketEventListener {
                 user.id(),
                 headerAccessor.getSessionId()
         );
+        websocketMetrics.connectionClosed();
 
         if (becameOffline) {
             Instant lastSeenAt = Instant.now();
