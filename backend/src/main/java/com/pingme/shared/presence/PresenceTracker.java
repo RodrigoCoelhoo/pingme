@@ -27,11 +27,10 @@ public class PresenceTracker {
     }
 
     public boolean disconnect(String userId, String sessionId) {
-        Set<String> sessions = onlineUsers.get(userId);
-
-        if (sessions == null) {
-            return false;
-        }
+        Set<String> sessions = onlineUsers.computeIfAbsent(
+                userId,
+                k -> ConcurrentHashMap.newKeySet()
+        );
 
         sessions.remove(sessionId);
 
@@ -49,6 +48,17 @@ public class PresenceTracker {
 
     public Set<String> getOnlineUsers() {
         return Set.copyOf(onlineUsers.keySet());
+    }
+
+    public int getOnlineUserCount() {
+        return onlineUsers.size();
+    }
+
+    public int getSessionCount() {
+        return onlineUsers.values()
+                .stream()
+                .mapToInt(Set::size)
+                .sum();
     }
 
     public Set<String> filterOnline(Set<String> userIds) {

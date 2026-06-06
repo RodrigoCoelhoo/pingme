@@ -18,6 +18,7 @@ import com.pingme.shared.exceptions.BadRequestException;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.messages.Message;
 import com.pingme.messages.MessageService;
+import com.pingme.shared.metrics.ChatMetrics;
 import com.pingme.shared.presence.PresenceTracker;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
@@ -49,6 +50,7 @@ public class ChatService {
     private final WebsocketBroadcaster websocketBroadcaster;
     private final ChatMemberRepository chatMemberRepository;
     private final PresenceTracker presenceTracker;
+    private final ChatMetrics chatMetrics;
 
     public ChatPreview getOrCreatePrivateChat(String userId, String targetId) {
         log.debug("Getting or creating private chat [userId={}, targetId={}]", userId, targetId);
@@ -227,6 +229,7 @@ public class ChatService {
                 userId,
                 members.size()
         );
+        chatMetrics.recordChatCreated();
 
         ChatPreview adminPreview = null;
         for (ChatMember member : chatMembers) {

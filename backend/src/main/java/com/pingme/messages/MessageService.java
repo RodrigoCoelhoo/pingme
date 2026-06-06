@@ -18,6 +18,7 @@ import com.pingme.shared.exceptions.BadRequestException;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.messages.system.SystemMessageContent;
+import com.pingme.shared.metrics.MessageMetrics;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,10 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static com.pingme.shared.metrics.MetricsConstants.RESULT_FAILURE;
+import static com.pingme.shared.metrics.MetricsConstants.RESULT_SUCCESS;
 
 @Slf4j
 @Service
@@ -47,6 +52,7 @@ public class MessageService {
     private final CloudinaryService cloudinaryService;
     private final UserService userService;
     private final WebsocketBroadcaster websocketBroadcaster;
+    private final MessageMetrics messageMetrics;
 
     public Message getMessage(String messageId) {
         return messageRepository.findById(messageId)
@@ -249,16 +255,20 @@ public class MessageService {
 
         String folder = "chats/" + chatId;
         List<Message> messagesToSave = new ArrayList<>();
+
         for (MultipartFile file : files) {
-            MessageType type = file.getContentType() != null &&
-                    file.getContentType().startsWith("image/")
-                    ? MessageType.IMAGE
-                    : MessageType.FILE;
+            String mediaType = file.getContentType() != null && file.getContentType().startsWith("image/") ? "image" : "file";
+            MessageType type = "image".equals(mediaType) ? MessageType.IMAGE : MessageType.FILE;
 
             try {
-                CloudinaryUploadResult upload = type == MessageType.IMAGE
-                        ? cloudinaryService.uploadImage(file, folder)
-                        : cloudinaryService.uploadFile(file, folder);
+                CloudinaryUploadResult upload = Objects.requireNonNull(
+                        messageMetrics.uploadTimer(mediaType).recordCallable(
+                                () -> type == MessageType.IMAGE
+                                        ? cloudinaryService.uploadImage(file, folder)
+                                        : cloudinaryService.uploadFile(file, folder)
+                        )
+                );
+                messageMetrics.recordUpload(RESULT_SUCCESS, mediaType);
 
                 Message message = Message.builder()
                         .chatId(chatId)
@@ -270,7 +280,8 @@ public class MessageService {
                         .build();
 
                 messagesToSave.add(message);
-            } catch (IOException e) {
+            } catch (Exception e) {
+                messageMetrics.recordUpload(RESULT_FAILURE, mediaType);
                 log.error(
                         "Failed to upload file [chatId={}, userId={}, filename={}]",
                         chatId,
