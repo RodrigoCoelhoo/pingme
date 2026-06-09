@@ -95,7 +95,7 @@ export default function MessageBubble({
 						</span>
 					)}
 					<div className={`${styles.bubble} ${styles.deletedBubble}`}>
-						<p className={styles.deletedText}>Mensagem eliminada</p>
+						<p className={styles.deletedText}>{t('system.deletedMessage')}</p>
 					</div>
 				</div>
 			</div>
@@ -129,12 +129,12 @@ export default function MessageBubble({
 							<div className={styles.actionsDropdown}>
 								{canEdit && (
 									<button onClick={() => { onEdit?.(message); setShowMenu(false); }}>
-										<Pencil size={14} /> Editar
+										<Pencil size={14} /> {t('actions.edit')}
 									</button>
 								)}
 								{canDelete && (
 									<button onClick={() => { onDelete?.(message.messageId); setShowMenu(false); }} className={styles.deleteBtn}>
-										<Trash2 size={14} /> Eliminar
+										<Trash2 size={14} /> {t('actions.delete')}
 									</button>
 								)}
 							</div>
@@ -161,7 +161,7 @@ export default function MessageBubble({
 								{message.editedAt && 
 								<div className={styles.editedInfo}>
 									<Pencil size={11} />
-									<span className={styles.editedLabel}>editado</span>
+									<span className={styles.editedLabel}>{t('system.edited')}</span>
 									</div>}
 								<span className={styles.time}>{formatTime(message.createdAt)}</span>
 							</div>

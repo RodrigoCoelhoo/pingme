@@ -2,6 +2,7 @@ import type { ChatPreview } from '../../services/chat/chat.types';
 import ChatListItem from './ChatListItem';
 import styles from '../../styles/chat/ChatList.module.css';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
+import { useTranslation } from 'react-i18next';
 
 interface ChatListProps {
 	chats: ChatPreview[];
@@ -24,11 +25,13 @@ export default function ChatList({
 }: ChatListProps) {
 	const { containerRef } = useInfiniteScroll(onLoadMore, hasMore, isLoading, {direction: 'bottom'});
 
+	const { t }	= useTranslation("sidebar");
+
 	if (chats.length === 0 && !isLoading) {
 		return (
 			<div className={styles.chatListEmpty}>
-				<p>Nenhuma conversa ainda</p>
-				<span>Clica no + para começar uma nova conversa</span>
+				<p>{t('chats.noChats')}</p>
+				<span>{t('chats.noChatsDescription')}</span>
 			</div>
 		);
 	}

@@ -10,7 +10,13 @@
 		"moderator": "MODERATOR",
 		"memberDemotedSuffix": "from",
 		"ownershipTransferred": "transferred the ownership of the group to",
-		"image": "Image"
+		"image": "Image",
+		"deletedMessage": "Message deleted",
+		"edited": "Message edited"
+	},
+	"actions": {
+		"edit": "Edit",
+		"delete": "Delete"
 	},
 	"time": {
 		"day": "day",

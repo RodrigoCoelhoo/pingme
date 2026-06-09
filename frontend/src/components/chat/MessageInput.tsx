@@ -251,7 +251,7 @@ export default function MessageInput({ onSendMessage, disabled = false, onTyping
 					<div className={styles.editPreview}>
 						<div className={styles.editPreviewBar} />
 						<div className={styles.editPreviewContent}>
-							<span className={styles.editPreviewLabel}>A editar mensagem</span>
+							<span className={styles.editPreviewLabel}>{t('editing')}</span>
 							<p className={styles.editPreviewText}>{initialValue}</p>
 						</div>
 						<button className={styles.editPreviewClose} onClick={onCancelEdit} type="button">
