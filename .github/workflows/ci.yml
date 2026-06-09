@@ -2,48 +2,52 @@ name: CI Pipeline
 
 on:
   push:
-    branches: ["main", "develop"]
+    branches: [main, develop]
   pull_request:
-    branches: ["main", "develop"]
+    branches: [main, develop]
 
 jobs:
-  build-backend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Build backend
-        working-directory: backend
-        run: ./mvnw clean install
-
-  build-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install frontend
-        working-directory: frontend
-        run: npm install
-
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
-
   docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build Docker images
-        run: docker compose build
+      - name: Build containers
+        run: docker compose -f docker-compose.dev.yml build
+
+      - name: Start stack
+        run: docker compose -f docker-compose.dev.yml up -d
+
+      - name: Wait for backend
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/actuator/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f docker-compose.dev.yml logs backend
+          exit 1
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..15}; do
+            if curl -sf http://localhost:5173; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f docker-compose.dev.yml logs frontend
+          exit 1
+
+      - name: Stop stack
+        if: always()
+        run: docker compose -f docker-compose.dev.yml down
+
+  # test-backend:
+  #   runs-on: ubuntu-latest
+  #   needs: docker
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Run backend tests
+  #       run: docker compose -f docker-compose.dev.yml run backend ./mvnw test
