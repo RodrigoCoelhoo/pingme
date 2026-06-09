@@ -18,21 +18,29 @@ import com.pingme.shared.exceptions.BadRequestException;
 import com.pingme.shared.exceptions.ForbiddenException;
 import com.pingme.shared.exceptions.ResourceNotFound;
 import com.pingme.messages.system.SystemMessageContent;
+import com.pingme.shared.metrics.MessageMetrics;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import static com.pingme.shared.metrics.MetricsConstants.RESULT_FAILURE;
+import static com.pingme.shared.metrics.MetricsConstants.RESULT_SUCCESS;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageService {
@@ -44,16 +52,21 @@ public class MessageService {
     private final CloudinaryService cloudinaryService;
     private final UserService userService;
     private final WebsocketBroadcaster websocketBroadcaster;
+    private final MessageMetrics messageMetrics;
 
     public Message getMessage(String messageId) {
         return messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResourceNotFound("Message not found"));
+                .orElseThrow(() -> {
+                    log.warn("Message not found [messageId={}]", messageId);
+                    return new ResourceNotFound("Message not found");
+                });
     }
 
     public List<Message> getMessagesByIds(List<String> ids) {
         return messageRepository.findByIdIn(ids);
     }
 
+    @Transactional
     public Message saveMessage(String chatId, String senderId, String content, MessageType type) {
         Chat chat = getChat(chatId, senderId);
 
@@ -83,11 +96,23 @@ public class MessageService {
         return messageRepository.findByChatId(chatId);
     }
 
+    @Transactional
     public MessageResponse editMessage(String chatId, String messageId, String currentUserId, String newContent) {
+        log.info(
+                "Editing message [messageId={}, userId={}]",
+                messageId,
+                currentUserId
+        );
+
         Chat chat = getChat(chatId, currentUserId);
         Message message = getMessage(messageId);
 
         if(!message.getSenderId().equals(currentUserId)) {
+            log.warn(
+                    "Unauthorized message edit [messageId={}, userId={}]",
+                    messageId,
+                    currentUserId
+            );
             throw new ForbiddenException("Cannot edit messages of other users");
         }
 
@@ -116,10 +141,18 @@ public class MessageService {
                 Event.of(EventType.MESSAGE_EDITED, chat.getId(), response)
         );
 
+        log.info("Message edited [messageId={}]", saved.getId());
         return response;
     }
 
+    @Transactional
     public void deleteMessage(String chatId, String messageId, String currentUserId) {
+        log.info(
+                "Deleting message [messageId={}, userId={}]",
+                messageId,
+                currentUserId
+        );
+
         Chat chat = getChat(chatId, currentUserId);
         Message message = getMessage(messageId);
 
@@ -132,6 +165,12 @@ public class MessageService {
 
         boolean isOwnMessage = message.getSenderId().equals(currentUserId);
         if (!isOwnMessage && currentUserMembership.getRole() == ChatRole.MEMBER) {
+            log.warn(
+                    "Unauthorized message delete [messageId={}, userId={}]",
+                    messageId,
+                    currentUserId
+            );
+
             throw new ForbiddenException("You don't have permission to delete this message");
         }
 
@@ -144,7 +183,12 @@ public class MessageService {
             }
             message.setMediaPublicId(null);
         } catch (IOException exception) {
-            //
+            log.error(
+                    "Failed to delete media [messageId={}, publicId={}]",
+                    messageId,
+                    message.getMediaPublicId(),
+                    exception
+            );
         }
 
         message.setDeleted(true);
@@ -158,6 +202,8 @@ public class MessageService {
                 members.stream().map(ChatMember::getUserId).toList(),
                 Event.of(EventType.MESSAGE_DELETED, chat.getId(), MessageResponse.from(saved, user))
         );
+
+        log.info("Message deleted [messageId={}]", saved.getId());
     }
 
     public long getUnreadCount(String chatId, String lastReadMessageId) {
@@ -183,6 +229,11 @@ public class MessageService {
 
             return messageRepository.save(message);
         } catch (JsonProcessingException e) {
+            log.error(
+                    "Failed to serialize system message [chatId={}]",
+                    chatId,
+                    e
+            );
             throw new RuntimeException("Failed to serialize system message", e);
         }
     }
@@ -192,21 +243,32 @@ public class MessageService {
     }
 
     public List<MessageResponse> sendFileMessages(String chatId, String userId, List<MultipartFile> files) {
+        log.info(
+                "Uploading {} files to chat [chatId={}, userId={}]",
+                files.size(),
+                chatId,
+                userId
+        );
+
         Chat chat = getChat(chatId, userId);
         User user = userService.getUserById(userId);
 
         String folder = "chats/" + chatId;
         List<Message> messagesToSave = new ArrayList<>();
+
         for (MultipartFile file : files) {
-            MessageType type = file.getContentType() != null &&
-                    file.getContentType().startsWith("image/")
-                    ? MessageType.IMAGE
-                    : MessageType.FILE;
+            String mediaType = file.getContentType() != null && file.getContentType().startsWith("image/") ? "image" : "file";
+            MessageType type = "image".equals(mediaType) ? MessageType.IMAGE : MessageType.FILE;
 
             try {
-                CloudinaryUploadResult upload = type == MessageType.IMAGE
-                        ? cloudinaryService.uploadImage(file, folder)
-                        : cloudinaryService.uploadFile(file, folder);
+                CloudinaryUploadResult upload = Objects.requireNonNull(
+                        messageMetrics.uploadTimer(mediaType).recordCallable(
+                                () -> type == MessageType.IMAGE
+                                        ? cloudinaryService.uploadImage(file, folder)
+                                        : cloudinaryService.uploadFile(file, folder)
+                        )
+                );
+                messageMetrics.recordUpload(RESULT_SUCCESS, mediaType);
 
                 Message message = Message.builder()
                         .chatId(chatId)
@@ -218,12 +280,24 @@ public class MessageService {
                         .build();
 
                 messagesToSave.add(message);
-            } catch (IOException e) {
-                // Loga e continua — não falha o batch por um ficheiro
+            } catch (Exception e) {
+                messageMetrics.recordUpload(RESULT_FAILURE, mediaType);
+                log.error(
+                        "Failed to upload file [chatId={}, userId={}, filename={}]",
+                        chatId,
+                        userId,
+                        file.getOriginalFilename(),
+                        e
+                );
             }
         }
 
         List<Message> savedMessages = messageRepository.saveAll(messagesToSave);
+
+        if (savedMessages.isEmpty()) {
+            return List.of();
+        }
+
         chat.setLastMessageId(savedMessages.getLast().getId());
         chatRepository.save(chat);
 
@@ -232,6 +306,13 @@ public class MessageService {
         List<String> membersIds = getChatMembersIds(chat);
         responses.forEach(response -> websocketBroadcaster.broadcastMessage(membersIds, response));
 
+        log.info(
+                "Uploaded {} files to chat [chatId={}, userId={}]",
+                savedMessages.size(),
+                chatId,
+                userId
+        );
+
         return responses;
     }
 
@@ -239,6 +320,12 @@ public class MessageService {
         boolean isMember = chatMemberRepository.findByChatIdAndUserId(chatId, userId).isPresent();
 
         if (!isMember) {
+            log.warn(
+                    "Unauthorized chat access [chatId={}, userId={}]",
+                    chatId,
+                    userId
+            );
+
             throw new ForbiddenException("Current user doesn't belong to this chat");
         }
 

@@ -260,7 +260,7 @@ export default function Chat() {
 					break;
 				case EventType.CONTACT_DELETED:
 					if (!event.contactId || !event.chatId) break;
-					
+
 					removeAcceptedContact(event.contactId);
 					removeChat(event.chatId);
 					if (activeChat === event.chatId) {
@@ -337,10 +337,10 @@ export default function Chat() {
 
 		if (chat === ChatType.GROUP) {
 			const confirmed = await groupActions.confirmation.confirm({
-				title: 'Sair do grupo',
-				message: 'Tens a certeza que queres sair deste grupo?',
-				confirmText: 'Sair',
-				cancelText: 'Cancelar',
+				title: t('confirmation.leaveGroup.title'),
+				message: t('confirmation.leaveGroup.message'),
+				confirmText: t('confirmation.leaveGroup.confirm'),
+				cancelText: t('confirmation.leaveGroup.cancel'),
 				variant: 'warning'
 			});
 
@@ -423,6 +423,17 @@ export default function Chat() {
 
 	const handleDeleteGroupWithUI = async (chatId: string) => {
 		try {
+
+			const confirmed = await groupActions.confirmation.confirm({
+				title: t('confirmation.deleteGroup.title'),
+				message: t('confirmation.deleteGroup.message'),
+				confirmText: t('confirmation.deleteGroup.confirm'),
+				cancelText: t('confirmation.deleteGroup.cancel'),
+				variant: 'danger'
+			});
+
+			if (!confirmed) return;
+
 			await groupActions.handleDeleteGroup(chatId);
 			removeChat(chatId);
 
@@ -494,7 +505,7 @@ export default function Chat() {
 					onRegisterMessageHandler={(fn) => { activeChatMessageRef.current = fn; }}
 					onRegisterTypingHandler={(fn) => { activeChatTypingRef.current = fn; }}
 					setSidebarOpen={setIsSidebarOpen}
-					onLeaveGroup={groupActions.handleLeaveGroup}
+					onLeaveGroup={handleDeleteChatWithConfirm}
 					onDeleteGroup={handleDeleteGroupWithUI}
 					onTransferOwnership={groupActions.handleTransferOwnership}
 					onKickMember={groupActions.handleKickMember}

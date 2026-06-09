@@ -25,6 +25,7 @@
 			"kick": "Kick member"
 		}
 	},
+	"editing": "Editing message...",
 	"save": "Save",
 	"cancel": "Cancel",
 	"search": "Search members or @username ...",

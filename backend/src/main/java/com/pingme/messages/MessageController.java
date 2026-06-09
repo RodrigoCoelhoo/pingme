@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("api/chats/{chatId}/messages")
 @RequiredArgsConstructor
@@ -88,6 +90,12 @@ public class MessageController {
             @PathVariable String chatId,
             @RequestPart("files") List<MultipartFile> files
     ) throws IOException {
+        log.debug(
+                "POST /api/chats/{}/messages/files [userId={}, fileCount={}]",
+                chatId,
+                userProfile.id(),
+                files.size()
+        );
         chatMemberService.getChatMember(chatId, userProfile.id());
 
         List<MessageResponse> responses =
@@ -106,7 +114,14 @@ public class MessageController {
             @PathVariable String chatId,
             @PathVariable String messageId,
             @RequestBody @Valid MessageRequest request
-            ) {
+    ) {
+        log.debug(
+                "PATCH /api/chats/{}/messages/{} [userId={}]",
+                chatId,
+                messageId,
+                user.id()
+        );
+
         MessageResponse response = messageService.editMessage(chatId, messageId, user.id(), request.content());
         return ResponseEntity.ok(response);
     }
@@ -117,6 +132,13 @@ public class MessageController {
             @PathVariable String chatId,
             @PathVariable String messageId
     ) {
+        log.debug(
+                "DELETE /api/chats/{}/messages/{} [userId={}]",
+                chatId,
+                messageId,
+                user.id()
+        );
+
         messageService.deleteMessage(chatId, messageId, user.id());
         return ResponseEntity.noContent().build();
     }

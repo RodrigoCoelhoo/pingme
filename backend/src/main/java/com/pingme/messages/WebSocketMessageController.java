@@ -9,6 +9,7 @@ import com.pingme.messages.dto.MessageRequest;
 import com.pingme.messages.dto.MessageResponse;
 import com.pingme.messages.dto.TypingIndicator;
 import com.pingme.messages.dto.TypingRequest;
+import com.pingme.shared.metrics.MessageMetrics;
 import com.pingme.users.User;
 import com.pingme.users.UserService;
 import com.pingme.users.dto.UserProfile;
@@ -22,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import java.util.List;
+import java.util.Objects;
 
 @Controller
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class WebSocketMessageController {
     private final ChatService chatService;
     private final UserService userService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MessageMetrics messageMetrics;
 
     /**
      * Handle incoming messages from clients
@@ -43,23 +46,28 @@ public class WebSocketMessageController {
             @DestinationVariable String chatId,
             @Payload @Valid MessageRequest request,
             SimpMessageHeaderAccessor headerAccessor
-    ) {
+    ) throws Exception {
         UserProfile user = getUserFromSession(headerAccessor);
 
         Chat chat;
         try {
             chat = chatService.getChat(chatId, user.id());
         } catch (ForbiddenException e) {
+            messageMetrics.recordMessageFailure("forbidden");
             return;
         }
 
         if(chat == null) return;
 
-        Message message = messageService.saveMessage(
-                chatId,
-                user.id(),
-                request.content(),
-                request.type()
+        Message message = Objects.requireNonNull(
+                messageMetrics.messageSaveTimer().recordCallable(() ->
+                        messageService.saveMessage(
+                                chatId,
+                                user.id(),
+                                request.content(),
+                                request.type()
+                        )
+                )
         );
 
         if(chat.getChatType() == ChatType.PRIVATE) {
@@ -70,13 +78,13 @@ public class WebSocketMessageController {
         MessageResponse response = MessageResponse.from(message, sender);
 
         List<String> memberIds = chatMemberService.getMemberIds(chatId);
-        for (String memberId : memberIds) {
-            messagingTemplate.convertAndSendToUser(
-                    memberId,
-                    "/queue/messages",
-                    response
-            );
-        }
+        messageMetrics.wsDeliveryTimer().record(() -> {
+            for (String memberId : memberIds) {
+                messagingTemplate.convertAndSendToUser(memberId, "/queue/messages", response);
+            }
+        });
+
+        messageMetrics.recordMessageSent(chat.getChatType().name());
     }
 
     /**

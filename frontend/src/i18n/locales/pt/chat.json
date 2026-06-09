@@ -25,6 +25,7 @@
 			"kick": "Expulsar membro"
 		}
 	},
+	"editing": "A editar mensagem...",
 	"save": "Guardar",
 	"cancel": "Cancelar",
 	"search": "Procurar membros ou @username ...",

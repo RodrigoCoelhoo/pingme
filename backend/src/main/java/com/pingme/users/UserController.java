@@ -1,19 +1,18 @@
 package com.pingme.users;
 
-import com.pingme.shared.presence.PresenceService;
 import com.pingme.users.dto.UpdateUserRequest;
 import com.pingme.users.dto.UserProfile;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Set;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -23,6 +22,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserProfile> me(@AuthenticationPrincipal UserProfile user) {
+        log.debug("GET /api/users/me [userId={}]", user.id());
         return ResponseEntity.ok(user);
     }
 
@@ -32,9 +32,14 @@ public class UserController {
             @RequestPart(value = "data", required = false) @Valid UpdateUserRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file
     ) throws IOException {
+        log.debug(
+                "PATCH /api/users [userId={}, hasData={}, hasFile={}]",
+                userProfile.id(),
+                request != null,
+                file != null
+        );
+
         UserProfile response = userService.updateUser(userProfile.id(), request, file);
         return ResponseEntity.ok(response);
     }
-
-
 }

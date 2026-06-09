@@ -54,16 +54,6 @@ export function useGroupActions({
 	};
 
 	const handleDeleteGroup = async (chatId: string) => {
-		const confirmed = await confirmation.confirm({
-			title: t('confirmation.deleteGroup.title'),
-			message: t('confirmation.deleteGroup.message'),
-			confirmText: t('confirmation.deleteGroup.confirm'),
-			cancelText: t('confirmation.deleteGroup.cancel'),
-			variant: 'danger'
-		});
-
-		if (!confirmed) return;
-
 		try {
 			await onDeleteGroup(chatId);
 		} catch (error) {
