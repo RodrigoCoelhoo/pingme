@@ -179,7 +179,7 @@ PingMe uses dedicated WebSocket channels for different event categories:
 
 This separation keeps event traffic organized and allows clients to subscribe only to the updates they require.
 
-### Real-Time Message Flow
+### Real-Time Messaging
 
 ```mermaid
 sequenceDiagram
@@ -197,6 +197,103 @@ sequenceDiagram
     BE-->>WS: Broadcast event
     WS-->>B: Deliver message instantly
     WS-->>A: Delivery confirmation
+```
+
+### Presence & Online Status
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant FE as React Client
+    participant APP as Spring Boot
+    participant PT as Presence Tracker
+    participant C as Contacts
+    participant DB as MongoDB
+
+    U->>FE: Open application
+    FE->>APP: Establish WebSocket connection
+    APP->>PT: Register session
+
+    alt First active session
+        PT-->>APP: User became ONLINE
+        APP->>C: Resolve contacts
+        APP-->>C: Broadcast ONLINE
+    end
+
+    Note over FE,APP: Initial presence synchronization
+
+    FE->>APP: GET /contacts/online
+    APP->>PT: Filter online contacts
+    PT-->>APP: Online contact IDs
+    APP-->>FE: Online contacts
+
+
+    C-->>FE: Contact ONLINE
+    C-->>FE: Contact OFFLINE
+
+    U-->>FE: Close application
+    FE-->>APP: Disconnect WebSocket
+    APP->>PT: Remove session
+
+    alt Last active session
+        PT-->>APP: User became OFFLINE
+        APP->>DB: Update lastSeenAt
+        APP->>C: Resolve contacts
+        APP-->>C: Broadcast OFFLINE
+    end
+```
+
+### Contact Lifecycle
+```mermaid
+sequenceDiagram
+    participant A as User A
+    participant APP as Spring Boot
+    participant DB as MongoDB
+    participant B as User B
+
+    A->>APP: Send contact request
+    APP->>DB: Create PENDING contact
+    APP-->>B: CONTACT_RECEIVED
+
+    alt Accept
+        B->>APP: Accept request
+        APP->>DB: Update status = ACCEPTED
+        APP-->>A: CONTACT_ACCEPTED
+    else Reject
+        B->>APP: Reject request
+        APP->>DB: Delete request
+        APP-->>A: CONTACT_REJECTED
+    else Cancel
+        A->>APP: Cancel request
+        APP->>DB: Delete request
+        APP-->>B: CONTACT_CANCELLED
+    end
+```
+
+### Group Management
+```mermaid
+sequenceDiagram
+    participant M as Moderator/Admin
+    participant APP as Spring Boot
+    participant DB as MongoDB
+    participant G as Group Members
+    participant T as Target Member
+
+    M->>APP: Perform group action
+
+    APP->>APP: Validate permissions
+    APP->>DB: Update membership state
+
+    APP->>DB: Create system message
+    APP-->>G: Broadcast update
+
+    alt User removed
+        APP-->>T: MEMBER_KICKED
+    else User added
+        APP-->>T: MEMBER_ADDED
+    else Role changed
+        APP-->>T: ROLE_UPDATED
+    end
 ```
 
 ## 🔁 CI Pipeline
