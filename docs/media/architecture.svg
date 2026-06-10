@@ -1,0 +1,180 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 770" font-family="'Segoe UI', Inter, system-ui, sans-serif">
+
+
+
+  <defs>
+    <marker id="ab" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3b82f6"/></marker>
+    <marker id="ag" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/></marker>
+    <marker id="agb" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse"><path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/></marker>
+    <marker id="ao" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#ea580c"/></marker>
+    <marker id="ap" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/></marker>
+    <marker id="apb" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse"><path d="M0,0 L0,6 L8,3 z" fill="#7c3aed"/></marker>
+    <marker id="art" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f97316"/></marker>
+    <marker id="artb" markerWidth="8" markerHeight="8" refX="2" refY="3" orient="auto-start-reverse"><path d="M0,0 L0,6 L8,3 z" fill="#f97316"/></marker>
+  </defs>
+
+
+
+  <!-- ═══ CLIENT ═══ -->
+  <rect x="30" y="65" width="180" height="200" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <rect x="30" y="65" width="180" height="32" rx="10" fill="#3b82f6"/>
+  <rect x="30" y="85" width="180" height="12" fill="#3b82f6"/>
+  <text x="120" y="87" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" letter-spacing="1">CLIENT</text>
+
+  <rect x="48" y="107" width="144" height="50" rx="7" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="120" y="127" text-anchor="middle" fill="#1e40af" font-size="11" font-weight="600">User Browser</text>
+  <text x="120" y="146" text-anchor="middle" fill="#64748b" font-size="9">Interacts via UI</text>
+
+  <line x1="120" y1="157" x2="120" y2="172" stroke="#3b82f6" stroke-width="1.5" marker-end="url(#ab)"/>
+
+  <rect x="48" y="172" width="144" height="60" rx="7" fill="#ffffff" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="120" y="192" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="700">React Frontend</text>
+  <text x="120" y="209" text-anchor="middle" fill="#3b82f6" font-size="9">React · TypeScript · Vite</text>
+  <text x="120" y="222" text-anchor="middle" fill="#94a3b8" font-size="8">Port 5173</text>
+
+  <!-- ═══ EXTERNAL ═══ -->
+  <rect x="30" y="295" width="180" height="200" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2"/>
+  <rect x="30" y="295" width="180" height="32" rx="10" fill="#7c3aed"/>
+  <rect x="30" y="315" width="180" height="12" fill="#7c3aed"/>
+  <text x="120" y="317" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" letter-spacing="1">EXTERNAL</text>
+
+  <!-- Cloudinary first -->
+  <rect x="48" y="337" width="144" height="60" rx="7" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="120" y="357" text-anchor="middle" fill="#6d28d9" font-size="11" font-weight="700">Cloudinary</text>
+  <text x="120" y="374" text-anchor="middle" fill="#64748b" font-size="9">Image · File Storage</text>
+  <text x="120" y="386" text-anchor="middle" fill="#94a3b8" font-size="8">Upload API</text>
+
+  <!-- Google OAuth2 second -->
+  <rect x="48" y="410" width="144" height="60" rx="7" fill="#ffffff" stroke="#c4b5fd" stroke-width="1.5"/>
+  <text x="120" y="430" text-anchor="middle" fill="#6d28d9" font-size="11" font-weight="700">Google OAuth2</text>
+  <text x="120" y="447" text-anchor="middle" fill="#64748b" font-size="9">Identity Provider</text>
+  <text x="120" y="459" text-anchor="middle" fill="#94a3b8" font-size="8">Auth Code Flow</text>
+
+  <!-- ═══ SPRING BOOT ═══ -->
+  <rect x="260" y="65" width="560" height="580" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <rect x="260" y="65" width="560" height="32" rx="12" fill="#16a34a"/>
+  <rect x="260" y="85" width="560" height="12" fill="#16a34a"/>
+  <text x="540" y="87" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" letter-spacing="1">SPRING BOOT BACKEND  ·  Port 8080</text>
+
+  <!-- REST Controllers -->
+  <rect x="278" y="107" width="155" height="68" rx="7" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="355" y="128" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">REST Controllers</text>
+  <line x1="288" y1="135" x2="423" y2="135" stroke="#dcfce7" stroke-width="1"/>
+  <text x="355" y="150" text-anchor="middle" fill="#64748b" font-size="9">Auth · Chats · Users</text>
+  <text x="355" y="163" text-anchor="middle" fill="#64748b" font-size="9">Messages · Contacts</text>
+  <text x="355" y="176" text-anchor="middle" fill="#64748b" font-size="9">Chat Members</text>
+
+  <!-- WebSocket -->
+  <rect x="463" y="107" width="155" height="68" rx="7" fill="#fff7ed" stroke="#fb923c" stroke-width="2"/>
+  <text x="540" y="127" text-anchor="middle" fill="#c2410c" font-size="11" font-weight="700">WebSocket + STOMP</text>
+  <line x1="473" y1="134" x2="608" y2="134" stroke="#fed7aa" stroke-width="1"/>
+  <text x="540" y="149" text-anchor="middle" fill="#9a3412" font-size="9">Messages · Presence</text>
+  <text x="540" y="163" text-anchor="middle" fill="#9a3412" font-size="9">Typing · Events</text>
+
+  <!-- Spring Security -->
+  <rect x="648" y="107" width="155" height="68" rx="7" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="725" y="128" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">Spring Security</text>
+  <line x1="658" y1="135" x2="793" y2="135" stroke="#dcfce7" stroke-width="1"/>
+  <text x="725" y="150" text-anchor="middle" fill="#64748b" font-size="9">JWT · OAuth2</text>
+  <text x="725" y="163" text-anchor="middle" fill="#64748b" font-size="9">Rate Limiting</text>
+
+  <!-- arrows to App Services -->
+  <line x1="355" y1="175" x2="430" y2="222" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+  <line x1="540" y1="175" x2="540" y2="222" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+  <line x1="725" y1="175" x2="650" y2="222" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- Application Services -->
+  <rect x="355" y="222" width="370" height="70" rx="8" fill="#dcfce7" stroke="#15803d" stroke-width="2.5"/>
+  <text x="540" y="249" text-anchor="middle" fill="#14532d" font-size="13" font-weight="700">Application Services</text>
+  <text x="540" y="267" text-anchor="middle" fill="#166534" font-size="9">Chat · Messaging · Contacts · Groups · Presence</text>
+  <text x="540" y="281" text-anchor="middle" fill="#94a3b8" font-size="8">Business Logic · Event Broadcasting</text>
+
+  <!-- App Services → OAuth2 Client + Monitoring -->
+  <line x1="430" y1="292" x2="355" y2="337" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+  <line x1="650" y1="292" x2="725" y2="337" stroke="#16a34a" stroke-width="1.5" marker-end="url(#ag)"/>
+
+  <!-- OAuth2 Client -->
+  <rect x="278" y="337" width="155" height="60" rx="7" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="355" y="358" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">OAuth2 Client</text>
+  <line x1="288" y1="365" x2="423" y2="365" stroke="#dcfce7" stroke-width="1"/>
+  <text x="355" y="381" text-anchor="middle" fill="#64748b" font-size="9">Google Login</text>
+  <text x="355" y="394" text-anchor="middle" fill="#94a3b8" font-size="8">Auth Code Flow</text>
+
+  <!-- Monitoring -->
+  <rect x="648" y="337" width="155" height="60" rx="7" fill="#ffffff" stroke="#4ade80" stroke-width="1.5"/>
+  <text x="725" y="358" text-anchor="middle" fill="#15803d" font-size="11" font-weight="700">Monitoring</text>
+  <line x1="658" y1="365" x2="793" y2="365" stroke="#dcfce7" stroke-width="1"/>
+  <text x="725" y="381" text-anchor="middle" fill="#64748b" font-size="9">Actuator · Micrometer</text>
+  <text x="725" y="394" text-anchor="middle" fill="#94a3b8" font-size="8">/actuator/prometheus</text>
+
+  <!-- Logging -->
+  <rect x="278" y="420" width="525" height="38" rx="7" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="540" y="444" text-anchor="middle" fill="#475569" font-size="10" font-weight="600">Logging  —  SLF4J · Logback · Rolling File Appender · 30-day Retention</text>
+
+  <!-- MongoDB -->
+  <rect x="278" y="478" width="525" height="90" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <rect x="278" y="478" width="525" height="30" rx="10" fill="#166534"/>
+  <rect x="278" y="496" width="525" height="12" fill="#166534"/>
+  <text x="540" y="498" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" letter-spacing="1">MONGODB  ·  Port 27017</text>
+  <text x="540" y="530" text-anchor="middle" fill="#15803d" font-size="10" font-weight="600">users · chats · messages · contacts · memberships</text>
+  <text x="540" y="550" text-anchor="middle" fill="#64748b" font-size="9">Spring Data MongoDB</text>
+
+
+
+  <!-- ═══ OBSERVABILITY ═══ -->
+  <rect x="870" y="65" width="200" height="235" rx="10" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+  <rect x="870" y="65" width="200" height="32" rx="10" fill="#ea580c"/>
+  <rect x="870" y="85" width="200" height="12" fill="#ea580c"/>
+  <text x="970" y="87" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" letter-spacing="1">OBSERVABILITY</text>
+
+  <rect x="888" y="107" width="164" height="58" rx="7" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="970" y="127" text-anchor="middle" fill="#c2410c" font-size="11" font-weight="700">Prometheus</text>
+  <text x="970" y="144" text-anchor="middle" fill="#64748b" font-size="9">Scrapes metrics</text>
+  <text x="970" y="157" text-anchor="middle" fill="#94a3b8" font-size="8">Port 9090</text>
+
+  <line x1="970" y1="165" x2="970" y2="185" stroke="#ea580c" stroke-width="1.5" marker-end="url(#ao)"/>
+  <text x="984" y="178" fill="#64748b" font-size="8">queries</text>
+
+  <rect x="888" y="185" width="164" height="58" rx="7" fill="#ffffff" stroke="#fed7aa" stroke-width="1.5"/>
+  <text x="970" y="205" text-anchor="middle" fill="#c2410c" font-size="11" font-weight="700">Grafana</text>
+  <text x="970" y="222" text-anchor="middle" fill="#64748b" font-size="9">Dashboards</text>
+  <text x="970" y="235" text-anchor="middle" fill="#94a3b8" font-size="8">Port 3001</text>
+
+  <!-- Prometheus scrapes Monitoring -->
+  <line x1="870" y1="136" x2="803" y2="362" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#ao)"/>
+  <text x="848" y="255" fill="#ea580c" font-size="8" transform="rotate(-78,848,255)">scrapes</text>
+
+  <!-- ═══ CI PIPELINE ═══ -->
+  <rect x="870" y="330" width="200" height="130" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <rect x="870" y="330" width="200" height="32" rx="10" fill="#2563eb"/>
+  <rect x="870" y="350" width="200" height="12" fill="#2563eb"/>
+  <text x="970" y="352" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="700" letter-spacing="1">CI PIPELINE</text>
+
+  <rect x="888" y="372" width="164" height="72" rx="7" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
+  <text x="970" y="393" text-anchor="middle" fill="#1d4ed8" font-size="11" font-weight="700">GitHub Actions</text>
+  <text x="970" y="410" text-anchor="middle" fill="#64748b" font-size="9">Build · Health Check</text>
+  <text x="970" y="424" text-anchor="middle" fill="#64748b" font-size="9">Docker Compose</text>
+
+  <!-- ═══ CONNECTIONS ═══ -->
+
+  <!-- React → REST (HTTP, blue dashed, arrow hits top area of REST) -->
+  <line x1="192" y1="185" x2="278" y2="125" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ab)"/>
+  <text x="218" y="160" text-anchor="middle" fill="#3b82f6" font-size="8">HTTP REST</text>
+
+  <!-- React ↔ WebSocket (orange dotted, no label) -->
+  <line x1="192" y1="215" x2="463" y2="155" stroke="#f97316" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#art)" marker-start="url(#artb)"/>
+
+  <!-- Cloudinary ↔ App Services -->
+  <line x1="192" y1="367" x2="355" y2="265" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)" marker-start="url(#apb)"/>
+  <text x="248" y="325" text-anchor="middle" fill="#7c3aed" font-size="8">Uploads</text>
+
+  <!-- Google OAuth2 ↔ OAuth2 Client -->
+  <line x1="192" y1="440" x2="278" y2="367" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#ap)" marker-start="url(#apb)"/>
+  <text x="222" y="413" text-anchor="middle" fill="#7c3aed" font-size="8">OAuth Flow</text>
+
+  <!-- DOCKER FOOTER -->
+  <rect x="30" y="690" width="1040" height="52" rx="8" fill="#f0f9ff" stroke="#2496ed" stroke-width="1.5" stroke-dasharray="7,4"/>
+  <text x="550" y="712" text-anchor="middle" fill="#2496ed" font-size="11" font-weight="700" letter-spacing="1">DOCKER</text>
+  <text x="550" y="730" text-anchor="middle" fill="#64748b" font-size="10">All services containerised  ·  Live Reload</text>
+
+</svg>
