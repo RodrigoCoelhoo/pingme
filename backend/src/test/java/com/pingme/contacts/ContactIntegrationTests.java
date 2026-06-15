@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-class ContactIntegrationTest extends BaseIntegrationTest {
+class ContactIntegrationTests extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;

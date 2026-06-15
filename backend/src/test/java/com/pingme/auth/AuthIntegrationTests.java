@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class AuthIntegrationTest extends BaseIntegrationTest {
+class AuthIntegrationTests extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
