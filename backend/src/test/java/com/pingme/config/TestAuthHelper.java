@@ -8,10 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-/**
- * Helper reutilizável para criar utilizadores e tokens nos testes.
- * Evita duplicação de código entre classes de teste.
- */
 @Component
 public class TestAuthHelper {
 

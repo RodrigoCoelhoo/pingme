@@ -6,6 +6,7 @@ import com.pingme.config.TestAuthHelper;
 import com.pingme.shared.exceptions.InvalidTokenException;
 import com.pingme.users.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -39,150 +40,162 @@ class AuthIntegrationTest extends BaseIntegrationTest {
     // SIGNUP
     // ----------------------------------------------------------------
 
-    @Test
-    void signup_withValidData_returnsUserProfile() throws Exception {
-        var body = Map.of(
-                "email", "newuser@pingme.com",
-                "username", "newuser",
-                "displayName", "New User",
-                "password", "Password-123"
-        );
+    @Nested
+    class SignUp {
+        @Test
+        void signup_withValidData_returnsUserProfile() throws Exception {
+            var body = Map.of(
+                    "email", "newuser@pingme.com",
+                    "username", "newuser",
+                    "displayName", "New User",
+                    "password", "Password-123"
+            );
 
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.email").value("newuser@pingme.com"))
-                .andExpect(jsonPath("$.username").value("newuser"));
-    }
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.email").value("newuser@pingme.com"))
+                    .andExpect(jsonPath("$.username").value("newuser"));
+        }
 
-    @Test
-    void signup_withDuplicateEmail_returnsBadRequest() throws Exception {
-        authHelper.createUserAndToken("dup");
+        @Test
+        void signup_withDuplicateEmail_returnsBadRequest() throws Exception {
+            authHelper.createUserAndToken("dup");
 
-        var body = Map.of(
-                "email", "test_dup@pingme.com",
-                "username", "differentusername",
-                "displayName", "Another User",
-                "password", "Password-123"
-        );
+            var body = Map.of(
+                    "email", "test_dup@pingme.com",
+                    "username", "differentusername",
+                    "displayName", "Another User",
+                    "password", "Password-123"
+            );
 
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isConflict());
-    }
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isConflict());
+        }
 
-    @Test
-    void signup_withInvalidEmail_returnsBadRequest() throws Exception {
-        var body = Map.of(
-                "email", "not-an-email",
-                "username", "someuser",
-                "displayName", "Some User",
-                "password", "Password-123"
-        );
+        @Test
+        void signup_withInvalidEmail_returnsBadRequest() throws Exception {
+            var body = Map.of(
+                    "email", "not-an-email",
+                    "username", "someuser",
+                    "displayName", "Some User",
+                    "password", "Password-123"
+            );
 
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isBadRequest());
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     // ----------------------------------------------------------------
     // SIGNIN
     // ----------------------------------------------------------------
 
-    @Test
-    void signin_withValidCredentials_returnsAccessToken() throws Exception {
-        authHelper.createUserAndToken("signin");
+    @Nested
+    class SignIn {
+        @Test
+        void signin_withValidCredentials_returnsAccessToken() throws Exception {
+            authHelper.createUserAndToken("signin");
 
-        var body = Map.of(
-                "email", "test_signin@pingme.com",
-                "password", "Password-123"
-        );
+            var body = Map.of(
+                    "email", "test_signin@pingme.com",
+                    "password", "Password-123"
+            );
 
-        mockMvc.perform(post("/api/auth/signin-local")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isNotEmpty());
-    }
+            mockMvc.perform(post("/api/auth/signin-local")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.accessToken").isNotEmpty());
+        }
 
-    @Test
-    void signin_withWrongPassword_returnsUnauthorized() throws Exception {
-        authHelper.createUserAndToken("wrongpw");
+        @Test
+        void signin_withWrongPassword_returnsUnauthorized() throws Exception {
+            authHelper.createUserAndToken("wrongpw");
 
-        var body = Map.of(
-                "email", "test_wrongpw@pingme.com",
-                "password", "wrongpassword"
-        );
+            var body = Map.of(
+                    "email", "test_wrongpw@pingme.com",
+                    "password", "wrongpassword"
+            );
 
-        mockMvc.perform(post("/api/auth/signin-local")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isUnauthorized());
-    }
+            mockMvc.perform(post("/api/auth/signin-local")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isUnauthorized());
+        }
 
-    @Test
-    void signin_withNonExistentEmail_returnsError() throws Exception {
-        var body = Map.of(
-                "email", "nobody@pingme.com",
-                "password", "password123"
-        );
+        @Test
+        void signin_withNonExistentEmail_returnsError() throws Exception {
+            var body = Map.of(
+                    "email", "nobody@pingme.com",
+                    "password", "password123"
+            );
 
-        mockMvc.perform(post("/api/auth/signin-local")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isNotFound());
-    }
-
-    // ----------------------------------------------------------------
-    // PROTEÇÃO DE ENDPOINTS
-    // ----------------------------------------------------------------
-
-    @Test
-    void protectedEndpoint_withoutToken_returns401() throws Exception {
-        mockMvc.perform(get("/api/chats"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void protectedEndpoint_withValidToken_doesNotReturn401() throws Exception {
-        var auth = authHelper.createUserAndToken("protected");
-
-        mockMvc.perform(get("/api/chats")
-                        .header("Authorization", auth.bearerToken()))
-                .andExpect(status().is2xxSuccessful());
-    }
-
-    @Test
-    void protectedEndpoint_withInvalidToken_throwsInvalidTokenException() throws Exception {
-        assertThatThrownBy(() ->
-                mockMvc.perform(get("/api/chats")
-                        .header("Authorization", "Bearer token.invalido.aqui"))
-        )
-        .isInstanceOf(InvalidTokenException.class)
-        .hasMessage("Invalid or expired access token");
+            mockMvc.perform(post("/api/auth/signin-local")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isNotFound());
+        }
     }
 
     // ----------------------------------------------------------------
-    // PERSISTÊNCIA
+    // ENPOINT PROTECTION
     // ----------------------------------------------------------------
 
-    @Test
-    void signup_persistsUserInMongoDB() throws Exception {
-        var body = Map.of(
-                "email", "persist@pingme.com",
-                "username", "persistuser",
-                "displayName", "Persist User",
-                "password", "Password-123"
-        );
+    @Nested
+    class EndpointProtection {
+        @Test
+        void protectedEndpoint_withoutToken_returns401() throws Exception {
+            mockMvc.perform(get("/api/chats"))
+                    .andExpect(status().isUnauthorized());
+        }
 
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk());
+        @Test
+        void protectedEndpoint_withValidToken_doesNotReturn401() throws Exception {
+            var auth = authHelper.createUserAndToken("protected");
 
-        assertThat(userRepository.findByEmail("persist@pingme.com")).isPresent();
+            mockMvc.perform(get("/api/chats")
+                            .header("Authorization", auth.bearerToken()))
+                    .andExpect(status().is2xxSuccessful());
+        }
+
+        @Test
+        void protectedEndpoint_withInvalidToken_throwsInvalidTokenException() throws Exception {
+            assertThatThrownBy(() ->
+                    mockMvc.perform(get("/api/chats")
+                            .header("Authorization", "Bearer token.invalido.aqui"))
+            )
+                    .isInstanceOf(InvalidTokenException.class)
+                    .hasMessage("Invalid or expired access token");
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // PERSISTENCE
+    // ----------------------------------------------------------------
+
+    @Nested
+    class Persistence {
+        @Test
+        void signup_persistsUserInMongoDB() throws Exception {
+            var body = Map.of(
+                    "email", "persist@pingme.com",
+                    "username", "persistuser",
+                    "displayName", "Persist User",
+                    "password", "Password-123"
+            );
+
+            mockMvc.perform(post("/api/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isOk());
+
+            assertThat(userRepository.findByEmail("persist@pingme.com")).isPresent();
+        }
     }
 }
