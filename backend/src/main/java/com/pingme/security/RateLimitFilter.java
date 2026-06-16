@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,6 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
+
+    @Value("${rate.limit.enabled:true}")
+    private boolean enabled;
 
     private record RequestCount(AtomicInteger count, Instant windowStart) {}
 
@@ -43,6 +47,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain chain
     ) throws ServletException, IOException {
+        if (!enabled) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         String ip = request.getRemoteAddr();
         String path = request.getRequestURI();
 
