@@ -135,7 +135,6 @@ class ContactIntegrationTests extends BaseIntegrationTest {
 
         @Test
         void getContacts_pendingReceived_returnsCorrectContacts() throws Exception {
-            // sender envia pedido ao receiver
             var body = Map.of("username", "testuser_receiver");
             mockMvc.perform(post("/api/contacts")
                             .header("Authorization", sender.bearerToken())
@@ -143,7 +142,6 @@ class ContactIntegrationTests extends BaseIntegrationTest {
                             .content(objectMapper.writeValueAsString(body)))
                     .andExpect(status().isOk());
 
-            // receiver deve ver o pedido como RECEIVED
             mockMvc.perform(get("/api/contacts")
                             .header("Authorization", receiver.bearerToken())
                             .param("status", "PENDING")
@@ -293,7 +291,6 @@ class ContactIntegrationTests extends BaseIntegrationTest {
     class DeleteContact {
         @Test
         void deleteContact_byEitherUser_removesContact() throws Exception {
-            // Cria e aceita contacto
             var body = Map.of("username", "testuser_receiver");
             mockMvc.perform(post("/api/contacts")
                             .header("Authorization", sender.bearerToken())
@@ -310,7 +307,6 @@ class ContactIntegrationTests extends BaseIntegrationTest {
                             .param("action", "ACCEPT"))
                     .andExpect(status().isNoContent());
 
-            // Sender apaga o contacto
             mockMvc.perform(delete("/api/contacts/" + contactId)
                             .header("Authorization", sender.bearerToken()))
                     .andExpect(status().isNoContent());
@@ -333,7 +329,6 @@ class ContactIntegrationTests extends BaseIntegrationTest {
                     .findContactBetween(sender.user().getId(), receiver.user().getId())
                     .orElseThrow().getId();
 
-            // Terceiro utilizador tenta apagar contacto alheio
             mockMvc.perform(delete("/api/contacts/" + contactId)
                             .header("Authorization", thirdUser.bearerToken()))
                     .andExpect(status().isNotFound());
